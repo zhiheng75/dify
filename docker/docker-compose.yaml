@@ -3,6 +3,7 @@ services:
   # API service
   api:
     image: langgenius/dify-api:0.5.10
+    # image: zhihengw/qany:0.0.1
     restart: always
     environment:
       # Startup mode, 'api' starts the API server.
@@ -142,6 +143,7 @@ services:
   # The Celery worker for processing the queue.
   worker:
     image: langgenius/dify-api:0.5.10
+    # image: zhihengw/qany:0.0.1
     restart: always
     environment:
       # Startup mode, 'worker' starts the Celery worker for processing the queue.
@@ -153,7 +155,8 @@ services:
       LOG_LEVEL: INFO
       # A secret key that is used for securely signing the session cookie and encrypting sensitive information on the database. You can generate a strong key using `openssl rand -base64 42`.
       # same as the API service
-      SECRET_KEY: sk-9f73s3ljTXVcMT3Blb3ljTqtsKiGHXVcMT3BlbkFJLK7U
+      # SECRET_KEY: sk-9f73s3ljTXVcMT3Blb3ljTqtsKiGHXVcMT3BlbkFJLK7U
+      SECRET_KEY: 6VuJGux8k+hVQDwpkCX2TFxm2Ebol74EzL2+YV2Z386jRFPT8x84bYge
       # The configurations of postgres database connection.
       # It is consistent with the configuration in the 'db' service below.
       DB_USERNAME: postgres
