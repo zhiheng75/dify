@@ -260,8 +260,8 @@ services:
     volumes:
       - ./volumes/db/data:/var/lib/postgresql/data
     # uncomment to expose db(postgresql) port to host
-    # ports:
-    #   - "5432:5432"
+    ports:
+      - "5432:5432"
     healthcheck:
       test: [ "CMD", "pg_isready" ]
       interval: 1s
@@ -280,8 +280,8 @@ services:
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
     # uncomment to expose redis port to host
-    # ports:
-    #   - "6379:6379"
+    ports:
+      - "6379:6379"
 
   # The Weaviate vector store.
   weaviate:
