@@ -60,7 +60,7 @@ export default function AccountAbout({
                 : t('common.about.nowAvailable', { version: langeniusVersionInfo.latest_version })
             }
           </div>
-          <div className='flex items-center'>
+          {/*<div className='flex items-center'>
             <Link
               className={classNames(buttonClassName, 'mr-2')}
               href={'https://github.com/langgenius/dify/releases'}
@@ -79,7 +79,7 @@ export default function AccountAbout({
                 </Link>
               )
             }
-          </div>
+          </div>*/}
         </div>
       </div>
     </Modal>
