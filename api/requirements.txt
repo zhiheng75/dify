@@ -76,3 +76,4 @@ azure-storage-blob==12.9.0
 azure-identity==1.15.0
 # Enable torch will make the docker image super large, disable for now
 # torch
+# libreoffice
