@@ -129,6 +129,10 @@ services:
       SENTRY_TRACES_SAMPLE_RATE: 1.0
       # The sample rate for Sentry profiles. Default: `1.0`
       SENTRY_PROFILES_SAMPLE_RATE: 1.0
+      # dify / Unstructured
+      # ETL_TYPE: dify
+      ETL_TYPE: Unstructured
+      UNSTRUCTURED_API_URL: ''
     depends_on:
       - db
       - redis
@@ -217,6 +221,10 @@ services:
       # the api-key for resend (https://resend.com)
       RESEND_API_KEY: ''
       RESEND_API_URL: https://api.resend.com
+      # dify / Unstructured
+      # ETL_TYPE: dify
+      ETL_TYPE: Unstructured
+      UNSTRUCTURED_API_URL: ''
     depends_on:
       - db
       - redis
