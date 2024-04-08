@@ -57,7 +57,8 @@ qdrant-client==1.7.3
 cohere~=4.44
 pyyaml~=6.0.1
 numpy~=1.25.2
-unstructured[docx,pptx,msg,md,ppt]~=0.10.27
+#unstructured[docx,pptx,msg,md,ppt]~=0.10.27
+unstructured[all-docs]~=0.10.27
 bs4~=0.0.1
 markdown~=3.5.1
 google-generativeai~=0.3.2
@@ -76,4 +77,3 @@ azure-storage-blob==12.9.0
 azure-identity==1.15.0
 # Enable torch will make the docker image super large, disable for now
 # torch
-# libreoffice
