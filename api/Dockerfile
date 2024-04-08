@@ -32,7 +32,7 @@ ENV TZ UTC
 WORKDIR /app/api
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl wget vim nodejs ffmpeg libgmp-dev libmpfr-dev libmpc-dev libreoffice libmagic-dev poppler-utils tesseract-ocr tesseract-lang pandoc \
+    && apt-get install -y --no-install-recommends curl wget vim nodejs ffmpeg libgmp-dev libmpfr-dev libmpc-dev libreoffice libmagic-dev poppler-utils tesseract-ocr tesseract-ocr-chi-sim pandoc \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
 
