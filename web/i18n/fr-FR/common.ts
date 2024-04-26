@@ -34,6 +34,8 @@ const translation = {
     log: 'Journal',
     learnMore: 'En savoir plus',
     params: 'Paramètres',
+    duplicate: 'Dupliquer',
+    rename: 'Renommer',
   },
   placeholder: {
     input: 'Veuillez entrer',
@@ -117,7 +119,7 @@ const translation = {
     workspace: 'Espace de travail',
     createWorkspace: 'Créer un Espace de Travail',
     helpCenter: 'Aide',
-    roadmapAndFeedback: 'Feuille de route & Retour d\'information',
+    roadmapAndFeedback: 'Retour d\'information',
     community: 'Communauté',
     about: 'À propos',
     logout: 'Se déconnecter',
@@ -400,6 +402,7 @@ const translation = {
     promptEng: 'Orchestrer',
     apiAccess: 'Accès API',
     logAndAnn: 'Journaux & Annonces.',
+    logs: 'Journaux',
   },
   environment: {
     testing: 'TESTER',
@@ -477,6 +480,10 @@ const translation = {
         title: 'Variables & Outils Externes',
         desc: 'Insérer des Variables & Outils Externes',
       },
+      outputToolDisabledItem: {
+        title: 'Variables',
+        desc: 'Insérer Variables',
+      },
       modal: {
         add: 'Nouvelle variable',
         addTool: 'Nouvel outil',
@@ -499,6 +506,21 @@ const translation = {
     pasteImageLinkInputPlaceholder: 'Collez le lien de l\'image ici',
     pasteImageLinkInvalid: 'Lien d\'image invalide',
     imageUpload: 'Téléchargement d\'image',
+  },
+  tag: {
+    placeholder: 'Toutes les balises',
+    addNew: 'Ajouter une nouvelle balise',
+    noTag: 'Aucune balise',
+    noTagYet: 'Aucune balise pour l\'instant',
+    addTag: 'ajouter une balise',
+    editTag: 'Modifier les balises',
+    manageTags: 'Gérer les balises',
+    selectorPlaceholder: 'Type de recherche ou de création',
+    create: 'Créer',
+    delete: 'Supprimer la balise',
+    deleteTip: 'Le tag est utilisé, le supprimer ?',
+    created: 'Tag créé avec succès',
+    failed: 'La création de la balise a échoué',
   },
 }
 

@@ -53,11 +53,7 @@ class UnstructuredWordExtractor(BaseExtractor):
             elements = partition_docx(filename=self._file_path)
 
         from unstructured.chunking.title import chunk_by_title
-        # print('========================')
-        # for element in elements:
-        #    print(element)
-        # print('========================')
-        chunks = chunk_by_title(elements, max_characters=2000, combine_text_under_n_chars=100)
+        chunks = chunk_by_title(elements, max_characters=2000, combine_text_under_n_chars=2000)
         documents = []
         for chunk in chunks:
             text = chunk.text.strip()
