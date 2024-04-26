@@ -34,6 +34,8 @@ const translation = {
     log: 'Log',
     learnMore: 'Learn More',
     params: 'Params',
+    duplicate: 'Duplicate',
+    rename: 'Rename',
   },
   placeholder: {
     input: 'Please enter',
@@ -117,7 +119,7 @@ const translation = {
     workspace: 'Workspace',
     createWorkspace: 'Create Workspace',
     helpCenter: 'Help',
-    roadmapAndFeedback: 'Roadmap & Feedback',
+    roadmapAndFeedback: 'Feedback',
     community: 'Community',
     about: 'About',
     logout: 'Log out',
@@ -390,7 +392,7 @@ const translation = {
     type: 'Type',
   },
   about: {
-    changeLog: 'Changlog',
+    changeLog: 'Changelog',
     updateNow: 'Update now',
     nowAvailable: 'Dify {{version}} is now available.',
     latestAvailable: 'Dify {{version}} is the latest version available.',
@@ -400,6 +402,7 @@ const translation = {
     promptEng: 'Orchestrate',
     apiAccess: 'API Access',
     logAndAnn: 'Logs & Ann.',
+    logs: 'Logs',
   },
   environment: {
     testing: 'TESTING',
@@ -477,6 +480,10 @@ const translation = {
         title: 'Variables & External Tools',
         desc: 'Insert Variables & External Tools',
       },
+      outputToolDisabledItem: {
+        title: 'Variables',
+        desc: 'Insert Variables',
+      },
       modal: {
         add: 'New variable',
         addTool: 'New tool',
@@ -499,6 +506,21 @@ const translation = {
     pasteImageLinkInputPlaceholder: 'Paste image link here',
     pasteImageLinkInvalid: 'Invalid image link',
     imageUpload: 'Image Upload',
+  },
+  tag: {
+    placeholder: 'All Tags',
+    addNew: 'Add new tag',
+    noTag: 'No tags',
+    noTagYet: 'No tags yet',
+    addTag: 'Add tags',
+    editTag: 'Edit tags',
+    manageTags: 'Manage Tags',
+    selectorPlaceholder: 'Type to search or create',
+    create: 'Create',
+    delete: 'Delete tag',
+    deleteTip: 'The tag is being used, delete it?',
+    created: 'Tag created successfully',
+    failed: 'Tag creation failed',
   },
 }
 
