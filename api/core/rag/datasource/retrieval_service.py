@@ -1,14 +1,18 @@
 import threading
+import traceback
 from typing import Optional
 
 from flask import Flask, current_app
 
+from core.es.es_conn import ELASTICSEARCH
 from core.rag.data_post_processor.data_post_processor import DataPostProcessor
 from core.rag.datasource.keyword.keyword_factory import Keyword
 from core.rag.datasource.vdb.vector_factory import Vector
+from core.rag.models.document import Document
 from core.rag.rerank.constants.rerank_mode import RerankMode
 from core.rag.retrieval.retrival_methods import RetrievalMethod
 from extensions.ext_database import db
+from libs import helper
 from models.dataset import Dataset
 
 default_retrieval_model = {
@@ -68,7 +72,7 @@ class RetrievalService:
 
         # retrieval source with full text
         if RetrievalMethod.is_support_fulltext_search(retrival_method):
-            full_text_index_thread = threading.Thread(target=RetrievalService.full_text_index_search, kwargs={
+            full_text_index_thread = threading.Thread(target=RetrievalService.es_full_text_index_searc, kwargs={
                 'flask_app': current_app._get_current_object(),
                 'dataset_id': dataset_id,
                 'query': query,
@@ -81,6 +85,19 @@ class RetrievalService:
             })
             threads.append(full_text_index_thread)
             full_text_index_thread.start()
+
+        if retrival_method == 'es_text_search':
+            es_text_search_thread = threading.Thread(target=RetrievalService.es_text_search, kwargs={
+                'flask_app': current_app._get_current_object(),
+                'dataset_id': dataset_id,
+                'query': query,
+                'top_k': top_k,
+                'score_threshold': score_threshold,
+                'reranking_model': reranking_model,
+                'all_documents': all_documents
+            })
+            threads.append(es_text_search_thread)
+            es_text_search_thread.start()
 
         for thread in threads:
             thread.join()
@@ -121,6 +138,61 @@ class RetrievalService:
             except Exception as e:
                 exceptions.append(str(e))
 
+
+    @classmethod
+    def es_text_search(cls, flask_app: Flask, dataset_id: str, query: str,
+                         top_k: int, score_threshold: Optional[float], reranking_model: Optional[dict],
+                         all_documents: list):
+        # ES:返回文章全文
+        with flask_app.app_context():
+            dataset = db.session.query(Dataset).filter(
+                Dataset.id == dataset_id
+            ).first()
+            documents = []
+            q = {
+                "query": {
+                    "match": {
+                        "body": query
+                    }
+                },
+                "size":top_k
+            }
+            src = ["id", "title","document_id", "tenant_id", "title", "body"]
+            try:
+                print(q)
+                print(dataset_id)
+                print(src)
+                response = ELASTICSEARCH.search(q=q, idxnm=dataset_id, src=src)
+
+                for item in response['hits']['hits']:
+                    doc = item['_source']
+                    doc_score = item['_score']
+                    d_ret = Document(
+                        page_content = doc['body'],
+                        metadata={
+                            "doc_id": doc['document_id'],
+                            "doc_hash": helper.generate_text_hash(doc['body']),
+                            "document_id": doc['document_id'],
+                            "dataset_id": dataset_id,
+                            'score': float(doc_score)
+                        }
+                    )
+                    documents.append(d_ret)
+            except:
+                traceback.print_exc()
+
+            if documents:
+                if reranking_model:
+                    data_post_processor = DataPostProcessor(str(dataset.tenant_id), reranking_model, False)
+                    all_documents.extend(data_post_processor.invoke(
+                        query=query,
+                        documents=documents,
+                        score_threshold=score_threshold,
+                        top_n=len(documents)
+                    ))
+                else:
+                    all_documents.extend(documents)
+
     @classmethod
     def embedding_search(cls, flask_app: Flask, dataset_id: str, query: str,
                          top_k: int, score_threshold: Optional[float], reranking_model: Optional[dict],
@@ -160,6 +232,62 @@ class RetrievalService:
                         all_documents.extend(documents)
             except Exception as e:
                 exceptions.append(str(e))
+
+
+    @classmethod
+    def es_full_text_index_search(cls, flask_app: Flask, dataset_id: str, query: str,
+                               top_k: int, score_threshold: Optional[float], reranking_model: Optional[dict],
+                               all_documents: list, retrival_method: str):
+        # es (分割后)全文检索
+        with flask_app.app_context():
+            dataset = db.session.query(Dataset).filter(
+                Dataset.id == dataset_id
+            ).first()
+            documents = []
+            q = {
+                "query": {
+                    "match": {
+                        "body": query
+                    }
+                },
+                "size":top_k
+            }
+            src = ["id", "title","document_id", "tenant_id", "title", "body"]
+            try:
+
+                dataset_index_name = "split_"+dataset_id
+                response = ELASTICSEARCH.search(q=q, idxnm=dataset_index_name, src=src)
+
+                for item in response['hits']['hits']:
+                    doc = item['_source']
+                    doc_score = item['_score']
+                    segment_doc_id = item['_id']
+                    d_ret = Document(
+                        page_content = doc['body'],
+                        metadata={
+                            "doc_id": segment_doc_id,
+                            "doc_hash": helper.generate_text_hash(doc['body']),
+                            "document_id": doc['document_id'],
+                            "dataset_id": dataset_id,
+                            'score': float(doc_score)
+                        }
+                    )
+                    documents.append(d_ret)
+            except:
+                traceback.print_exc()
+
+            if documents:
+                if reranking_model and retrival_method == 'full_text_search':
+                    data_post_processor = DataPostProcessor(str(dataset.tenant_id), reranking_model, False)
+                    all_documents.extend(data_post_processor.invoke(
+                        query=query,
+                        documents=documents,
+                        score_threshold=score_threshold,
+                        top_n=len(documents)
+                    ))
+                else:
+                    all_documents.extend(documents)
+
 
     @classmethod
     def full_text_index_search(cls, flask_app: Flask, dataset_id: str, query: str,

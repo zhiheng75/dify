@@ -62,38 +62,72 @@ class HitTestingService:
         db.session.add(dataset_query)
         db.session.commit()
 
+        if "es_text_search" == retrieval_model["search_method"]:
+            return cls.compact_retrieve_response(dataset, query, all_documents, True)
+
         return cls.compact_retrieve_response(dataset, query, all_documents)
 
     @classmethod
-    def compact_retrieve_response(cls, dataset: Dataset, query: str, documents: list[Document]):
+    def compact_retrieve_response(cls, dataset: Dataset, query: str, documents: list[Document], es=False):
         i = 0
         records = []
         for document in documents:
             index_node_id = document.metadata["doc_id"]
 
-            segment = (
-                db.session.query(DocumentSegment)
-                .filter(
-                    DocumentSegment.dataset_id == dataset.id,
-                    DocumentSegment.enabled == True,
-                    DocumentSegment.status == "completed",
-                    DocumentSegment.index_node_id == index_node_id,
+            if es:
+                segment = (
+                    db.session.query(DocumentSegment)
+                    .filter(
+                        DocumentSegment.dataset_id == dataset.id,
+                        DocumentSegment.enabled == True,
+                        DocumentSegment.status == "completed",
+                        DocumentSegment.index_node_id == index_node_id,
+                    )
+                    .first()
                 )
-                .first()
-            )
 
-            if not segment:
+                if not segment:
+                    continue
+
+                # fake data for ui
+                segment.content = document.page_content
+                segment.id = index_node_id
+                segment.keywords = []
+                segment.index_node_id = index_node_id
+                segment.index_node_hash = document.metadata["doc_hash"]
+                segment.word_count = len(document.page_content)
+
+                record = {
+                    "segment": segment,
+                    "score": document.metadata.get("score", None),
+                }
+
+                records.append(record)
+
+            else:
+                segment = (
+                    db.session.query(DocumentSegment)
+                    .filter(
+                        DocumentSegment.dataset_id == dataset.id,
+                        DocumentSegment.enabled == True,
+                        DocumentSegment.status == "completed",
+                        DocumentSegment.index_node_id == index_node_id,
+                    )
+                    .first()
+                )
+
+                if not segment:
+                    i += 1
+                    continue
+
+                record = {
+                    "segment": segment,
+                    "score": document.metadata.get("score", None),
+                }
+
+                records.append(record)
+
                 i += 1
-                continue
-
-            record = {
-                "segment": segment,
-                "score": document.metadata.get("score", None),
-            }
-
-            records.append(record)
-
-            i += 1
 
         return {
             "query": {

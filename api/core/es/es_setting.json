@@ -1,0 +1,43 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1
+    },
+    "analysis": {
+      "analyzer": "whitespace"
+    }
+  },
+  "mappings": {
+
+      "properties": {
+        "title": {
+          "type": "text",
+          "analyzer":"whitespace",
+          "store":"true"
+        },
+        "body": {
+          "type": "text",
+          "analyzer":"whitespace",
+          "store":"true"
+        },
+        "year": {
+          "type": "date",
+          "format": "yyyy"
+        },
+        "type": {
+          "type": "text"
+        },
+        "star": {
+          "type": "float"
+        },
+        "director": {
+          "type": "keyword"
+        },
+        "user_id":  {
+          "type": "keyword"
+        }
+      }
+
+  }
+}

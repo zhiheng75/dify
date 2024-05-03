@@ -1,0 +1,33 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1
+    }
+  },
+  "mappings": {
+      "properties": {
+        "document_id":  {
+          "type": "keyword",
+          "store":"true"
+        },
+        "title": {
+          "type": "text",
+          "analyzer":"ik_max_word",
+          "search_analyzer":"ik_smart",
+          "store":"true"
+        },
+        "body": {
+          "type": "text",
+          "analyzer":"ik_max_word",
+          "search_analyzer":"ik_smart",
+          "store":"true"
+        },
+        "tenant_id":  {
+          "type": "keyword",
+          "store":"true"
+        }
+      }
+
+  }
+}

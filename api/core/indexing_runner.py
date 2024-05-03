@@ -2,6 +2,7 @@ import concurrent.futures
 import datetime
 import json
 import logging
+import os
 import re
 import threading
 import time
@@ -14,6 +15,7 @@ from sqlalchemy.orm.exc import ObjectDeletedError
 
 from configs import dify_config
 from core.errors.error import ProviderTokenNotInitError
+from core.es.es_conn import ELASTICSEARCH
 from core.llm_generator.llm_generator import LLMGenerator
 from core.model_manager import ModelInstance, ModelManager
 from core.model_runtime.entities.model_entities import ModelType, PriceType
@@ -677,6 +679,19 @@ class IndexingRunner:
                                                  args=(current_app._get_current_object(),
                                                        dataset.id, dataset_document.id, documents))
         create_keyword_thread.start()
+
+        # es 整个文章
+        create_es_thread = threading.Thread(target=self._process_es_index,
+                                                 args=(current_app._get_current_object(),
+                                                       dataset.id, dataset_document.id, documents))
+        create_es_thread.start()
+
+        # es 分割文章
+        create_es_split_thread = threading.Thread(target=self._process_es_split_index,
+                                            args=(current_app._get_current_object(),
+                                                  dataset.id, dataset_document.id, documents))
+        create_es_split_thread.start()
+
         if dataset.indexing_technique == 'high_quality':
             with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
                 futures = []
@@ -690,6 +705,8 @@ class IndexingRunner:
                     tokens += future.result()
 
         create_keyword_thread.join()
+        create_es_thread.join()
+        create_es_split_thread.join()
         indexing_end_at = time.perf_counter()
 
         # update document status to completed
@@ -724,6 +741,35 @@ class IndexingRunner:
                 })
 
                 db.session.commit()
+
+    def _process_es_split_index(self, flask_app, dataset_id, document_id, documents):
+        with flask_app.app_context():
+            dataset = Dataset.query.filter_by(id=dataset_id).first()
+            if not dataset:
+                raise ValueError("no dataset found")
+            dataset_index_name = "split_"+str(dataset_id)
+            content = ""
+            split_docs = []
+            for doc in documents:
+                sdoc = {"id": doc.metadata['doc_id'],"document_id":document_id, "title": "", "tenant_id": dataset.tenant_id,
+                       "body": doc.page_content}
+                split_docs.append(sdoc)
+            ELASTICSEARCH.confirmIndexExist(dataset_index_name)
+            ELASTICSEARCH.upsert(split_docs, idxnm=dataset_index_name)
+
+    def _process_es_index(self, flask_app, dataset_id, document_id, documents):
+        with flask_app.app_context():
+            dataset = Dataset.query.filter_by(id=dataset_id).first()
+            if not dataset:
+                raise ValueError("no dataset found")
+            dataset_index_name = str(dataset_id)
+            content = ""
+            for doc in documents:
+                content = content + os.linesep + doc.page_content
+            ELASTICSEARCH.confirmIndexExist(dataset_index_name)
+            doc = {"id": document_id,"document_id":document_id, "title": "", "tenant_id": dataset.tenant_id,
+                   "body": content}
+            ELASTICSEARCH.upsert([doc], idxnm=dataset_index_name)
 
     def _process_chunk(self, flask_app, index_processor, chunk_documents, dataset, dataset_document,
                        embedding_model_instance):

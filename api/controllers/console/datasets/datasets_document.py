@@ -2,6 +2,7 @@ import logging
 from argparse import ArgumentTypeError
 from datetime import datetime, timezone
 
+from elasticsearch_dsl import Q
 from flask import request
 from flask_login import current_user
 from flask_restful import Resource, fields, marshal, marshal_with, reqparse
@@ -32,6 +33,7 @@ from core.errors.error import (
     ProviderTokenNotInitError,
     QuotaExceededError,
 )
+from core.es.es_conn import ELASTICSEARCH
 from core.indexing_runner import IndexingRunner
 from core.model_manager import ModelManager
 from core.model_runtime.entities.model_entities import ModelType
@@ -709,6 +711,8 @@ class DocumentDeleteApi(DocumentResource):
 
         try:
             DocumentService.delete_document(document)
+            ELASTICSEARCH.deleteByQuery(Q("match", document_id=document_id),idxnm=dataset_id) #全文库
+            ELASTICSEARCH.deleteByQuery(Q("match", document_id=document_id), idxnm="split_"+dataset_id) #文本分割库
         except services.errors.document.DocumentIndexingError:
             raise DocumentIndexingError('Cannot delete document during indexing.')
 

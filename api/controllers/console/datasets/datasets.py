@@ -13,6 +13,7 @@ from controllers.console.datasets.error import DatasetInUseError, DatasetNameDup
 from controllers.console.setup import setup_required
 from controllers.console.wraps import account_initialization_required
 from core.errors.error import LLMBadRequestError, ProviderTokenNotInitError
+from core.es.es_conn import ELASTICSEARCH
 from core.indexing_runner import IndexingRunner
 from core.model_runtime.entities.model_entities import ModelType
 from core.provider_manager import ProviderManager
@@ -259,6 +260,8 @@ class DatasetApi(Resource):
 
         try:
             if DatasetService.delete_dataset(dataset_id_str, current_user):
+                ELASTICSEARCH.deleteIdx(idxnm=dataset_id_str)  # 全文库
+                ELASTICSEARCH.deleteIdx(idxnm="split_" + dataset_id_str)  # 文本分割库
                 DatasetPermissionService.clear_partial_member_list(dataset_id_str)
                 return {'result': 'success'}, 204
             else:
@@ -561,6 +564,7 @@ class DatasetRetrievalSettingApi(Resource):
                         RetrievalMethod.SEMANTIC_SEARCH.value,
                         RetrievalMethod.FULL_TEXT_SEARCH.value,
                         RetrievalMethod.HYBRID_SEARCH.value,
+                        'es_text_search'
                     ]
                 }
             case _:
