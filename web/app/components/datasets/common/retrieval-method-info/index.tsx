@@ -17,6 +17,7 @@ export const getIcon = (type: RETRIEVE_METHOD) => {
   return ({
     [RETRIEVE_METHOD.semantic]: Semantic,
     [RETRIEVE_METHOD.fullText]: FileSearch02,
+    [RETRIEVE_METHOD.esText]: FileSearch02,
     [RETRIEVE_METHOD.hybrid]: PatternRecognition,
     [RETRIEVE_METHOD.invertedIndex]: HighPriority,
   })[type] || FileSearch02

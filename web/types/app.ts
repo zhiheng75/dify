@@ -33,6 +33,7 @@ export enum RETRIEVE_TYPE {
 export enum RETRIEVE_METHOD {
   semantic = 'semantic_search',
   fullText = 'full_text_search',
+  esText = 'es_text_search',
   hybrid = 'hybrid_search',
   invertedIndex = 'invertedIndex',
   keywordSearch = 'keyword_search',

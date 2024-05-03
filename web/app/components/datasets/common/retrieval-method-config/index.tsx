@@ -76,6 +76,28 @@ const RetrievalMethodConfig: FC<Props> = ({
           }
         />
       )}
+
+      {supportRetrievalMethods.includes(RETRIEVE_METHOD.semantic) && (
+        <RadioCard
+          icon={<FileSearch02 className='w-4 h-4 text-[#7839EE]' />}
+          title={t('dataset.retrieval.es_text_search.title')}
+          description={t('dataset.retrieval.es_text_search.description')}
+          isChosen={value.search_method === RETRIEVE_METHOD.esText}
+          onChosen={() => onChange({
+            ...value,
+            search_method: RETRIEVE_METHOD.esText,
+          })}
+          chosenConfig={
+            <RetrievalParamConfig
+              type={RETRIEVE_METHOD.esText}
+              value={value}
+              onChange={onChange}
+            />
+          }
+        />
+      )}
+
+
       {supportRetrievalMethods.includes(RETRIEVE_METHOD.semantic) && (
         <RadioCard
           icon={<PatternRecognition className='w-4 h-4 text-[#7839EE]' />}

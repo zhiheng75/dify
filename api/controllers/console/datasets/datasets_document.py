@@ -49,6 +49,8 @@ from services.dataset_service import DatasetService, DocumentService
 from tasks.add_document_to_index_task import add_document_to_index_task
 from tasks.remove_document_from_index_task import remove_document_from_index_task
 
+from core.es.es_conn import ELASTICSEARCH
+from elasticsearch_dsl import Q
 
 class DocumentResource(Resource):
     def get_document(self, dataset_id: str, document_id: str) -> Document:
@@ -673,6 +675,8 @@ class DocumentDeleteApi(DocumentResource):
 
         try:
             DocumentService.delete_document(document)
+            ELASTICSEARCH.deleteByQuery(Q("match", document_id=document_id),idxnm=dataset_id) #全文库
+            ELASTICSEARCH.deleteByQuery(Q("match", document_id=document_id), idxnm="split_"+dataset_id) #文本分割库
         except services.errors.document.DocumentIndexingError:
             raise DocumentIndexingError('Cannot delete document during indexing.')
 

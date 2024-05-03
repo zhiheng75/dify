@@ -75,6 +75,7 @@ DEFAULTS = {
     'KEYWORD_DATA_SOURCE_TYPE': 'database',
     'INNER_API': 'False',
     'ENTERPRISE_ENABLED': 'False',
+    'ES_URL': 'http://127.0.0.1:9200'
 }
 
 
@@ -345,6 +346,7 @@ class Config:
         self.BATCH_UPLOAD_LIMIT = get_env('BATCH_UPLOAD_LIMIT')
 
         self.CODE_EXECUTION_ENDPOINT = get_env('CODE_EXECUTION_ENDPOINT')
+        self.ES_URL = get_env('ES_URL')
         self.CODE_EXECUTION_API_KEY = get_env('CODE_EXECUTION_API_KEY')
 
         self.API_COMPRESSION_ENABLED = get_bool_env('API_COMPRESSION_ENABLED')

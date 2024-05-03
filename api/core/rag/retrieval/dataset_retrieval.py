@@ -36,7 +36,20 @@ default_retrieval_model = {
 }
 
 
+
+
 class DatasetRetrieval:
+
+    def handle_single_es_result(self, all_documents: list[Document],
+                                show_retrieve_source: bool,
+                                hit_callback: DatasetIndexToolCallbackHandler,
+                                invoke_from: InvokeFrom):
+        document_context_list = []
+        for item in all_documents:
+            document_context_list.append(item.page_content)
+            return str("\n".join(document_context_list))
+        return ''
+
     def retrieve(self, app_id: str, user_id: str, tenant_id: str,
                  model_config: ModelConfigWithCredentialsEntity,
                  config: DatasetEntity,
@@ -111,16 +124,30 @@ class DatasetRetrieval:
             available_datasets.append(dataset)
         all_documents = []
         user_from = 'account' if invoke_from in [InvokeFrom.EXPLORE, InvokeFrom.DEBUGGER] else 'end_user'
+        single = True
         if retrieve_config.retrieve_strategy == DatasetRetrieveConfigEntity.RetrieveStrategy.SINGLE:
             all_documents = self.single_retrieve(app_id, tenant_id, user_id, user_from, available_datasets, query,
                                                  model_instance,
                                                  model_config, planning_strategy)
         elif retrieve_config.retrieve_strategy == DatasetRetrieveConfigEntity.RetrieveStrategy.MULTIPLE:
+            single = False
             all_documents = self.multiple_retrieve(app_id, tenant_id, user_id, user_from,
                                                    available_datasets, query, retrieve_config.top_k,
                                                    retrieve_config.score_threshold,
                                                    retrieve_config.reranking_model.get('reranking_provider_name'),
                                                    retrieve_config.reranking_model.get('reranking_model_name'))
+        es = False
+
+        if single:
+            for item in all_documents:
+                doc_id = item.metadata['doc_id']
+                document_id = item.metadata['document_id']
+                if doc_id == document_id: # ES长文档模式
+                    es = True
+                    break
+
+        if single and es:
+            return self.handle_single_es_result(all_documents,show_retrieve_source,hit_callback,invoke_from)
 
         document_score_list = {}
         for item in all_documents:
