@@ -11,7 +11,8 @@ RUN apt-get update \
 
 COPY requirements.txt /requirements.txt
 
-RUN pip install --prefix=/pkg -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --prefix=/pkg -r requirements.txt
 
 # production stage
 FROM base AS production
@@ -32,7 +33,7 @@ ENV TZ UTC
 WORKDIR /app/api
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl wget vim nodejs ffmpeg libgmp-dev libmpfr-dev libmpc-dev \
+    && apt-get install -y --no-install-recommends curl wget vim nodejs ffmpeg libgmp-dev libmpfr-dev libmpc-dev libreoffice libmagic-dev poppler-utils tesseract-ocr tesseract-ocr-eng tesseract-ocr-chi-sim pandoc \
     && apt-get autoremove \
     && rm -rf /var/lib/apt/lists/*
 
