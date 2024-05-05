@@ -25,6 +25,8 @@ from models.dataset import Dataset, Document, DocumentSegment
 from models.model import ApiToken, UploadFile
 from services.dataset_service import DatasetService, DocumentService
 
+from core.es.es_conn import ELASTICSEARCH
+
 
 def _validate_name(name):
     if not name or len(name) < 1 or len(name) > 40:
@@ -217,6 +219,8 @@ class DatasetApi(Resource):
             raise Forbidden()
 
         if DatasetService.delete_dataset(dataset_id_str, current_user):
+            ELASTICSEARCH.deleteIdx(idxnm=dataset_id_str) #全文库
+            ELASTICSEARCH.deleteIdx(idxnm="split_"+dataset_id_str) #文本分割库
             return {'result': 'success'}, 204
         else:
             raise NotFound("Dataset not found.")
@@ -485,7 +489,7 @@ class DatasetRetrievalSettingApi(Resource):
         elif vector_type == 'qdrant' or vector_type == 'weaviate':
             return {
                 'retrieval_method': [
-                    'semantic_search', 'full_text_search', 'hybrid_search'
+                    'semantic_search', 'full_text_search', 'hybrid_search','es_text_search'
                 ]
             }
         else:
