@@ -1,5 +1,20 @@
 version: '3'
 services:
+  # The elasticsearch search engine.
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+      - TZ=Asia/Shanghai
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./volumes/es:/usr/share/elasticsearch/data
+
   # The postgres database.
   db:
     image: postgres:15-alpine
