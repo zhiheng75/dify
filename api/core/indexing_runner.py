@@ -77,7 +77,8 @@ class IndexingRunner:
                     index_processor=index_processor,
                     dataset=dataset,
                     dataset_document=dataset_document,
-                    documents=documents
+                    documents=documents,
+                    text_docs=text_docs
                 )
             except DocumentIsPausedException:
                 raise DocumentIsPausedException('Document paused, document id: {}'.format(dataset_document.id))
@@ -136,7 +137,8 @@ class IndexingRunner:
                 index_processor=index_processor,
                 dataset=dataset,
                 dataset_document=dataset_document,
-                documents=documents
+                documents=documents,
+                text_docs=text_docs
             )
         except DocumentIsPausedException:
             raise DocumentIsPausedException('Document paused, document id: {}'.format(dataset_document.id))
@@ -198,7 +200,8 @@ class IndexingRunner:
                 index_processor=index_processor,
                 dataset=dataset,
                 dataset_document=dataset_document,
-                documents=documents
+                documents=documents,
+                text_docs=None
             )
         except DocumentIsPausedException:
             raise DocumentIsPausedException('Document paused, document id: {}'.format(dataset_document.id))
@@ -363,6 +366,16 @@ class IndexingRunner:
                     document_model=dataset_document.doc_form
                 )
                 text_docs = index_processor.extract(extract_setting, process_rule_mode=process_rule['mode'])
+                # 这里把每页合并起来,后面再做拆分(因为分页可能把句子截断)
+                text_docs2 = []
+                if len(text_docs) == 0:
+                    return []
+                else:
+                    doc0 = text_docs[0]
+                    doc0.page_content = os.linesep.join([doc.page_content for doc in text_docs])
+                    text_docs2.append(doc0)
+                text_docs = text_docs2
+
         elif dataset_document.data_source_type == 'notion_import':
             if (not data_source_info or 'notion_workspace_id' not in data_source_info
                     or 'notion_page_id' not in data_source_info):
@@ -414,8 +427,8 @@ class IndexingRunner:
             # The user-defined segmentation rule
             rules = json.loads(processing_rule.rules)
             segmentation = rules["segmentation"]
-            if segmentation["max_tokens"] < 50 or segmentation["max_tokens"] > 5000:
-                raise ValueError("Custom segment length should be between 50 and 5000.")
+            if segmentation["max_tokens"] < 0 or segmentation["max_tokens"] > 50000:
+                raise ValueError("Custom segment length should be between 0 and 50000.")
 
             separator = segmentation["separator"]
             if separator:
@@ -572,7 +585,18 @@ class IndexingRunner:
         Split the text documents into nodes.
         """
         all_documents = []
-        for text_doc in text_docs:
+
+        # 这里把每页合并起来,后面再做拆分(因为分页可能把句子截断)
+        text_docs2 = []
+        if len(text_docs) == 0:
+            return []
+        else:
+            doc0 = text_docs[0]
+            doc0.page_content = "".join([doc.page_content for doc in text_docs])
+            text_docs2.append(doc0)
+
+
+        for text_doc in text_docs2:
             # document clean
             document_text = self._document_clean(text_doc.page_content, processing_rule)
             text_doc.page_content = document_text
@@ -638,7 +662,7 @@ class IndexingRunner:
         ]
 
     def _load(self, index_processor: BaseIndexProcessor, dataset: Dataset,
-              dataset_document: DatasetDocument, documents: list[Document]) -> None:
+              dataset_document: DatasetDocument, documents: list[Document],text_docs:list[str]) -> None:
         """
         insert index and update document/segment status to completed
         """
@@ -670,7 +694,7 @@ class IndexingRunner:
         # es 整个文章
         create_es_thread = threading.Thread(target=self._process_es_index,
                                                  args=(current_app._get_current_object(),
-                                                       dataset.id, dataset_document.id, documents))
+                                                       dataset.id, dataset_document.id, documents,text_docs))
         create_es_thread.start()
 
         # es 分割文章
@@ -744,15 +768,20 @@ class IndexingRunner:
             ELASTICSEARCH.confirmIndexExist(dataset_index_name)
             ELASTICSEARCH.upsert(split_docs, idxnm=dataset_index_name)
 
-    def _process_es_index(self, flask_app, dataset_id, document_id, documents):
+    def _process_es_index(self, flask_app, dataset_id, document_id, documents,text_docs:list[str]):
         with flask_app.app_context():
             dataset = Dataset.query.filter_by(id=dataset_id).first()
             if not dataset:
                 raise ValueError("no dataset found")
             dataset_index_name = str(dataset_id)
             content = ""
-            for doc in documents:
-                content = content + os.linesep + doc.page_content
+
+            if text_docs is not None and len(text_docs) > 0:
+                for doc in text_docs:
+                    content = content + os.linesep + doc.page_content
+            else:
+                for doc in documents:
+                    content = content + os.linesep + doc.page_content
             ELASTICSEARCH.confirmIndexExist(dataset_index_name)
             doc = {"id": document_id,"document_id":document_id, "title": "", "tenant_id": dataset.tenant_id,
                    "body": content}
