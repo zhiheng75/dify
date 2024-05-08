@@ -157,6 +157,27 @@ class FixedRecursiveCharacterTextSplitter(EnhanceRecursiveCharacterTextSplitter)
         final_chunks3 = []
         for i in range(0, len(final_chunks2)):
             current_chunk = final_chunks2[i]
+
+            # 如果是最后一块,则长度与倒数第二段对齐
+            if i == len(final_chunks2) - 1 and len(final_chunks2) > 1:
+                last_chunk = final_chunks2[-2]
+                len_diff = len(last_chunk) - len(current_chunk)
+                # overlap不足以补足长度再走该逻辑
+                if len_diff > self._chunk_overlap:
+                    last_chunk_small_sentences = pattern.split(last_chunk)
+                    last_chunk_small_sentences.reverse()
+                    symbol_index = len(last_chunk) - 1
+                    txt_overlap = ""
+                    for sen in last_chunk_small_sentences:
+                        symbol_index = symbol_index - len(sen)
+                        if len(txt_overlap) < len_diff:
+                            txt_overlap = sen + txt_overlap
+                            if symbol_index > -1:
+                                txt_overlap = last_chunk[symbol_index] + txt_overlap  # 左边的标点符号加上
+                                symbol_index = symbol_index - 1
+                    final_chunks3.append(txt_overlap+current_chunk)
+                    break
+
             left_overlop = ""
             right_overlop = ""
             if i > 0:
