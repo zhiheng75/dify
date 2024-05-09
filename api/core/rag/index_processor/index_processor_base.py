@@ -43,8 +43,8 @@ class BaseIndexProcessor(ABC):
             # The user-defined segmentation rule
             rules = processing_rule['rules']
             segmentation = rules["segmentation"]
-            if segmentation["max_tokens"] < 50 or segmentation["max_tokens"] > 5000:
-                raise ValueError("Custom segment length should be between 50 and 5000.")
+            if segmentation["max_tokens"] < 0 or segmentation["max_tokens"] > 50000:
+                raise ValueError("Custom segment length should be between 0 and 50000.")
 
             separator = segmentation["separator"]
             if separator:
