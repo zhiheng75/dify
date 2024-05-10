@@ -42,10 +42,14 @@ const ChatWithHistory: FC<ChatWithHistoryProps> = ({
 
   useEffect(() => {
     if (site) {
+      /*if (customConfig)
+        document.title = `${site.title}`
+      else
+        document.title = `${site.title} - Powered by Dify`*/
       if (customConfig)
         document.title = `${site.title}`
       else
-        document.title = `${site.title} - Powered by Dify`
+        document.title = `${site.title} - Powered by QAny`
     }
   }, [site, customConfig])
 
