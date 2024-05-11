@@ -107,8 +107,15 @@ const CustomizeModal: FC<IShareLinkProps> = ({
       <Button
         className='w-36 mt-2'
         onClick={() =>
-          window.open(
+          /*window.open(
             `https://docs.dify.ai/${locale !== LanguagesSupported[1]
+              ? 'user-guide/launching-dify-apps/developing-with-apis'
+              : `v/${locale.toLowerCase()}/guides/application-publishing/developing-with-apis`
+            }`,
+            '_blank',
+          )*/
+          window.open(
+            `/${locale !== LanguagesSupported[1]
               ? 'user-guide/launching-dify-apps/developing-with-apis'
               : `v/${locale.toLowerCase()}/guides/application-publishing/developing-with-apis`
             }`,

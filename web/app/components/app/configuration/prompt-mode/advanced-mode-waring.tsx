@@ -24,9 +24,16 @@ const AdvancedModeWarning: FC<Props> = ({
       <div className='flex justify-between items-center'>
         <div className='text-xs leading-[18px] '>
           <span className='text-gray-700'>{t('appDebug.promptMode.advancedWarning.description')}</span>
-          <a
+          {/*<a
             className='font-medium text-[#155EEF]'
             href={`https://docs.dify.ai/${locale === LanguagesSupported[1] ? 'v/zh-hans/guides/application-design/prompt-engineering' : 'features/prompt-engineering'}`}
+            target='_blank' rel='noopener noreferrer'
+          >
+            {t('appDebug.promptMode.advancedWarning.learnMore')}
+          </a>*/}
+          <a
+            className='font-medium text-[#155EEF]'
+            href={`/${locale === LanguagesSupported[1] ? 'v/zh-hans/guides/application-design/prompt-engineering' : 'features/prompt-engineering'}`}
             target='_blank' rel='noopener noreferrer'
           >
             {t('appDebug.promptMode.advancedWarning.learnMore')}
@@ -38,7 +45,7 @@ const AdvancedModeWarning: FC<Props> = ({
             onClick={onReturnToSimpleMode}
             className='shrink-0 flex items-center h-6 px-2 bg-indigo-600 shadow-xs border border-gray-200 rounded-lg text-white text-xs font-semibold cursor-pointer space-x-1'
           >
-            <FlipBackward className='w-3 h-3 text-white' />
+            <FlipBackward className='w-3 h-3 text-white'/>
             <div className='text-xs font-semibold uppercase'>{t('appDebug.promptMode.switchBack')}</div>
           </div>
           <div

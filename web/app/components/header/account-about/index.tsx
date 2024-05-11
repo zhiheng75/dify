@@ -40,7 +40,7 @@ export default function AccountAbout({
           <div className='mb-4 text-center text-xs font-normal text-gray-700'>
             {/*<div>© 2023 LangGenius, Inc., Contributors.</div>*/}
             <div>© 2024 QAny, Inc., Contributors.</div>
-            <div className='text-[#1C64F2]'>
+            {/*<div className='text-[#1C64F2]'>
               {
                 IS_CE_EDITION
                   ? <Link href={'https://github.com/langgenius/dify/blob/main/LICENSE'} target='_blank'
@@ -50,7 +50,7 @@ export default function AccountAbout({
                     <Link href='https://dify.ai/terms' target='_blank' rel='noopener noreferrer'>Terms of Service</Link>
                   </>
               }
-            </div>
+            </div>*/}
           </div>
         </div>
         <div className='mb-4 -mx-8 h-[0.5px] bg-gray-200' />
