@@ -1,7 +1,8 @@
 {
   "human_prefix": "Human",
   "assistant_prefix": "Assistant",
-  "context_prompt": "Use the following context as your learned knowledge, inside <context></context> XML tags.\n\n<context>\n{{#context#}}\n</context>\n\nWhen answer to user:\n- If you don't know, just say that you don't know.\n- If you don't know when you are not sure, ask for clarification.\nAvoid mentioning that you obtained the information from the context.\nAnd answer according to the language of the user's question.\n\n",
+  "context_prompt0": "Use the following context as your learned knowledge, inside <context></context> XML tags.\n\n<context>\n{{#context#}}\n</context>\n\nWhen answer to user:\n- If you don't know, just say that you don't know.\n- If you don't know when you are not sure, ask for clarification.\nAvoid mentioning that you obtained the information from the context.\nAnd answer according to the language of the user's question.\n\n",
+  "context_prompt":  "请阅读并理解下面<context></context>XML标记中的内容,成为你新学到的知识,并且作为回答用户问题的上下文.\n\n<context>\n{{#context#}}\n</context>\n\n当你向用户回答的时候:\n- 如果你不知道,你就说不知道.\n- 如果你不确定自己是不是知道,你可以要求澄清.\n避免提及您从上下文中获得的信息.\n并根据用户问题的语言进行回答.\n\n",
   "histories_prompt": "Here is the chat histories between human and assistant, inside <histories></histories> XML tags.\n\n<histories>\n{{#histories#}}\n</histories>\n\n",
   "system_prompt_orders": [
     "context_prompt",
