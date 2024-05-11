@@ -1,7 +1,7 @@
 const translation = {
   pageTitle: '嗨，近来可好 👋',
   /*welcome: '欢迎来到 Dify, 登录以继续',*/
-  welcome: '欢迎来到 QAny, 登录以继续',
+  welcome: '欢迎来到 ModelTurbo, 登录以继续',
   email: '邮箱',
   emailPlaceholder: '输入邮箱地址',
   password: '密码',
@@ -21,7 +21,7 @@ const translation = {
   interfaceLanguage: '界面语言',
   timezone: '时区',
   /*go: '跳转至 Dify',*/
-  go: '跳转至 QAny',
+  go: '跳转至 ModelTurbo',
   sendUsMail: '发封邮件介绍你自己，我们会尽快处理。',
   acceptPP: '我已阅读并接受隐私政策',
   reset: '请运行以下命令重置密码',
@@ -44,7 +44,7 @@ const translation = {
   },
   license: {
     /*tip: '启动 Dify 社区版之前, 请阅读 GitHub 上的',*/
-    tip: '启动 QAny 社区版之前, 请阅读 GitHub 上的',
+    tip: '启动 ModelTurbo 社区版之前, 请阅读 GitHub 上的',
     link: '开源协议',
   },
   join: '加入',
@@ -52,7 +52,7 @@ const translation = {
   joinTipEnd: '团队',
   invalid: '链接已失效',
   /*explore: '探索 Dify',*/
-  explore: '探索 QAny',
+  explore: '探索 ModelTurbo',
   activatedTipStart: '您已加入',
   activatedTipEnd: '团队',
   activated: '现在登录',
