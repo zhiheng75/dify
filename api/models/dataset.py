@@ -163,10 +163,10 @@ class DatasetProcessRule(db.Model):
             {'id': 'remove_urls_emails', 'enabled': False}
         ],
         'segmentation': {
-            'delimiter': '\n',
-            'max_tokens': 500,
-            'chunk_overlap': 50
-        }
+            'delimiter': '\n\n',
+            'max_tokens': 5000,
+            'chunk_overlap': 0
+        } # 短文本默认不切分/不重叠-需要重叠的去走自定义逻辑
     }
 
     def to_dict(self):

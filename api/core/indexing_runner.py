@@ -25,7 +25,7 @@ from core.rag.extractor.entity.extract_setting import ExtractSetting
 from core.rag.index_processor.index_processor_base import BaseIndexProcessor
 from core.rag.index_processor.index_processor_factory import IndexProcessorFactory
 from core.rag.models.document import Document
-from core.splitter.fixed_text_splitter import EnhanceRecursiveCharacterTextSplitter, FixedRecursiveCharacterTextSplitter
+from core.splitter.fixed_text_splitter import EnhanceRecursiveCharacterTextSplitter,AutoFixedRecursiveCharacterTextSplitter, FixedRecursiveCharacterTextSplitter
 from core.splitter.text_splitter import TextSplitter
 from extensions.ext_database import db
 from extensions.ext_redis import redis_client
@@ -366,15 +366,16 @@ class IndexingRunner:
                     document_model=dataset_document.doc_form
                 )
                 text_docs = index_processor.extract(extract_setting, process_rule_mode=process_rule['mode'])
-                # 这里把每页合并起来,后面再做拆分(因为分页可能把句子截断)
-                text_docs2 = []
-                if len(text_docs) == 0:
-                    return []
-                else:
-                    doc0 = text_docs[0]
-                    doc0.page_content = os.linesep.join([doc.page_content for doc in text_docs])
-                    text_docs2.append(doc0)
-                text_docs = text_docs2
+                if process_rule['mode'] == 'custom':
+                    # 这里把每页合并起来,后面再做拆分(因为分页可能把句子截断)
+                    text_docs2 = []
+                    if len(text_docs) == 0:
+                        return []
+                    else:
+                        doc0 = text_docs[0]
+                        doc0.page_content = os.linesep.join([doc.page_content for doc in text_docs])
+                        text_docs2.append(doc0)
+                    text_docs = text_docs2
 
         elif dataset_document.data_source_type == 'notion_import':
             if (not data_source_info or 'notion_workspace_id' not in data_source_info
@@ -448,13 +449,22 @@ class IndexingRunner:
             )
         else:
             # Automatic segmentation
+            """
             character_splitter = EnhanceRecursiveCharacterTextSplitter.from_encoder(
                 chunk_size=DatasetProcessRule.AUTOMATIC_RULES['segmentation']['max_tokens'],
                 chunk_overlap=DatasetProcessRule.AUTOMATIC_RULES['segmentation']['chunk_overlap'],
                 separators=["\n\n", "。", ".", " ", ""],
                 embedding_model_instance=embedding_model_instance
             )
+            """
 
+            character_splitter = AutoFixedRecursiveCharacterTextSplitter.from_encoder(
+                chunk_size=DatasetProcessRule.AUTOMATIC_RULES['segmentation']['max_tokens'],
+                chunk_overlap=DatasetProcessRule.AUTOMATIC_RULES['segmentation']['chunk_overlap'],
+                fixed_separator="\n\n",
+                separators=["\n\n", "。", ".", " ", ""],
+                embedding_model_instance=embedding_model_instance
+            )
         return character_splitter
 
     def _step_split(self, text_docs: list[Document], splitter: TextSplitter,
@@ -585,15 +595,16 @@ class IndexingRunner:
         Split the text documents into nodes.
         """
         all_documents = []
-
-        # 这里把每页合并起来,后面再做拆分(因为分页可能把句子截断)
-        text_docs2 = []
-        if len(text_docs) == 0:
-            return []
-        else:
-            doc0 = text_docs[0]
-            doc0.page_content = "".join([doc.page_content for doc in text_docs])
-            text_docs2.append(doc0)
+        text_docs2 = text_docs
+        if processing_rule.to_dict()['mode'] == 'custom':
+            # 这里把每页合并起来,后面再做拆分(因为分页可能把句子截断)
+            text_docs2 = []
+            if len(text_docs) == 0:
+                return []
+            else:
+                doc0 = text_docs[0]
+                doc0.page_content = "".join([doc.page_content for doc in text_docs])
+                text_docs2.append(doc0)
 
 
         for text_doc in text_docs2:
