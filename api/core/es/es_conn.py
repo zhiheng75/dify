@@ -1,3 +1,4 @@
+import os
 import copy
 import json
 import logging as es_logger
@@ -5,7 +6,6 @@ import re
 import time
 
 import elasticsearch
-from config import get_env
 from elastic_transport import ConnectionTimeout
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Index, Search, UpdateByQuery
@@ -45,7 +45,8 @@ class ESConnection:
             try:
                 self.es = Elasticsearch(
                     # settings.ES["hosts"].split(","),
-                    get_env('ES_URL'),
+                    # get_env('ES_URL'),
+                    f'http://{os.getenv("ELASTICSEARCH_HOST")}:{os.getenv("ELASTICSEARCH_PORT")}',
                     request_timeout=600
                 )
                 if self.es:
