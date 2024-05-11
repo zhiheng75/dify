@@ -15,3 +15,6 @@ services:
     volumes:
       - ./volumes/es:/usr/share/elasticsearch/data
 
+networks:
+  default:
+    name: qany-network

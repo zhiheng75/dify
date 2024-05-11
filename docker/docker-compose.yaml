@@ -101,7 +101,7 @@ services:
       # The Qdrant clinet timeout setting.
       QDRANT_CLIENT_TIMEOUT: 20
       # ElasticSearch configurations
-      ES_URL: http://127.0.0.1:9200
+      ES_URL: http://es:9200
       # Milvus configuration Only available when VECTOR_STORE is `milvus`.
       # The milvus host.
       MILVUS_HOST: 127.0.0.1
@@ -154,6 +154,7 @@ services:
     depends_on:
       - db
       - redis
+      - es
     volumes:
       # Mount the storage directory to the container, for storing user files.
       - ./volumes/app/storage:/app/api/storage
@@ -222,7 +223,7 @@ services:
       # The Qdrant clinet timeout setting.
       QDRANT_CLIENT_TIMEOUT: 20
       # ElasticSearch configurations
-      ES_URL: http://127.0.0.1:9200
+      ES_URL: http://es:9200
       # Milvus configuration Only available when VECTOR_STORE is `milvus`.
       # The milvus host.
       MILVUS_HOST: 127.0.0.1
@@ -254,6 +255,7 @@ services:
     depends_on:
       - db
       - redis
+      - es
     volumes:
       # Mount the storage directory to the container, for storing user files.
       - ./volumes/app/storage:/app/api/storage
