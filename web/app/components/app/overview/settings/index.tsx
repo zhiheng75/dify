@@ -142,29 +142,41 @@ const SettingsModal: FC<ISettingsModalProps> = ({
           <p className={`mt-1 ${s.policy} text-gray-500`}>{t(`${prefixSettings}.more.copyright`)} & {t(`${prefixSettings}.more.privacyPolicy`)}</p>
         </div>}
         {isShowMore && <>
-          <hr className='w-full mt-6' />
-          <div className={`mt-6 font-medium ${s.settingTitle} text-gray-900`}>{t(`${prefixSettings}.more.copyright`)}</div>
+          <hr className='w-full mt-6'/>
+          <div
+            className={`mt-6 font-medium ${s.settingTitle} text-gray-900`}>{t(`${prefixSettings}.more.copyright`)}</div>
           <input className={`w-full mt-2 rounded-lg h-10 box-border px-3 ${s.projectName} bg-gray-100`}
-            value={inputInfo.copyright}
-            onChange={onChange('copyright')}
-            placeholder={t(`${prefixSettings}.more.copyRightPlaceholder`) as string}
+                 value={inputInfo.copyright}
+                 onChange={onChange('copyright')}
+                 placeholder={t(`${prefixSettings}.more.copyRightPlaceholder`) as string}
           />
-          <div className={`mt-8 font-medium ${s.settingTitle} text-gray-900`}>{t(`${prefixSettings}.more.privacyPolicy`)}</div>
-          <p className={`mt-1 ${s.settingsTip} text-gray-500`}>
+          <div
+            className={`mt-8 font-medium ${s.settingTitle} text-gray-900`}>{t(`${prefixSettings}.more.privacyPolicy`)}</div>
+          {/*<p className={`mt-1 ${s.settingsTip} text-gray-500`}>
             <Trans
               i18nKey={`${prefixSettings}.more.privacyPolicyTip`}
               components={{ privacyPolicyLink: <Link href={'https://docs.dify.ai/user-agreement/privacy-policy'} target='_blank' rel='noopener noreferrer' className='text-primary-600' /> }}
             />
+          </p>*/}
+          <p className={`mt-1 ${s.settingsTip} text-gray-500`}>
+            <Trans
+              i18nKey={`${prefixSettings}.more.privacyPolicyTip`}
+              components={{
+                privacyPolicyLink: <Link href={'#'} target='_blank'
+                                         rel='noopener noreferrer' className='text-primary-600'/>
+              }}
+            />
           </p>
           <input className={`w-full mt-2 rounded-lg h-10 box-border px-3 ${s.projectName} bg-gray-100`}
-            value={inputInfo.privacyPolicy}
-            onChange={onChange('privacyPolicy')}
-            placeholder={t(`${prefixSettings}.more.privacyPolicyPlaceholder`) as string}
+                 value={inputInfo.privacyPolicy}
+                 onChange={onChange('privacyPolicy')}
+                 placeholder={t(`${prefixSettings}.more.privacyPolicyPlaceholder`) as string}
           />
         </>}
         <div className='mt-10 flex justify-end'>
           <Button className='mr-2 flex-shrink-0 !text-sm' onClick={onHide}>{t('common.operation.cancel')}</Button>
-          <Button type='primary' className='flex-shrink-0 !text-sm' onClick={onClickSave} loading={saveLoading}>{t('common.operation.save')}</Button>
+          <Button type='primary' className='flex-shrink-0 !text-sm' onClick={onClickSave}
+                  loading={saveLoading}>{t('common.operation.save')}</Button>
         </div>
         {showEmojiPicker && <EmojiPicker
           onSelect={(icon, icon_background) => {

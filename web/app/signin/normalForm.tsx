@@ -287,16 +287,26 @@ const NormalForm = () => {
           <div className="w-hull text-center block mt-2 text-xs text-gray-600">
             {t('login.tosDesc')}
             &nbsp;
-            <Link
+            {/*<Link
               className='text-primary-600'
               target='_blank' rel='noopener noreferrer'
               href='https://dify.ai/terms'
-            >{t('login.tos')}</Link>
-            &nbsp;&&nbsp;
+            >{t('login.tos')}</Link>*/}
             <Link
               className='text-primary-600'
               target='_blank' rel='noopener noreferrer'
+              href='#'
+            >{t('login.tos')}</Link>
+            &nbsp;&&nbsp;
+            {/*<Link
+              className='text-primary-600'
+              target='_blank' rel='noopener noreferrer'
               href='https://dify.ai/privacy'
+            >{t('login.pp')}</Link>*/}
+            <Link
+              className='text-primary-600'
+              target='_blank' rel='noopener noreferrer'
+              href='#'
             >{t('login.pp')}</Link>
           </div>
 

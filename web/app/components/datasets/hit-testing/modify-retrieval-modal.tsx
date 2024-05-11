@@ -76,8 +76,13 @@ const ModifyRetrievalModal: FC<Props> = ({
       <div className='shrink-0 flex justify-between items-center pl-6 pr-5 h-14 border-b border-b-gray-100'>
         <div className='text-base font-semibold text-gray-900'>
           <div>{t('datasetSettings.form.retrievalSetting.title')}</div>
-          <div className='leading-[18px] text-xs font-normal text-gray-500'>
+          {/*<div className='leading-[18px] text-xs font-normal text-gray-500'>
             <a target='_blank' rel='noopener noreferrer' href='https://docs.dify.ai/features/retrieval-augment' className='text-[#155eef]'>{t('datasetSettings.form.retrievalSetting.learnMore')}</a>
+            {t('datasetSettings.form.retrievalSetting.description')}
+          </div>*/}
+          <div className='leading-[18px] text-xs font-normal text-gray-500'>
+            <a target='_blank' rel='noopener noreferrer' href='#'
+               className='text-[#155eef]'>{t('datasetSettings.form.retrievalSetting.learnMore')}</a>
             {t('datasetSettings.form.retrievalSetting.description')}
           </div>
         </div>
@@ -86,7 +91,7 @@ const ModifyRetrievalModal: FC<Props> = ({
             onClick={onHide}
             className='flex justify-center items-center w-6 h-6 cursor-pointer'
           >
-            <XClose className='w-4 h-4 text-gray-500' />
+            <XClose className='w-4 h-4 text-gray-500'/>
           </div>
         </div>
       </div>
