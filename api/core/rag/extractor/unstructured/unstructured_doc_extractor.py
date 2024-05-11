@@ -57,5 +57,20 @@ class UnstructuredWordExtractor(BaseExtractor):
         documents = []
         for chunk in chunks:
             text = chunk.text.strip()
+            # print(text)
+            # print('----------------')
             documents.append(Document(page_content=text))
         return documents
+
+
+if __name__ == "__main__":
+    extractor = UnstructuredWordExtractor(
+        file_path="/Users/zhihengw/projects/testdata/test0.doc",
+        # file_path="/Users/zhihengw/projects/testdata/resume0.doc",
+        # file_path="/Users/zhihengw/projects/testdata/resume2.docx",
+        api_url="http://localhost:8000",
+    )
+    documents = extractor.extract()
+    print(documents)
+    for document in documents:
+        logger.info(f"Extracted document: {document}")

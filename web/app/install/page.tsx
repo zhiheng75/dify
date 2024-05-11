@@ -19,10 +19,13 @@ const Install = () => {
           'md:w-[608px] space-between',
         )
       }>
-        <Header />
-        <InstallForm />
-        <div className='px-8 py-6 text-sm font-normal text-gray-500'>
+        <Header/>
+        <InstallForm/>
+        {/*<div className='px-8 py-6 text-sm font-normal text-gray-500'>
           © {new Date().getFullYear()} Dify, Inc. All rights reserved.
+        </div>*/}
+        <div className='px-8 py-6 text-sm font-normal text-gray-500'>
+          © {new Date().getFullYear()} QAny, Inc. All rights reserved.
         </div>
       </div>
     </div>

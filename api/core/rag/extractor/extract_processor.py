@@ -17,6 +17,7 @@ from core.rag.extractor.text_extractor import TextExtractor
 from core.rag.extractor.unstructured.unstructured_doc_extractor import UnstructuredWordExtractor
 from core.rag.extractor.unstructured.unstructured_eml_extractor import UnstructuredEmailExtractor
 from core.rag.extractor.unstructured.unstructured_epub_extractor import UnstructuredEpubExtractor
+from core.rag.extractor.unstructured.unstructured_image_extractor import UnstructuredImageExtractor
 from core.rag.extractor.unstructured.unstructured_markdown_extractor import UnstructuredMarkdownExtractor
 from core.rag.extractor.unstructured.unstructured_msg_extractor import UnstructuredMsgExtractor
 from core.rag.extractor.unstructured.unstructured_ppt_extractor import UnstructuredPPTExtractor
@@ -93,7 +94,7 @@ class ExtractProcessor:
                             else MarkdownExtractor(file_path, autodetect_encoding=True)
                     elif file_extension in ['.htm', '.html']:
                         extractor = HtmlExtractor(file_path)
-                    elif file_extension in ['.docx']:
+                    elif file_extension in ['.docx', '.doc']:
                         extractor = UnstructuredWordExtractor(file_path, unstructured_api_url)
                     elif file_extension == '.csv':
                         extractor = CSVExtractor(file_path, autodetect_encoding=True)
@@ -109,6 +110,8 @@ class ExtractProcessor:
                         extractor = UnstructuredXmlExtractor(file_path, unstructured_api_url)
                     elif file_extension == 'epub':
                         extractor = UnstructuredEpubExtractor(file_path, unstructured_api_url)
+                    elif file_extension in ['.jpg', '.jpeg', '.png']:
+                        extractor = UnstructuredImageExtractor(file_path, unstructured_api_url)
                     else:
                         # txt
                         extractor = UnstructuredTextExtractor(file_path, unstructured_api_url) if is_automatic \

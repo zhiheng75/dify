@@ -1,6 +1,7 @@
 elastic-transport==8.12.0
 elasticsearch==8.12.1
 elasticsearch-dsl==8.12.0
+coverage~=7.2.4
 beautifulsoup4==4.12.2
 flask~=3.0.1
 Flask-SQLAlchemy~=3.0.5
@@ -12,11 +13,14 @@ flask-restful~=0.3.10
 flask-cors~=4.0.0
 gunicorn~=22.0.0
 gevent~=23.9.1
+langchain==0.0.250
 openai~=1.13.3
 tiktoken~=0.6.0
 psycopg2-binary~=2.9.6
 pycryptodome==3.19.1
 python-dotenv==1.0.0
+pytest~=7.3.1
+pytest-mock~=3.11.1
 Authlib==1.2.0
 boto3==1.28.17
 tenacity==8.2.2
@@ -63,7 +67,8 @@ qdrant-client==1.7.3
 cohere~=5.2.4
 pyyaml~=6.0.1
 numpy~=1.26.4
-unstructured[docx,pptx,msg,md,ppt,epub]~=0.10.27
+#unstructured[docx,pptx,msg,md,ppt,epub]~=0.10.27
+unstructured[all-docs]~=0.10.27
 bs4~=0.0.1
 markdown~=3.5.1
 httpx[socks]~=0.24.1
@@ -79,8 +84,11 @@ twilio~=9.0.4
 qrcode~=7.4.2
 azure-storage-blob==12.9.0
 azure-identity==1.15.0
-lxml==5.1.0
 xlrd~=2.0.1
 pydantic~=1.10.0
 pgvecto-rs==0.1.4
 oss2==2.15.0
+lxml
+lxml_html_clean
+# Enable torch will make the docker image super large, disable for now
+# torch

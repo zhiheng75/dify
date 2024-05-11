@@ -151,17 +151,18 @@ const ExtraInfo = ({ isMobile, relatedApps }: IExtraInfoProps) => {
           </div>
         }
       >
-        <div className={classNames('mt-5 p-3', isMobile && 'border-[0.5px] border-gray-200 shadow-lg rounded-lg bg-white w-[160px]')}>
+        <div
+          className={classNames('mt-5 p-3', isMobile && 'border-[0.5px] border-gray-200 shadow-lg rounded-lg bg-white w-[160px]')}>
           <div className='flex items-center justify-start gap-2'>
             <div className={s.emptyIconDiv}>
-              <Squares2X2Icon className='w-3 h-3 text-gray-500' />
+              <Squares2X2Icon className='w-3 h-3 text-gray-500'/>
             </div>
             <div className={s.emptyIconDiv}>
-              <PuzzlePieceIcon className='w-3 h-3 text-gray-500' />
+              <PuzzlePieceIcon className='w-3 h-3 text-gray-500'/>
             </div>
           </div>
           <div className='text-xs text-gray-500 mt-2'>{t('common.datasetMenus.emptyTip')}</div>
-          <a
+          {/*<a
             className='inline-flex items-center text-xs text-primary-600 mt-2 cursor-pointer'
             href={
               locale === LanguagesSupported[1]
@@ -171,6 +172,18 @@ const ExtraInfo = ({ isMobile, relatedApps }: IExtraInfoProps) => {
             target='_blank' rel='noopener noreferrer'
           >
             <BookOpenIcon className='mr-1' />
+            {t('common.datasetMenus.viewDoc')}
+          </a>*/}
+          <a
+            className='inline-flex items-center text-xs text-primary-600 mt-2 cursor-pointer'
+            href={
+              locale === LanguagesSupported[1]
+                ? '#'
+                : '#'
+            }
+            target='_blank' rel='noopener noreferrer'
+          >
+            <BookOpenIcon className='mr-1'/>
             {t('common.datasetMenus.viewDoc')}
           </a>
         </div>
@@ -182,16 +195,16 @@ const ExtraInfo = ({ isMobile, relatedApps }: IExtraInfoProps) => {
 const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
   const {
     children,
-    params: { datasetId },
+    params: {datasetId},
   } = props
   const pathname = usePathname()
   const hideSideBar = /documents\/create$/.test(pathname)
-  const { t } = useTranslation()
+  const {t} = useTranslation()
 
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
 
-  const { data: datasetRes, error, mutate: mutateDatasetRes } = useSWR({
+  const {data: datasetRes, error, mutate: mutateDatasetRes} = useSWR({
     url: 'fetchDatasetDetail',
     datasetId,
   }, apiParams => fetchDatasetDetail(apiParams.datasetId))
@@ -209,8 +222,10 @@ const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
   ]
 
   useEffect(() => {
+    /*if (datasetRes)
+      document.title = `${datasetRes.name || 'Dataset'} - Dify`*/
     if (datasetRes)
-      document.title = `${datasetRes.name || 'Dataset'} - Dify`
+      document.title = `${datasetRes.name || 'Dataset'} - QAny`
   }, [datasetRes])
 
   const setAppSiderbarExpand = useStore(state => state.setAppSiderbarExpand)
@@ -225,7 +240,7 @@ const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
     return <Loading />
 
   return (
-    <div className='grow flex overflow-hidden'>
+    /*<div className='grow flex overflow-hidden'>
       {!hideSideBar && <AppSideBar
         title={datasetRes?.name || '--'}
         icon={datasetRes?.icon || 'https://static.dify.ai/images/dataset-default-icon.png'}
@@ -233,6 +248,24 @@ const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
         desc={datasetRes?.description || '--'}
         navigation={navigation}
         extraInfo={mode => <ExtraInfo isMobile={mode === 'collapse'} relatedApps={relatedApps} />}
+        iconType={datasetRes?.data_source_type === DataSourceType.NOTION ? 'notion' : 'dataset'}
+      />}
+      <DatasetDetailContext.Provider value={{
+        indexingTechnique: datasetRes?.indexing_technique,
+        dataset: datasetRes,
+        mutateDatasetRes: () => mutateDatasetRes(),
+      }}>
+        <div className="bg-white grow overflow-hidden">{children}</div>
+      </DatasetDetailContext.Provider>
+    </div>*/
+    <div className='grow flex overflow-hidden'>
+      {!hideSideBar && <AppSideBar
+        title={datasetRes?.name || '--'}
+        icon={datasetRes?.icon || '/logo/logo-site.png'}
+        icon_background={datasetRes?.icon_background || '#F5F5F5'}
+        desc={datasetRes?.description || '--'}
+        navigation={navigation}
+        extraInfo={mode => <ExtraInfo isMobile={mode === 'collapse'} relatedApps={relatedApps}/>}
         iconType={datasetRes?.data_source_type === DataSourceType.NOTION ? 'notion' : 'dataset'}
       />}
       <DatasetDetailContext.Provider value={{

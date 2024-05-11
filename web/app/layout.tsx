@@ -7,8 +7,11 @@ import { getLocaleOnServer } from '@/i18n/server'
 import './styles/globals.css'
 import './styles/markdown.scss'
 
-export const metadata = {
+/*export const metadata = {
   title: 'Dify',
+}*/
+export const metadata = {
+  title: 'QAny',
 }
 
 export const viewport: Viewport = {

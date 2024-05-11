@@ -171,10 +171,15 @@ const InstallForm = () => {
             <div className="block w-hull mt-2 text-xs text-gray-600">
               {t('login.license.tip')}
               &nbsp;
-              <Link
+              {/*<Link
                 className='text-primary-600'
                 target='_blank' rel='noopener noreferrer'
                 href={'https://docs.dify.ai/user-agreement/open-source'}
+              >{t('login.license.link')}</Link>*/}
+              <Link
+                className='text-primary-600'
+                target='_blank' rel='noopener noreferrer'
+                href={'#'}
               >{t('login.license.link')}</Link>
             </div>
           </div>
