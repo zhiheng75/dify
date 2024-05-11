@@ -3,7 +3,7 @@ services:
   # API service
   api:
     # image: langgenius/dify-api:0.6.5
-    image: zhihengw/qany:0.0.4
+    image: zhihengw/qany:0.0.5
     restart: always
     environment:
       # Startup mode, 'api' starts the API server.
@@ -165,7 +165,7 @@ services:
   # The Celery worker for processing the queue.
   worker:
     #image: langgenius/dify-api:0.6.5
-    image: zhihengw/qany:0.0.4
+    image: zhihengw/qany:0.0.5
     restart: always
     environment:
       # Startup mode, 'worker' starts the Celery worker for processing the queue.
@@ -258,24 +258,24 @@ services:
       # Mount the storage directory to the container, for storing user files.
       - ./volumes/app/storage:/app/api/storage
 
-  #es:
-  #  image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
-  #  restart: always
-  #  environment:
-  #    - discovery.type=single-node
-  #    - ES_JAVA_OPTS=-Xms1g -Xmx1g
-  #    - xpack.security.enabled=false
-  #    - TZ=Asia/Shanghai
-  #  ports:
-  #    - "9200:9200"
-  #    - "9300:9300"
-  #  volumes:
-  #    - ./volumes/es:/usr/share/elasticsearch/data
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+      - TZ=Asia/Shanghai
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - ./volumes/es:/usr/share/elasticsearch/data
 
   # Frontend web application.
   web:
     # image: langgenius/dify-web:0.6.5
-    image: zhihengw/qany-web:0.0.1
+    image: zhihengw/qany-web:0.0.2
     restart: always
     environment:
       # The base URL of console application api server, refers to the Console base URL of WEB service if console domain is
