@@ -7,6 +7,8 @@ import xlrd
 from core.rag.extractor.extractor_base import BaseExtractor
 from core.rag.models.document import Document
 
+from models.dataset import DatasetProcessRule
+import re
 
 class ExcelExtractor(BaseExtractor):
     """Load Excel files.
@@ -51,6 +53,7 @@ class ExcelExtractor(BaseExtractor):
                     txt_value = str(cell.value)
                     item_arr.append(f'{row_header[index].value}:{txt_value}')
                 item_str = "\n".join(item_arr)
+                item_str = re.sub(r'[\n]+', '\n', item_str)
                 document = Document(page_content=item_str, metadata={'source': self._file_path})
                 documents.append(document)
         return documents
@@ -69,6 +72,7 @@ class ExcelExtractor(BaseExtractor):
             # transform each row into a Document
             for _, row in df.iterrows():
                 item = ';'.join(f'{k}:{v}' for k, v in row.items() if pd.notna(v))
+                item = re.sub(r'[\n]+', '\n', item)
                 document = Document(page_content=item, metadata={'source': self._file_path})
                 data.append(document)
         return data
