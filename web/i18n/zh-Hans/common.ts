@@ -151,8 +151,8 @@ const translation = {
     confirmPassword: '确认密码',
     /*langGeniusAccount: 'Dify 账号',
     langGeniusAccountTip: '您的 Dify 账号和相关的用户数据。',*/
-    langGeniusAccount: 'QAny 账号',
-    langGeniusAccountTip: '您的 QAny 账号和相关的用户数据。',
+    langGeniusAccount: 'ModelTurbo 账号',
+    langGeniusAccountTip: '您的 ModelTurbo 账号和相关的用户数据。',
     editName: '编辑名字',
     showAppLength: '显示 {{length}} 个应用',
   },
@@ -177,7 +177,7 @@ const translation = {
     invitedAsRole: '邀请为{{role}}用户',
     invitationSent: '邀请已发送',
     /*invitationSentTip: '邀请已发送，对方登录 Dify 后即可访问你的团队数据。',*/
-    invitationSentTip: '邀请已发送，对方登录 QAny 后即可访问你的团队数据。',
+    invitationSentTip: '邀请已发送，对方登录 ModelTurbo 后即可访问你的团队数据。',
     invitationLink: '邀请链接',
     failedinvitationEmails: '邀请以下邮箱失败',
     ok: '好的',
@@ -225,7 +225,7 @@ const translation = {
       onTrial: '体验',
       exhausted: '超出限额',
       /*desc: '托管 OpenAI 由 Dify 提供的托管 OpenAI 服务，你可以使用 GPT-3.5 等模型，在体验额度消耗完毕前你需要设置其它模型供应商。',*/
-      desc: '托管 OpenAI 由 QAny 提供的托管 OpenAI 服务，你可以使用 GPT-3.5 等模型，在体验额度消耗完毕前你需要设置其它模型供应商。',
+      desc: '托管 OpenAI 由 ModelTurbo 提供的托管 OpenAI 服务，你可以使用 GPT-3.5 等模型，在体验额度消耗完毕前你需要设置其它模型供应商。',
       callTimes: '调用次数',
       usedUp: '试用额度已用完，请在下方添加自己的模型供应商',
       useYourModel: '当前正在使用你自己的模型供应商。',
@@ -368,10 +368,10 @@ const translation = {
   },
   apiBasedExtension: {
     /*title: 'API 扩展提供了一个集中式的 API 管理，在此统一添加 API 配置后，方便在 Dify 上的各类应用中直接使用。',*/
-    title: 'API 扩展提供了一个集中式的 API 管理，在此统一添加 API 配置后，方便在 QAny 上的各类应用中直接使用。',
+    title: 'API 扩展提供了一个集中式的 API 管理，在此统一添加 API 配置后，方便在 ModelTurbo 上的各类应用中直接使用。',
     link: '了解如何开发您自己的 API 扩展。',
     /*linkUrl: 'https://docs.dify.ai/v/zh-hans/advanced/api_based_extension',*/
-    linkUrl: 'https://qany.info/',
+    linkUrl: 'http://llm.genemodel.com:18082/',
     add: '新增 API 扩展',
     selector: {
       title: 'API 扩展',
@@ -402,8 +402,8 @@ const translation = {
     updateNow: '现在更新',
     /*nowAvailable: 'Dify {{version}} 现已可用。',
     latestAvailable: 'Dify {{version}} 已是最新版本。',*/
-    nowAvailable: 'QAny {{version}} 现已可用。',
-    latestAvailable: 'QAny {{version}} 已是最新版本。',
+    nowAvailable: 'ModelTurbo {{version}} 现已可用。',
+    latestAvailable: 'ModelTurbo {{version}} 已是最新版本。',
   },
   appMenus: {
     overview: '概览',

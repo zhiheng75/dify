@@ -225,7 +225,7 @@ const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
     /*if (datasetRes)
       document.title = `${datasetRes.name || 'Dataset'} - Dify`*/
     if (datasetRes)
-      document.title = `${datasetRes.name || 'Dataset'} - QAny`
+      document.title = `${datasetRes.name || 'Dataset'} - ModelTurbo`
   }, [datasetRes])
 
   const setAppSiderbarExpand = useStore(state => state.setAppSiderbarExpand)

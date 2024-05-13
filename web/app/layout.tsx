@@ -11,7 +11,7 @@ import './styles/markdown.scss'
   title: 'Dify',
 }*/
 export const metadata = {
-  title: 'QAny',
+  title: 'ModelTurbo',
 }
 
 export const viewport: Viewport = {
