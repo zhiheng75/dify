@@ -25,98 +25,98 @@ export const languages = [
     value: 'en-US',
     name: 'English (United States)',
     /*example: 'Hello, Dify!',*/
-    example: 'Hello, ModelTurbo!',
+    example: 'Hello, QAny!',
     supported: true,
   },
   {
     value: 'zh-Hans',
     name: '简体中文',
     /*example: '你好，Dify！',*/
-    example: '你好，ModelTurbo！',
+    example: '你好，QAny！',
     supported: true,
   },
   {
     value: 'pt-BR',
     name: 'Português (Brasil)',
     /*example: 'Olá, Dify!',*/
-    example: 'Olá, ModelTurbo!',
+    example: 'Olá, QAny!',
     supported: true,
   },
   {
     value: 'es-ES',
     name: 'Español (España)',
     /*example: 'Saluton, Dify!',*/
-    example: 'Saluton, ModelTurbo!',
+    example: 'Saluton, QAny!',
     supported: false,
   },
   {
     value: 'fr-FR',
     name: 'Français (France)',
     /*example: 'Bonjour, Dify!',*/
-    example: 'Bonjour, ModelTurbo!',
+    example: 'Bonjour, QAny!',
     supported: true,
   },
   {
     value: 'de-DE',
     name: 'Deutsch (Deutschland)',
     /*example: 'Hallo, Dify!',*/
-    example: 'Hallo, ModelTurbo!',
+    example: 'Hallo, QAny!',
     supported: true,
   },
   {
     value: 'ja-JP',
     name: '日本語 (日本)',
     /*example: 'こんにちは、Dify!',*/
-    example: 'こんにちは、ModelTurbo!',
+    example: 'こんにちは、QAny!',
     supported: true,
   },
   {
     value: 'ko-KR',
     name: '한국어 (대한민국)',
     /*example: '안녕, Dify!',*/
-    example: '안녕, ModelTurbo!',
+    example: '안녕, QAny!',
     supported: false,
   },
   {
     value: 'ru-RU',
     name: 'Русский (Россия)',
     /*example: ' Привет, Dify!',*/
-    example: ' Привет, ModelTurbo!',
+    example: ' Привет, QAny!',
     supported: false,
   },
   {
     value: 'it-IT',
     name: 'Italiano (Italia)',
     /*example: 'Ciao, Dify!',*/
-    example: 'Ciao, ModelTurbo!',
+    example: 'Ciao, QAny!',
     supported: false,
   },
   {
     value: 'th-TH',
     name: 'ไทย (ประเทศไทย)',
     /*example: 'สวัสดี Dify!',*/
-    example: 'สวัสดี ModelTurbo!',
+    example: 'สวัสดี QAny!',
     supported: false,
   },
   {
     value: 'id-ID',
     name: 'Bahasa Indonesia',
     /*example: 'Saluto, Dify!',*/
-    example: 'Saluto, ModelTurbo!',
+    example: 'Saluto, QAny!',
     supported: false,
   },
   {
     value: 'uk-UA',
     name: 'Українська (Україна)',
     /*example: 'Привет, Dify!',*/
-    example: 'Привет, ModelTurbo!',
+    example: 'Привет, QAny!',
     supported: true,
   },
   {
     value: 'vi-VN',
     name: 'Tiếng Việt (Việt Nam)',
     /*example: 'Xin chào, Dify!',*/
-    example: 'Xin chào, ModelTurbo!',
+    example: 'Xin chào, QAny!',
     supported: true,
   },
 ]

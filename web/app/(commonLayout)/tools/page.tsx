@@ -10,7 +10,7 @@ const Layout: FC = () => {
 
   useEffect(() => {
     // document.title = `${t('tools.title')} - Dify`
-    document.title = `${t('tools.title')} - ModelTurbo`
+    document.title = `${t('tools.title')} - QAny`
   }, [])
 
   return (

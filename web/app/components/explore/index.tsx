@@ -23,7 +23,7 @@ const Explore: FC<IExploreProps> = ({
 
   useEffect(() => {
     // document.title = `${t('explore.title')} -  Dify`;
-    document.title = `${t('explore.title')} -  ModelTurbo`;
+    document.title = `${t('explore.title')} -  QAny`;
     (async () => {
       const { accounts } = await fetchMembers({ url: '/workspaces/current/members', params: {} })
       if (!accounts)

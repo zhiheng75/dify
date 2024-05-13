@@ -93,7 +93,7 @@ const CustomizeModal: FC<IShareLinkProps> = ({
           <pre
             className='overflow-x-scroll box-border py-3 px-4 bg-gray-100 text-xs font-medium rounded-lg select-text'>
             NEXT_PUBLIC_APP_ID={`'${appId}'`} <br/>
-            NEXT_PUBLIC_APP_KEY={'\'<Web API Key From ModelTurbo>\''} <br/>
+            NEXT_PUBLIC_APP_KEY={'\'<Web API Key From QAny>\''} <br/>
             NEXT_PUBLIC_API_URL={`'${api_base_url}'`}
           </pre>
         </div>
