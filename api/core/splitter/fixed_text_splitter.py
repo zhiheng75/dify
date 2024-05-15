@@ -1,9 +1,9 @@
 """Functionality for splitting text."""
 from __future__ import annotations
 
-import os
-from typing import Any, Optional, cast
 import re
+from typing import Any, Optional, cast
+
 from core.model_manager import ModelInstance
 from core.model_runtime.model_providers.__base.text_embedding_model import TextEmbeddingModel
 from core.model_runtime.model_providers.__base.tokenizers.gpt2_tokenzier import GPT2Tokenizer

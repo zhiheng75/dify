@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timezone
 
+from elasticsearch_dsl import Q
 from flask import request
 from flask_login import current_user
 from flask_restful import Resource, fields, marshal, marshal_with, reqparse
@@ -29,6 +30,7 @@ from core.errors.error import (
     ProviderTokenNotInitError,
     QuotaExceededError,
 )
+from core.es.es_conn import ELASTICSEARCH
 from core.indexing_runner import IndexingRunner
 from core.model_manager import ModelManager
 from core.model_runtime.entities.model_entities import ModelType
@@ -49,8 +51,6 @@ from services.dataset_service import DatasetService, DocumentService
 from tasks.add_document_to_index_task import add_document_to_index_task
 from tasks.remove_document_from_index_task import remove_document_from_index_task
 
-from core.es.es_conn import ELASTICSEARCH
-from elasticsearch_dsl import Q
 
 class DocumentResource(Resource):
     def get_document(self, dataset_id: str, document_id: str) -> Document:
@@ -396,9 +396,6 @@ class DocumentBatchIndexingEstimateApi(DocumentResource):
     def get(self, dataset_id, batch):
         dataset_id = str(dataset_id)
         batch = str(batch)
-        dataset = DatasetService.get_dataset(dataset_id)
-        if dataset is None:
-            raise NotFound("Dataset not found.")
         documents = self.get_batch_documents(dataset_id, batch)
         response = {
             "tokens": 0,

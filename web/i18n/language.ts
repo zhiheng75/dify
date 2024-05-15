@@ -18,105 +18,129 @@ export type I18nText = {
   'uk-UA': string
   'vi-VN': string
   'de_DE': string
+  'zh_Hant': string
+  'ro-RO': string
+  'pl-PL': string
 }
 
 export const languages = [
   {
     value: 'en-US',
     name: 'English (United States)',
-    /*example: 'Hello, Dify!',*/
+    prompt_name: 'English',
     example: 'Hello, QAny!',
     supported: true,
   },
   {
     value: 'zh-Hans',
     name: '简体中文',
-    /*example: '你好，Dify！',*/
+    prompt_name: 'Chinese Simplified',
+    example: '你好，QAny！',
+    supported: true,
+  },
+  {
+    value: 'zh-Hant',
+    name: '繁體中文',
+    prompt_name: 'Chinese Traditional',
     example: '你好，QAny！',
     supported: true,
   },
   {
     value: 'pt-BR',
     name: 'Português (Brasil)',
-    /*example: 'Olá, Dify!',*/
+    prompt_name: 'Portuguese',
     example: 'Olá, QAny!',
     supported: true,
   },
   {
     value: 'es-ES',
     name: 'Español (España)',
-    /*example: 'Saluton, Dify!',*/
+    prompt_name: 'Spanish',
     example: 'Saluton, QAny!',
     supported: false,
   },
   {
     value: 'fr-FR',
     name: 'Français (France)',
-    /*example: 'Bonjour, Dify!',*/
+    prompt_name: 'French',
     example: 'Bonjour, QAny!',
     supported: true,
   },
   {
     value: 'de-DE',
     name: 'Deutsch (Deutschland)',
-    /*example: 'Hallo, Dify!',*/
+    prompt_name: 'German',
     example: 'Hallo, QAny!',
     supported: true,
   },
   {
     value: 'ja-JP',
     name: '日本語 (日本)',
-    /*example: 'こんにちは、Dify!',*/
+    prompt_name: 'Japanese',
     example: 'こんにちは、QAny!',
     supported: true,
   },
   {
     value: 'ko-KR',
     name: '한국어 (대한민국)',
-    /*example: '안녕, Dify!',*/
-    example: '안녕, QAny!',
-    supported: false,
+    prompt_name: 'Korean',
+    example: '안녕하세요, QAny!',
+    supported: true,
   },
   {
     value: 'ru-RU',
     name: 'Русский (Россия)',
-    /*example: ' Привет, Dify!',*/
+    prompt_name: 'Russian',
     example: ' Привет, QAny!',
     supported: false,
   },
   {
     value: 'it-IT',
     name: 'Italiano (Italia)',
-    /*example: 'Ciao, Dify!',*/
+    prompt_name: 'Italian',
     example: 'Ciao, QAny!',
     supported: false,
   },
   {
     value: 'th-TH',
     name: 'ไทย (ประเทศไทย)',
-    /*example: 'สวัสดี Dify!',*/
+    prompt_name: 'Thai',
     example: 'สวัสดี QAny!',
     supported: false,
   },
   {
     value: 'id-ID',
     name: 'Bahasa Indonesia',
-    /*example: 'Saluto, Dify!',*/
+    prompt_name: 'Indonesian',
     example: 'Saluto, QAny!',
     supported: false,
   },
   {
     value: 'uk-UA',
     name: 'Українська (Україна)',
-    /*example: 'Привет, Dify!',*/
+    prompt_name: 'Ukrainian',
     example: 'Привет, QAny!',
     supported: true,
   },
   {
     value: 'vi-VN',
     name: 'Tiếng Việt (Việt Nam)',
-    /*example: 'Xin chào, Dify!',*/
+    prompt_name: 'Vietnamese',
     example: 'Xin chào, QAny!',
+    supported: true,
+  },
+  {
+    value: 'ro-RO',
+    name: 'Română (România)',
+    prompt_name: 'Romanian',
+    example: 'Salut, QAny!',
+    supported: true,
+  },
+  {
+    value: 'pl-PL',
+    name: 'Polski (Polish)',
+    prompt_name: 'Polish',
+    example: 'Cześć, QAny!',
     supported: true,
   },
 ]
@@ -140,6 +164,7 @@ export const NOTICE_I18N = {
     de_DE: 'Wichtiger Hinweis',
     ja_JP: '重要なお知らせ',
     ko_KR: '중요 공지',
+    pl_PL: 'Ważne ogłoszenie',
     uk_UA: 'Важливе повідомлення',
     vi_VN: 'Thông báo quan trọng',
   },
@@ -151,7 +176,8 @@ export const NOTICE_I18N = {
     fr_FR: 'Our system will be unavailable from 19:00 to 24:00 UTC on August 28 for an upgrade. For questions, kindly contact our support team (support@dify.ai). We value your patience.',
     de_DE: 'Our system will be unavailable from 19:00 to 24:00 UTC on August 28 for an upgrade. For questions, kindly contact our support team (support@dify.ai). We value your patience.',
     ja_JP: 'Our system will be unavailable from 19:00 to 24:00 UTC on August 28 for an upgrade. For questions, kindly contact our support team (support@dify.ai). We value your patience.',
-    ko_KR: 'Our system will be unavailable from 19:00 to 24:00 UTC on August 28 for an upgrade. For questions, kindly contact our support team (support@dify.ai). We value your patience.',
+    ko_KR: '시스템이 업그레이드를 위해 UTC 시간대로 8월 28일 19:00 ~ 24:00에 사용 불가될 예정입니다. 질문이 있으시면 지원 팀에 연락주세요 (support@dify.ai). 최선을 다해 답변해드리겠습니다.',
+    pl_PL: 'Nasz system będzie niedostępny od 19:00 do 24:00 UTC 28 sierpnia w celu aktualizacji. W przypadku pytań prosimy o kontakt z naszym zespołem wsparcia (support@dify.ai). Doceniamy Twoją cierpliwość.',
     uk_UA: 'Наша система буде недоступна з 19:00 до 24:00 UTC 28 серпня для оновлення. Якщо у вас виникнуть запитання, будь ласка, зв’яжіться з нашою службою підтримки (support@dify.ai). Дякуємо за терпіння.',
     vi_VN: 'Hệ thống của chúng tôi sẽ ngừng hoạt động từ 19:00 đến 24:00 UTC vào ngày 28 tháng 8 để nâng cấp. Nếu có thắc mắc, vui lòng liên hệ với nhóm hỗ trợ của chúng tôi (support@dify.ai). Chúng tôi đánh giá cao sự kiên nhẫn của bạn.',
   },

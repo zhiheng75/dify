@@ -358,7 +358,7 @@ const Welcome: FC<IWelcomeProps> = ({
             {siteInfo.privacy_policy
               ? <div>{t('share.chat.privacyPolicyLeft')}
                 <a
-                  className='text-gray-500'
+                  className='text-gray-500 px-1'
                   href={siteInfo.privacy_policy}
                   target='_blank' rel='noopener noreferrer'>{t('share.chat.privacyPolicyMiddle')}</a>
                 {t('share.chat.privacyPolicyRight')}
@@ -369,14 +369,14 @@ const Welcome: FC<IWelcomeProps> = ({
               customConfig?.remove_webapp_brand
                 ? null
                 : (
-                  /*<a className='flex items-center pr-3 space-x-3' href="https://dify.ai/" target="_blank">
+                  /* <a className='flex items-center pr-3 space-x-3' href="https://dify.ai/" target="_blank">
                     <span className='uppercase'>{t('share.chat.powerBy')}</span>
                     {
                       customConfig?.replace_webapp_logo
                         ? <img src={customConfig?.replace_webapp_logo} alt='logo' className='block w-auto h-5' />
                         : <FootLogo />
                     }
-                  </a>*/
+                  </a> */
                   <a className='flex items-center pr-3 space-x-3' href="/" target="_blank">
                     <span className='uppercase'>{t('share.chat.powerBy')}</span>
                     {

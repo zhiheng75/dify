@@ -25,7 +25,6 @@ import Link from 'next/link'
 import s from './style.module.css'
 import { fetchDatasetDetail, fetchDatasetRelatedApps } from '@/service/datasets'
 import type { RelatedApp, RelatedAppResponse } from '@/models/datasets'
-import { getLocaleOnClient } from '@/i18n'
 import AppSideBar from '@/app/components/app-sidebar'
 import Divider from '@/app/components/base/divider'
 import AppIcon from '@/app/components/base/app-icon'
@@ -38,6 +37,7 @@ import { LanguagesSupported } from '@/i18n/language'
 import { useStore } from '@/app/components/app/store'
 import { AiText, ChatBot, CuteRobote } from '@/app/components/base/icons/src/vender/solid/communication'
 import { Route } from '@/app/components/base/icons/src/vender/solid/mapsAndTravel'
+import { getLocaleOnClient } from '@/i18n'
 
 export type IAppDetailLayoutProps = {
   children: React.ReactNode
@@ -162,7 +162,7 @@ const ExtraInfo = ({ isMobile, relatedApps }: IExtraInfoProps) => {
             </div>
           </div>
           <div className='text-xs text-gray-500 mt-2'>{t('common.datasetMenus.emptyTip')}</div>
-          {/*<a
+          {/* <a
             className='inline-flex items-center text-xs text-primary-600 mt-2 cursor-pointer'
             href={
               locale === LanguagesSupported[1]
@@ -173,7 +173,7 @@ const ExtraInfo = ({ isMobile, relatedApps }: IExtraInfoProps) => {
           >
             <BookOpenIcon className='mr-1' />
             {t('common.datasetMenus.viewDoc')}
-          </a>*/}
+          </a> */}
           <a
             className='inline-flex items-center text-xs text-primary-600 mt-2 cursor-pointer'
             href={
@@ -195,16 +195,16 @@ const ExtraInfo = ({ isMobile, relatedApps }: IExtraInfoProps) => {
 const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
   const {
     children,
-    params: {datasetId},
+    params: { datasetId },
   } = props
   const pathname = usePathname()
   const hideSideBar = /documents\/create$/.test(pathname)
-  const {t} = useTranslation()
+  const { t } = useTranslation()
 
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
 
-  const {data: datasetRes, error, mutate: mutateDatasetRes} = useSWR({
+  const { data: datasetRes, error, mutate: mutateDatasetRes } = useSWR({
     url: 'fetchDatasetDetail',
     datasetId,
   }, apiParams => fetchDatasetDetail(apiParams.datasetId))
@@ -222,8 +222,8 @@ const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
   ]
 
   useEffect(() => {
-    /*if (datasetRes)
-      document.title = `${datasetRes.name || 'Dataset'} - Dify`*/
+    /* if (datasetRes)
+      document.title = `${datasetRes.name || 'Dataset'} - Dify` */
     if (datasetRes)
       document.title = `${datasetRes.name || 'Dataset'} - QAny`
   }, [datasetRes])
@@ -240,7 +240,7 @@ const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
     return <Loading />
 
   return (
-    /*<div className='grow flex overflow-hidden'>
+    /* <div className='grow flex overflow-hidden'>
       {!hideSideBar && <AppSideBar
         title={datasetRes?.name || '--'}
         icon={datasetRes?.icon || 'https://static.dify.ai/images/dataset-default-icon.png'}
@@ -257,7 +257,7 @@ const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
       }}>
         <div className="bg-white grow overflow-hidden">{children}</div>
       </DatasetDetailContext.Provider>
-    </div>*/
+    </div> */
     <div className='grow flex overflow-hidden'>
       {!hideSideBar && <AppSideBar
         title={datasetRes?.name || '--'}

@@ -5,7 +5,10 @@ from typing import Optional
 from core.model_manager import ModelInstance
 from core.rag.extractor.entity.extract_setting import ExtractSetting
 from core.rag.models.document import Document
-from core.splitter.fixed_text_splitter import EnhanceRecursiveCharacterTextSplitter, FixedRecursiveCharacterTextSplitter,AutoFixedRecursiveCharacterTextSplitter
+from core.splitter.fixed_text_splitter import (
+    AutoFixedRecursiveCharacterTextSplitter,
+    FixedRecursiveCharacterTextSplitter,
+)
 from core.splitter.text_splitter import TextSplitter
 from models.dataset import Dataset, DatasetProcessRule
 

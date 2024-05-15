@@ -1,6 +1,6 @@
 const translation = {
   pageTitle: '嗨，近来可好 👋',
-  /*welcome: '欢迎来到 Dify, 登录以继续',*/
+  /* welcome: '欢迎来到 Dify, 登录以继续', */
   welcome: '欢迎来到 QAny, 登录以继续',
   email: '邮箱',
   emailPlaceholder: '输入邮箱地址',
@@ -20,7 +20,7 @@ const translation = {
   invitationCodePlaceholder: '输入邀请码',
   interfaceLanguage: '界面语言',
   timezone: '时区',
-  /*go: '跳转至 Dify',*/
+  /* go: '跳转至 Dify', */
   go: '跳转至 QAny',
   sendUsMail: '发封邮件介绍你自己，我们会尽快处理。',
   acceptPP: '我已阅读并接受隐私政策',
@@ -32,6 +32,7 @@ const translation = {
   tos: '使用协议',
   pp: '隐私政策',
   tosDesc: '使用即代表你并同意我们的',
+  goToInit: '如果您还没有初始化账户，请前往初始化页面',
   donthave: '还没有邀请码？',
   invalidInvitationCode: '无效的邀请码',
   accountAlreadyInited: '账户已经初始化',
@@ -43,7 +44,7 @@ const translation = {
     passwordInvalid: '密码必须包含字母和数字，且长度不小于8位',
   },
   license: {
-    /*tip: '启动 Dify 社区版之前, 请阅读 GitHub 上的',*/
+    /* tip: '启动 Dify 社区版之前, 请阅读 GitHub 上的', */
     tip: '启动 QAny 社区版之前, 请阅读 GitHub 上的',
     link: '开源协议',
   },
@@ -51,7 +52,7 @@ const translation = {
   joinTipStart: '邀请你加入',
   joinTipEnd: '团队',
   invalid: '链接已失效',
-  /*explore: '探索 Dify',*/
+  /* explore: '探索 Dify', */
   explore: '探索 QAny',
   activatedTipStart: '您已加入',
   activatedTipEnd: '团队',

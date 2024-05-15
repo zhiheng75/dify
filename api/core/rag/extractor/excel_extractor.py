@@ -1,4 +1,5 @@
 """Abstract interface for document loader implementations."""
+import re
 from typing import Optional
 
 import pandas as pd
@@ -7,8 +8,6 @@ import xlrd
 from core.rag.extractor.extractor_base import BaseExtractor
 from core.rag.models.document import Document
 
-from models.dataset import DatasetProcessRule
-import re
 
 class ExcelExtractor(BaseExtractor):
     """Load Excel files.

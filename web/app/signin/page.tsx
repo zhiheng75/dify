@@ -61,7 +61,7 @@ gtag('config', 'AW-11217955271"');
           {loading && (
             <div className={
               cn(
-                'flex flex-col items-center w-full grow items-center justify-center',
+                'flex flex-col items-center w-full grow justify-center',
                 'px-6',
                 'md:px-[108px]',
               )
@@ -73,9 +73,9 @@ gtag('config', 'AW-11217955271"');
           {!loading && !enterpriseFeatures.sso_enforced_for_signin && (
             <>
               <Forms/>
-              {/*<div className='px-8 py-6 text-sm font-normal text-gray-500'>
+              {/* <div className='px-8 py-6 text-sm font-normal text-gray-500'>
                 © {new Date().getFullYear()} LangGenius, Inc. All rights reserved.
-              </div>*/}
+              </div> */}
               <div className='px-8 py-6 text-sm font-normal text-gray-500'>
                 © {new Date().getFullYear()} QAny, Inc. All rights reserved.
               </div>

@@ -4,14 +4,14 @@ from typing import Optional
 
 from flask import Flask, current_app
 
+from core.es.es_conn import ELASTICSEARCH
 from core.rag.data_post_processor.data_post_processor import DataPostProcessor
 from core.rag.datasource.keyword.keyword_factory import Keyword
 from core.rag.datasource.vdb.vector_factory import Vector
-from extensions.ext_database import db
-from models.dataset import Dataset
 from core.rag.models.document import Document
+from extensions.ext_database import db
 from libs import helper
-from core.es.es_conn import ELASTICSEARCH
+from models.dataset import Dataset
 
 default_retrieval_model = {
     'search_method': 'semantic_search',

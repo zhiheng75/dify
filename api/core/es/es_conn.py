@@ -1,12 +1,13 @@
-import re
-import json
-import time
 import copy
+import json
 import logging as es_logger
+import re
+import time
+
 import elasticsearch
 from elastic_transport import ConnectionTimeout
 from elasticsearch import Elasticsearch
-from elasticsearch_dsl import UpdateByQuery, Search, Index
+from elasticsearch_dsl import Index, Search, UpdateByQuery
 
 from config import get_env
 
@@ -18,6 +19,7 @@ elasticsearch-dsl==8.12.0
 es_logger.info("Elasticsearch version: "+str(elasticsearch.__version__))
 
 import os
+
 
 def singleton(cls, *args, **kw):
     instances = {}
@@ -298,7 +300,7 @@ class ESConnection:
         ubq = UpdateByQuery(index=self.idxnm).using(self.es).query(q)
         scripts = ""
         for k, v in d.items():
-            scripts += "ctx._source.%s = params.%s;" % (str(k), str(k))
+            scripts += f"ctx._source.{str(k)} = params.{str(k)};"
         ubq = ubq.script(source=scripts, params=d)
         ubq = ubq.params(refresh=False)
         ubq = ubq.params(slices=5)
@@ -405,7 +407,7 @@ class ESConnection:
 
     def confirmIndexExist(self, idxnm):
         if not self.indexExist(idxnm):
-            with open(os.path.dirname(os.path.realpath(__file__))+os.path.sep+'es_setting_ik.json', 'r') as f:
+            with open(os.path.dirname(os.path.realpath(__file__))+os.path.sep+'es_setting_ik.json') as f:
                 config = json.loads(f.read())
                 self.createIdx(idxnm,mapping=config)
 
@@ -419,13 +421,13 @@ class ESConnection:
                                                  settings=mapping["settings"],
                                                  mappings=mapping["mappings"])
         except Exception as e:
-            es_logger.error("ES create index error %s ----%s" % (idxnm, str(e)))
+            es_logger.error(f"ES create index error {idxnm} ----{str(e)}")
 
     def deleteIdx(self, idxnm):
         try:
             return self.es.indices.delete(index = idxnm, allow_no_indices=True)
         except Exception as e:
-            es_logger.error("ES delete index error %s ----%s" % (idxnm, str(e)))
+            es_logger.error(f"ES delete index error {idxnm} ----{str(e)}")
 
     def getTotal(self, res):
         if isinstance(res["hits"]["total"], type({})):

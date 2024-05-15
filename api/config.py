@@ -37,6 +37,8 @@ DEFAULTS = {
     'WEAVIATE_GRPC_ENABLED': 'True',
     'WEAVIATE_BATCH_SIZE': 100,
     'QDRANT_CLIENT_TIMEOUT': 20,
+    'QDRANT_GRPC_ENABLED': 'False',
+    'QDRANT_GRPC_PORT': '6334',
     'CELERY_BACKEND': 'database',
     'LOG_LEVEL': 'INFO',
     'LOG_FILE': '',
@@ -106,7 +108,7 @@ class Config:
         # ------------------------
         # General Configurations.
         # ------------------------
-        self.CURRENT_VERSION = "0.6.5"
+        self.CURRENT_VERSION = "0.6.8"
         self.COMMIT_SHA = get_env('COMMIT_SHA')
         self.EDITION = get_env('EDITION')
         self.DEPLOY_ENV = get_env('DEPLOY_ENV')
@@ -214,10 +216,14 @@ class Config:
         self.ALIYUN_OSS_ACCESS_KEY=get_env('ALIYUN_OSS_ACCESS_KEY')
         self.ALIYUN_OSS_SECRET_KEY=get_env('ALIYUN_OSS_SECRET_KEY')
         self.ALIYUN_OSS_ENDPOINT=get_env('ALIYUN_OSS_ENDPOINT')
+        self.ALIYUN_OSS_REGION=get_env('ALIYUN_OSS_REGION')
+        self.ALIYUN_OSS_AUTH_VERSION=get_env('ALIYUN_OSS_AUTH_VERSION')
+        self.GOOGLE_STORAGE_BUCKET_NAME = get_env('GOOGLE_STORAGE_BUCKET_NAME')
+        self.GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64 = get_env('GOOGLE_STORAGE_SERVICE_ACCOUNT_JSON_BASE64')
 
         # ------------------------
         # Vector Store Configurations.
-        # Currently, only support: qdrant, milvus, zilliz, weaviate, relyt
+        # Currently, only support: qdrant, milvus, zilliz, weaviate, relyt, pgvector
         # ------------------------
         self.VECTOR_STORE = get_env('VECTOR_STORE')
         self.KEYWORD_STORE = get_env('KEYWORD_STORE')
@@ -225,6 +231,8 @@ class Config:
         self.QDRANT_URL = get_env('QDRANT_URL')
         self.QDRANT_API_KEY = get_env('QDRANT_API_KEY')
         self.QDRANT_CLIENT_TIMEOUT = get_env('QDRANT_CLIENT_TIMEOUT')
+        self.QDRANT_GRPC_ENABLED = get_env('QDRANT_GRPC_ENABLED')
+        self.QDRANT_GRPC_PORT = get_env('QDRANT_GRPC_PORT')
 
         # milvus / zilliz setting
         self.MILVUS_HOST = get_env('MILVUS_HOST')
@@ -246,6 +254,20 @@ class Config:
         self.RELYT_USER = get_env('RELYT_USER')
         self.RELYT_PASSWORD = get_env('RELYT_PASSWORD')
         self.RELYT_DATABASE = get_env('RELYT_DATABASE')
+
+        # pgvecto rs settings
+        self.PGVECTO_RS_HOST = get_env('PGVECTO_RS_HOST')
+        self.PGVECTO_RS_PORT = get_env('PGVECTO_RS_PORT')
+        self.PGVECTO_RS_USER = get_env('PGVECTO_RS_USER')
+        self.PGVECTO_RS_PASSWORD = get_env('PGVECTO_RS_PASSWORD')
+        self.PGVECTO_RS_DATABASE = get_env('PGVECTO_RS_DATABASE')
+
+        # pgvector settings
+        self.PGVECTOR_HOST = get_env('PGVECTOR_HOST')
+        self.PGVECTOR_PORT = get_env('PGVECTOR_PORT')
+        self.PGVECTOR_USER = get_env('PGVECTOR_USER')
+        self.PGVECTOR_PASSWORD = get_env('PGVECTOR_PASSWORD')
+        self.PGVECTOR_DATABASE = get_env('PGVECTOR_DATABASE')
 
         # ------------------------
         # Mail Configurations.

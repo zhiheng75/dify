@@ -12,6 +12,7 @@ from controllers.console.datasets.error import DatasetNameDuplicateError
 from controllers.console.setup import setup_required
 from controllers.console.wraps import account_initialization_required
 from core.errors.error import LLMBadRequestError, ProviderTokenNotInitError
+from core.es.es_conn import ELASTICSEARCH
 from core.indexing_runner import IndexingRunner
 from core.model_runtime.entities.model_entities import ModelType
 from core.provider_manager import ProviderManager
@@ -24,8 +25,6 @@ from libs.login import login_required
 from models.dataset import Dataset, Document, DocumentSegment
 from models.model import ApiToken, UploadFile
 from services.dataset_service import DatasetService, DocumentService
-
-from core.es.es_conn import ELASTICSEARCH
 
 
 def _validate_name(name):
@@ -480,13 +479,13 @@ class DatasetRetrievalSettingApi(Resource):
     @account_initialization_required
     def get(self):
         vector_type = current_app.config['VECTOR_STORE']
-        if vector_type == 'milvus' or vector_type == 'relyt':
+        if vector_type in {"milvus", "relyt", "pgvector", "pgvecto_rs"}:
             return {
                 'retrieval_method': [
                     'semantic_search'
                 ]
             }
-        elif vector_type == 'qdrant' or vector_type == 'weaviate':
+        elif vector_type in {"qdrant", "weaviate"}:
             return {
                 'retrieval_method': [
                     'semantic_search', 'full_text_search', 'hybrid_search','es_text_search'
@@ -501,14 +500,13 @@ class DatasetRetrievalSettingMockApi(Resource):
     @login_required
     @account_initialization_required
     def get(self, vector_type):
-
-        if vector_type == 'milvus' or vector_type == 'relyt':
+        if vector_type in {'milvus', 'relyt', 'pgvector'}:
             return {
                 'retrieval_method': [
                     'semantic_search'
                 ]
             }
-        elif vector_type == 'qdrant' or vector_type == 'weaviate':
+        elif vector_type in {'qdrant', 'weaviate'}:
             return {
                 'retrieval_method': [
                     'semantic_search', 'full_text_search', 'hybrid_search'

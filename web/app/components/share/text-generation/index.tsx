@@ -397,10 +397,10 @@ const TextGeneration: FC<IMainProps> = ({
   // Can Use metadata(https://beta.nextjs.org/docs/api-reference/metadata) to set title. But it only works in server side client.
   useEffect(() => {
     if (siteInfo?.title) {
-      /*if (canReplaceLogo)
+      /* if (canReplaceLogo)
         document.title = `${siteInfo.title}`
       else
-        document.title = `${siteInfo.title} - Powered by Dify`*/
+        document.title = `${siteInfo.title} - Powered by Dify` */
       if (canReplaceLogo)
         document.title = `${siteInfo.title}`
       else
@@ -622,7 +622,7 @@ const TextGeneration: FC<IMainProps> = ({
                 <div>·</div>
                 <div>{t('share.chat.privacyPolicyLeft')}
                   <a
-                    className='text-gray-500'
+                    className='text-gray-500 px-1'
                     href={siteInfo.privacy_policy}
                     target='_blank' rel='noopener noreferrer'>{t('share.chat.privacyPolicyMiddle')}</a>
                   {t('share.chat.privacyPolicyRight')}

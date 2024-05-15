@@ -15,6 +15,7 @@ from sqlalchemy.orm.exc import ObjectDeletedError
 
 from core.docstore.dataset_docstore import DatasetDocumentStore
 from core.errors.error import ProviderTokenNotInitError
+from core.es.es_conn import ELASTICSEARCH
 from core.llm_generator.llm_generator import LLMGenerator
 from core.model_manager import ModelInstance, ModelManager
 from core.model_runtime.entities.model_entities import ModelType, PriceType
@@ -25,7 +26,10 @@ from core.rag.extractor.entity.extract_setting import ExtractSetting
 from core.rag.index_processor.index_processor_base import BaseIndexProcessor
 from core.rag.index_processor.index_processor_factory import IndexProcessorFactory
 from core.rag.models.document import Document
-from core.splitter.fixed_text_splitter import EnhanceRecursiveCharacterTextSplitter,AutoFixedRecursiveCharacterTextSplitter, FixedRecursiveCharacterTextSplitter
+from core.splitter.fixed_text_splitter import (
+    AutoFixedRecursiveCharacterTextSplitter,
+    FixedRecursiveCharacterTextSplitter,
+)
 from core.splitter.text_splitter import TextSplitter
 from extensions.ext_database import db
 from extensions.ext_redis import redis_client
@@ -35,8 +39,6 @@ from models.dataset import Dataset, DatasetProcessRule, DocumentSegment
 from models.dataset import Document as DatasetDocument
 from models.model import UploadFile
 from services.feature_service import FeatureService
-
-from core.es.es_conn import ELASTICSEARCH
 
 
 class IndexingRunner:
