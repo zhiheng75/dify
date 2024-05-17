@@ -6,6 +6,7 @@ from pptx import Presentation
 import re
 import uuid
 import os
+import shutil
 
 class PptExtractor(BaseExtractor):
     """Load Excel files.
@@ -38,7 +39,9 @@ class PptExtractor(BaseExtractor):
         fs = os.listdir(tmp_folder)
         for f in fs:
             if f.endswith("pptx"):
-                return self._extract4pptx(os.path.join(tmp_folder,f))
+                ds = self._extract4pptx(os.path.join(tmp_folder,f))
+                shutil.rmtree(tmp_folder)
+                return ds
         return []
 
 
