@@ -14,6 +14,7 @@ from core.rag.extractor.markdown_extractor import MarkdownExtractor
 from core.rag.extractor.notion_extractor import NotionExtractor
 from core.rag.extractor.pdf_extractor import PdfExtractor
 from core.rag.extractor.text_extractor import TextExtractor
+from core.rag.extractor.ppt_extractor import PptExtractor
 from core.rag.extractor.unstructured.unstructured_doc_extractor import UnstructuredWordExtractor
 from core.rag.extractor.unstructured.unstructured_eml_extractor import UnstructuredEmailExtractor
 from core.rag.extractor.unstructured.unstructured_epub_extractor import UnstructuredEpubExtractor
@@ -125,6 +126,8 @@ class ExtractProcessor:
                         extractor = MarkdownExtractor(file_path, autodetect_encoding=True)
                     elif file_extension in ['.htm', '.html']:
                         extractor = HtmlExtractor(file_path)
+                    elif file_extension in ['.ppt', '.pptx']:
+                        extractor = PptExtractor(file_path)
                     elif file_extension in ['.docx']:
                         extractor = WordExtractor(file_path)
                     elif file_extension == '.csv':
