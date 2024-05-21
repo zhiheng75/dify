@@ -3,7 +3,7 @@ services:
   # API service
   api:
     # image: langgenius/dify-api:0.6.5
-    image: zhihengw/qany:0.0.7
+    image: zhihengw/qany:0.0.8
     restart: always
     environment:
       # Startup mode, 'api' starts the API server.
@@ -191,7 +191,7 @@ services:
   # The Celery worker for processing the queue.
   worker:
     #image: langgenius/dify-api:0.6.5
-    image: zhihengw/qany:0.0.7
+    image: zhihengw/qany:0.0.8
     restart: always
     environment:
       CONSOLE_WEB_URL: ''
@@ -330,7 +330,7 @@ services:
   # Frontend web application.
   web:
     # image: langgenius/dify-web:0.6.5
-    image: zhihengw/qany-web:0.0.4
+    image: zhihengw/qany-web:0.0.5
     restart: always
     environment:
       # The base URL of console application api server, refers to the Console base URL of WEB service if console domain is
