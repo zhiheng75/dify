@@ -184,8 +184,8 @@ services:
     # ports:
     #   - "5001:5001"
     networks:
-      - ssrf_proxy_network
       - default
+      - ssrf_proxy_network
 
   # worker service
   # The Celery worker for processing the queue.
@@ -310,8 +310,8 @@ services:
       # Mount the storage directory to the container, for storing user files.
       - ./volumes/app/storage:/app/api/storage
     networks:
-      - ssrf_proxy_network
       - default
+      - ssrf_proxy_network
 
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
@@ -439,7 +439,6 @@ services:
       - ./volumes/ssrf_proxy/squid.conf:/etc/squid/squid.conf
     networks:
       - ssrf_proxy_network
-      - default
   # Qdrant vector store.
   # uncomment to use qdrant as vector store.
   # (if uncommented, you need to comment out the weaviate service above,
@@ -497,6 +496,7 @@ services:
     ports:
       - "8080:80"
       #- "443:443"
+
 networks:
   default:
     name: qany-network
