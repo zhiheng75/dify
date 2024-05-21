@@ -49,6 +49,9 @@ RUN ln -s /usr/share/zoneinfo/${TZ} /etc/localtime \
 RUN yarn global add pm2 \
     && yarn cache clean
 
+# Disable next telemetry
+RUN yarn next telemetry disable
+
 WORKDIR /app/web
 COPY --from=builder /app/web/public ./public
 COPY --from=builder /app/web/.next/standalone ./
