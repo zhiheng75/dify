@@ -1,12 +1,15 @@
 """Abstract interface for document loader implementations."""
 
+import os
+import re
+import shutil
+import uuid
+
+from pptx import Presentation
+
 from core.rag.extractor.extractor_base import BaseExtractor
 from core.rag.models.document import Document
-from pptx import Presentation
-import re
-import uuid
-import os
-import shutil
+
 
 class PptExtractor(BaseExtractor):
     """Load Excel files.

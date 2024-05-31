@@ -31,6 +31,7 @@ export type ConfigParams = {
   prompt_public: boolean
   copyright: string
   privacy_policy: string
+  custom_disclaimer: string
   icon: string
   icon_background: string
 }
@@ -46,8 +47,8 @@ const SettingsModal: FC<ISettingsModalProps> = ({
   const { notify } = useToastContext()
   const [isShowMore, setIsShowMore] = useState(false)
   const { icon, icon_background } = appInfo
-  const { title, description, copyright, privacy_policy, default_language } = appInfo.site
-  const [inputInfo, setInputInfo] = useState({ title, desc: description, copyright, privacyPolicy: privacy_policy })
+  const { title, description, copyright, privacy_policy, custom_disclaimer, default_language } = appInfo.site
+  const [inputInfo, setInputInfo] = useState({ title, desc: description, copyright, privacyPolicy: privacy_policy, customDisclaimer: custom_disclaimer })
   const [language, setLanguage] = useState(default_language)
   const [saveLoading, setSaveLoading] = useState(false)
   const { t } = useTranslation()
@@ -56,7 +57,7 @@ const SettingsModal: FC<ISettingsModalProps> = ({
   const [emoji, setEmoji] = useState({ icon, icon_background })
 
   useEffect(() => {
-    setInputInfo({ title, desc: description, copyright, privacyPolicy: privacy_policy })
+    setInputInfo({ title, desc: description, copyright, privacyPolicy: privacy_policy, customDisclaimer: custom_disclaimer })
     setLanguage(default_language)
     setEmoji({ icon, icon_background })
   }, [appInfo])
@@ -81,6 +82,7 @@ const SettingsModal: FC<ISettingsModalProps> = ({
       prompt_public: false,
       copyright: inputInfo.copyright,
       privacy_policy: inputInfo.privacyPolicy,
+      custom_disclaimer: inputInfo.customDisclaimer,
       icon: emoji.icon,
       icon_background: emoji.icon_background,
     }
@@ -146,37 +148,44 @@ const SettingsModal: FC<ISettingsModalProps> = ({
           <div
             className={`mt-6 font-medium ${s.settingTitle} text-gray-900`}>{t(`${prefixSettings}.more.copyright`)}</div>
           <input className={`w-full mt-2 rounded-lg h-10 box-border px-3 ${s.projectName} bg-gray-100`}
-                 value={inputInfo.copyright}
-                 onChange={onChange('copyright')}
-                 placeholder={t(`${prefixSettings}.more.copyRightPlaceholder`) as string}
+            value={inputInfo.copyright}
+            onChange={onChange('copyright')}
+            placeholder={t(`${prefixSettings}.more.copyRightPlaceholder`) as string}
           />
           <div
             className={`mt-8 font-medium ${s.settingTitle} text-gray-900`}>{t(`${prefixSettings}.more.privacyPolicy`)}</div>
-          {/*<p className={`mt-1 ${s.settingsTip} text-gray-500`}>
+          {/* <p className={`mt-1 ${s.settingsTip} text-gray-500`}>
             <Trans
               i18nKey={`${prefixSettings}.more.privacyPolicyTip`}
               components={{ privacyPolicyLink: <Link href={'https://docs.dify.ai/user-agreement/privacy-policy'} target='_blank' rel='noopener noreferrer' className='text-primary-600' /> }}
             />
-          </p>*/}
+          </p> */}
           <p className={`mt-1 ${s.settingsTip} text-gray-500`}>
             <Trans
               i18nKey={`${prefixSettings}.more.privacyPolicyTip`}
               components={{
                 privacyPolicyLink: <Link href={'#'} target='_blank'
-                                         rel='noopener noreferrer' className='text-primary-600'/>
+                  rel='noopener noreferrer' className='text-primary-600'/>,
               }}
             />
           </p>
           <input className={`w-full mt-2 rounded-lg h-10 box-border px-3 ${s.projectName} bg-gray-100`}
-                 value={inputInfo.privacyPolicy}
-                 onChange={onChange('privacyPolicy')}
-                 placeholder={t(`${prefixSettings}.more.privacyPolicyPlaceholder`) as string}
+            value={inputInfo.privacyPolicy}
+            onChange={onChange('privacyPolicy')}
+            placeholder={t(`${prefixSettings}.more.privacyPolicyPlaceholder`) as string}
+          />
+          <div className={`mt-8 font-medium ${s.settingTitle} text-gray-900`}>{t(`${prefixSettings}.more.customDisclaimer`)}</div>
+          <p className={`mt-1 ${s.settingsTip} text-gray-500`}>{t(`${prefixSettings}.more.customDisclaimerTip`)}</p>
+          <input className={`w-full mt-2 rounded-lg h-10 box-border px-3 ${s.projectName} bg-gray-100`}
+            value={inputInfo.customDisclaimer}
+            onChange={onChange('customDisclaimer')}
+            placeholder={t(`${prefixSettings}.more.customDisclaimerPlaceholder`) as string}
           />
         </>}
         <div className='mt-10 flex justify-end'>
           <Button className='mr-2 flex-shrink-0 !text-sm' onClick={onHide}>{t('common.operation.cancel')}</Button>
           <Button type='primary' className='flex-shrink-0 !text-sm' onClick={onClickSave}
-                  loading={saveLoading}>{t('common.operation.save')}</Button>
+            loading={saveLoading}>{t('common.operation.save')}</Button>
         </div>
         {showEmojiPicker && <EmojiPicker
           onSelect={(icon, icon_background) => {

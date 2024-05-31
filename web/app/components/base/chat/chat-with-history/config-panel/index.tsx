@@ -154,14 +154,15 @@ const ConfigPanel = () => {
                           : <FootLogo />
                       }
                     </a> */}
-                    <a className='flex items-center pr-3 space-x-3' href="/" target="_blank">
+                    {/* <a className='flex items-center pr-3 space-x-3' href="/" target="_blank"> */}
+                    <div className='flex items-center pr-3 space-x-3'>
                       <span className='uppercase'>{t('share.chat.powerBy')}</span>
                       {
                         customConfig?.replace_webapp_logo
                           ? <img src={customConfig?.replace_webapp_logo} alt='logo' className='block w-auto h-5'/>
                           : <FootLogo/>
                       }
-                    </a>
+                    </div>
                   </div>
                 )
             }

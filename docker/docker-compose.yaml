@@ -2,6 +2,7 @@ version: '3'
 services:
   # API service
   api:
+    image: langgenius/dify-api:0.6.9
     # image: langgenius/dify-api:0.6.5
     image: zhihengw/qany:0.0.8
     restart: always
@@ -10,6 +11,8 @@ services:
       MODE: api
       # The log level for the application. Supported values are `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`
       LOG_LEVEL: INFO
+      # enable DEBUG mode to output more logs
+      # DEBUG : true
       # A secret key that is used for securely signing the session cookie and encrypting sensitive information on the database. You can generate a strong key using `openssl rand -base64 42`.
       #SECRET_KEY: sk-9f73s3ljTXVcMT3Blb3ljTqtsKiGHXVcMT3BlbkFJLK7U
       SECRET_KEY: 6VuJGux8k+hVQDwpkCX2TFxm2Ebol74EzL2+YV2Z386jRFPT8x84bYge
@@ -36,6 +39,9 @@ services:
       # used to display File preview or download Url to the front-end or as Multi-model inputs;
       # Url is signed and has expiration time.
       FILES_URL: ''
+      # File Access Time specifies a time interval in seconds for the file to be accessed.
+      # The default value is 300 seconds.
+      FILES_ACCESS_TIMEOUT: 300
       # When enabled, migrations will be executed prior to application startup and the application will start after the migrations have completed.
       MIGRATION_ENABLED: 'true'
       # The configurations of postgres database connection.
@@ -138,10 +144,11 @@ services:
       # default send from email address, if not specified
       MAIL_DEFAULT_SEND_FROM: 'YOUR EMAIL FROM (eg: no-reply <no-reply@dify.ai>)'
       SMTP_SERVER: ''
-      SMTP_PORT: 587
+      SMTP_PORT: 465
       SMTP_USERNAME: ''
       SMTP_PASSWORD: ''
       SMTP_USE_TLS: 'true'
+      SMTP_OPPORTUNISTIC_TLS: 'false'
       # the api-key for resend (https://resend.com)
       RESEND_API_KEY: ''
       RESEND_API_URL: https://api.resend.com
@@ -169,6 +176,8 @@ services:
       # SSRF Proxy server
       SSRF_PROXY_HTTP_URL: 'http://ssrf_proxy:3128'
       SSRF_PROXY_HTTPS_URL: 'http://ssrf_proxy:3128'
+      # Indexing configuration
+      INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH: 1000
       # dify / Unstructured
       # ETL_TYPE: dify
       ETL_TYPE: Unstructured
@@ -204,7 +213,6 @@ services:
       LOG_LEVEL: INFO
       # A secret key that is used for securely signing the session cookie and encrypting sensitive information on the database. You can generate a strong key using `openssl rand -base64 42`.
       # same as the API service
-      # SECRET_KEY: sk-9f73s3ljTXVcMT3Blb3ljTqtsKiGHXVcMT3BlbkFJLK7U
       SECRET_KEY: 6VuJGux8k+hVQDwpkCX2TFxm2Ebol74EzL2+YV2Z386jRFPT8x84bYge
       # The configurations of postgres database connection.
       # It is consistent with the configuration in the 'db' service below.
@@ -250,7 +258,7 @@ services:
       QDRANT_URL: http://qdrant:6333
       # The Qdrant API key.
       QDRANT_API_KEY: difyai123456
-      # The Qdrant clinet timeout setting.
+      # The Qdrant client timeout setting.
       QDRANT_CLIENT_TIMEOUT: 20
       # The Qdrant client enable gRPC mode.
       QDRANT_GRPC_ENABLED: 'false'
@@ -274,10 +282,11 @@ services:
       # default send from email address, if not specified
       MAIL_DEFAULT_SEND_FROM: 'YOUR EMAIL FROM (eg: no-reply <no-reply@dify.ai>)'
       SMTP_SERVER: ''
-      SMTP_PORT: 587
+      SMTP_PORT: 465
       SMTP_USERNAME: ''
       SMTP_PASSWORD: ''
       SMTP_USE_TLS: 'true'
+      SMTP_OPPORTUNISTIC_TLS: 'false'
       # the api-key for resend (https://resend.com)
       RESEND_API_KEY: ''
       RESEND_API_URL: https://api.resend.com
@@ -302,6 +311,8 @@ services:
       NOTION_CLIENT_SECRET: you-client-secret
       NOTION_CLIENT_ID: you-client-id
       NOTION_INTERNAL_SECRET: you-internal-secret
+      # Indexing configuration
+      INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH: 1000
     depends_on:
       - db
       - redis
@@ -312,6 +323,7 @@ services:
     networks:
       - default
       - ssrf_proxy_network
+
 
   es:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
@@ -326,10 +338,8 @@ services:
       - "9300:9300"
     volumes:
       - ./volumes/es:/usr/share/elasticsearch/data
-
   # Frontend web application.
   web:
-    # image: langgenius/dify-web:0.6.5
     image: zhihengw/qany-web:0.0.5
     restart: always
     environment:
@@ -439,6 +449,7 @@ services:
       - ./volumes/ssrf_proxy/squid.conf:/etc/squid/squid.conf
     networks:
       - ssrf_proxy_network
+      - default
   # Qdrant vector store.
   # uncomment to use qdrant as vector store.
   # (if uncommented, you need to comment out the weaviate service above,
@@ -496,7 +507,6 @@ services:
     ports:
       - "8080:80"
       #- "443:443"
-
 networks:
   default:
     name: qany-network
@@ -504,4 +514,3 @@ networks:
   ssrf_proxy_network:
     driver: bridge
     internal: true
-
