@@ -1,5 +1,4 @@
 """Abstract interface for document loader implementations."""
-from collections import Counter
 from collections.abc import Iterator
 from typing import Optional
 
@@ -27,7 +26,6 @@ class PdfExtractor(BaseExtractor):
         self._file_cache_key = file_cache_key
 
     def extract(self) -> list[Document]:
-        watermark_line_threshold = 10
         plaintext_file_key = ''
         plaintext_file_exists = False
         if self._file_cache_key:
@@ -38,19 +36,9 @@ class PdfExtractor(BaseExtractor):
             except FileNotFoundError:
                 pass
         documents = list(self.load())
-        all_lines = []
-        for document in documents:
-            all_lines.extend(document.page_content.split("\n"))
-        line_counter = Counter(all_lines)
-
         text_list = []
         for document in documents:
-            lines = document.page_content.split("\n")
-            # Remove watermarks
-            lines = [line for line in lines if line_counter[line] <= watermark_line_threshold]
-            if not lines:
-                continue
-            text_list.append("\n".join(lines))
+            text_list.append(document.page_content)
         text = "\n\n".join(text_list)
 
         # save plaintext file for caching
