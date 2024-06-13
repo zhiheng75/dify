@@ -13,8 +13,8 @@ from core.rag.extractor.excel_extractor import ExcelExtractor
 from core.rag.extractor.firecrawl.firecrawl_web_extractor import FirecrawlWebExtractor
 from core.rag.extractor.html_extractor import HtmlExtractor
 from core.rag.extractor.markdown_extractor import MarkdownExtractor
+from core.rag.extractor.mupdf_extractor import MuPdfExtractor
 from core.rag.extractor.notion_extractor import NotionExtractor
-from core.rag.extractor.pdf_extractor import PdfExtractor
 from core.rag.extractor.text_extractor import TextExtractor
 from core.rag.extractor.unstructured.unstructured_eml_extractor import UnstructuredEmailExtractor
 from core.rag.extractor.unstructured.unstructured_epub_extractor import UnstructuredEpubExtractor
@@ -100,7 +100,7 @@ class ExtractProcessor:
                     if file_extension == '.xlsx' or file_extension == '.xls':
                         extractor = ExcelExtractor(file_path)
                     elif file_extension == '.pdf':
-                        extractor = PdfExtractor(file_path)
+                        extractor = MuPdfExtractor(file_path)
                     elif file_extension in ['.md', '.markdown']:
                         extractor = UnstructuredMarkdownExtractor(file_path, unstructured_api_url) if is_automatic \
                             else MarkdownExtractor(file_path, autodetect_encoding=True)
@@ -130,7 +130,7 @@ class ExtractProcessor:
                     if file_extension == '.xlsx' or file_extension == '.xls':
                         extractor = ExcelExtractor(file_path)
                     elif file_extension == '.pdf':
-                        extractor = PdfExtractor(file_path)
+                        extractor = MuPdfExtractor(file_path)
                     elif file_extension in ['.md', '.markdown']:
                         extractor = MarkdownExtractor(file_path, autodetect_encoding=True)
                     elif file_extension in ['.htm', '.html']:
