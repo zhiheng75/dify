@@ -104,6 +104,7 @@ class ChatMessageApi(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('inputs', type=dict, required=True, location='json')
         parser.add_argument('query', type=str, required=True, location='json')
+        parser.add_argument('tmp_dataset_id', type=str, required=False, location='json')
         parser.add_argument('files', type=list, required=False, location='json')
         parser.add_argument('model_config', type=dict, required=True, location='json')
         parser.add_argument('conversation_id', type=uuid_value, location='json')
@@ -113,6 +114,7 @@ class ChatMessageApi(Resource):
 
         streaming = args['response_mode'] != 'blocking'
         args['auto_generate_name'] = False
+        # args['tmp_dataset_id'] = 'ee6127ec-ee2d-4739-9146-29c21220f573'
 
         account = flask_login.current_user
 

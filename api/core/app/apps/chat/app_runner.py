@@ -15,6 +15,7 @@ from core.moderation.base import ModerationException
 from core.rag.retrieval.dataset_retrieval import DatasetRetrieval
 from extensions.ext_database import db
 from models.model import App, Conversation, Message
+from core.rag.datasource.retrieval_service import RetrievalService
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +145,7 @@ class ChatAppRunner(AppRunner):
             )
 
         # get context from datasets
-        context = None
+        context = ""
         if app_config.dataset and app_config.dataset.dataset_ids:
             hit_callback = DatasetIndexToolCallbackHandler(
                 queue_manager,
@@ -167,6 +168,17 @@ class ChatAppRunner(AppRunner):
                 hit_callback=hit_callback,
                 memory=memory
             )
+
+        # query tmp file dataset
+        if 'tmp_dataset_id' in application_generate_entity.extras:
+            tmp_dataset_id = application_generate_entity.extras['tmp_dataset_id']
+            results = RetrievalService.retrieve(retrival_method='semantic_search', dataset_id=tmp_dataset_id,
+                                                query=query,
+                                                top_k=1, score_threshold=0.0,
+                                                reranking_model=None)
+            if len(results) > 0:
+                    context = context + "\n" + results[0].page_content
+
 
         # reorganize all inputs and template to prompt messages
         # Include: prompt template, inputs, query(optional), files(optional)
