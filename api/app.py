@@ -16,7 +16,7 @@ import threading
 import time
 import warnings
 from logging.handlers import RotatingFileHandler
-
+import random
 from flask import Flask, Response, request
 from flask_cors import CORS
 from werkzeug.exceptions import Unauthorized
@@ -44,6 +44,7 @@ from extensions.ext_login import login_manager
 from libs.passport import PassportService
 from models import account, dataset, model, source, task, tool, tools, web
 from services.account_service import AccountService
+from services.dataset_service import DatasetService
 
 # DO NOT REMOVE ABOVE
 
@@ -205,10 +206,25 @@ def register_blueprints(app):
 
     app.register_blueprint(inner_api_bp)
 
+def timer_func(app):
+    """
+    定义一个定时函数，每隔interval秒运行一次
+    """
+    while True:
+        delete = True
+        time.sleep(random.randint(3600, 3600 * 4))
+        while delete:
+            delete = DatasetService.delete_tmp_datasets(app)
+
 
 # create app
 app = create_app()
 celery = app.extensions["celery"]
+
+# 清理对话中上传文件形成的临时dataset
+thread = threading.Thread(target=timer_func, args=(app,))
+thread.start()
+
 
 if app.config['TESTING']:
     print("App is running in TESTING mode")
