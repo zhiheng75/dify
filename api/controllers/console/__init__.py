@@ -35,7 +35,7 @@ from .auth import activate, data_source_oauth, login, oauth
 from .billing import billing
 
 # Import datasets controllers
-from .datasets import data_source, datasets, datasets_document, datasets_segments, file, hit_testing
+from .datasets import data_source, datasets, datasets_document, datasets_segments, file, hit_testing,upload_file_in_app
 
 # Import explore controllers
 from .explore import (
