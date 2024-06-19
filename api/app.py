@@ -207,12 +207,11 @@ def register_blueprints(app):
     app.register_blueprint(inner_api_bp)
 
 def timer_func(app):
-    """
-    定义一个定时函数，每隔interval秒运行一次
-    """
+    if threading.current_thread().name.startswith('Dummy'):
+        return
     while True:
         delete = True
-        time.sleep(random.randint(3600, 3600 * 4))
+        time.sleep(12*60)
         while delete:
             delete = DatasetService.delete_tmp_datasets(app)
 
@@ -221,9 +220,10 @@ def timer_func(app):
 app = create_app()
 celery = app.extensions["celery"]
 
-# 清理对话中上传文件形成的临时dataset
-thread = threading.Thread(target=timer_func, args=(app,))
-thread.start()
+# 清理对话中上传文件形成的临时dataset[跟随 flask 进程 一起启动]
+if 'SERVER_SOFTWARE' in os.environ and   os.environ.get('SERVER_SOFTWARE').startswith('gunicorn'):
+    thread = threading.Thread(target=timer_func, args=(app,))
+    thread.start()
 
 
 if app.config['TESTING']:
