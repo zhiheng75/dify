@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 services:
   # API service
   api:
@@ -188,11 +188,11 @@ services:
       # Mount the storage directory to the container, for storing user files.
       - ./volumes/app/storage:/app/api/storage
     # uncomment to expose dify-api port to host
-    # ports:
-    #   - "5001:5001"
+    #ports:
+    #  - "5001:5001"
     networks:
-      - default
       - ssrf_proxy_network
+      - default
 
   # worker service
   # The Celery worker for processing the queue.
@@ -318,8 +318,8 @@ services:
       # Mount the storage directory to the container, for storing user files.
       - ./volumes/app/storage:/app/api/storage
     networks:
-      - default
       - ssrf_proxy_network
+      - default
 
 
   es:
@@ -335,6 +335,10 @@ services:
       - "9300:9300"
     volumes:
       - ./volumes/es:/usr/share/elasticsearch/data
+    #networks:
+    #  - default
+  
+
   # Frontend web application.
   web:
     image: zhihengw/qany-web:0.0.6
@@ -504,9 +508,10 @@ services:
     ports:
       - "8080:80"
       #- "443:443"
+
 networks:
-  default:
-    name: qany-network
+  #default:
+  #  name: qany-network
   # create a network between sandbox, api and ssrf_proxy, and can not access outside.
   ssrf_proxy_network:
     driver: bridge
