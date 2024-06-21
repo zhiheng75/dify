@@ -456,6 +456,59 @@ export const upload = (options: any, isPublicAPI?: boolean, url?: string, search
   })
 }
 
+export const upload_in_app = (options: any, isPublicAPI?: boolean, url?: string, searchParams?: string): Promise<any> => {
+  const urlPrefix = isPublicAPI ? PUBLIC_API_PREFIX : API_PREFIX
+  let token = ''
+  if (isPublicAPI) {
+    const sharedToken = globalThis.location.pathname.split('/').slice(-1)[0]
+    const accessToken = localStorage.getItem('token') || JSON.stringify({ [sharedToken]: '' })
+    let accessTokenJson = { [sharedToken]: '' }
+    try {
+      accessTokenJson = JSON.parse(accessToken)
+    }
+    catch (e) {
+
+    }
+    token = accessTokenJson[sharedToken]
+  }
+  else {
+    const accessToken = localStorage.getItem('console_token') || ''
+    token = accessToken
+  }
+  const defaultOptions = {
+    method: 'POST',
+    url: (url ? `${urlPrefix}${url}` : `${urlPrefix}/files/upload_in_app`) + (searchParams || ''),
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    data: {},
+  }
+  options = {
+    ...defaultOptions,
+    ...options,
+    headers: { ...defaultOptions.headers, ...options.headers },
+  }
+  return new Promise((resolve, reject) => {
+    const xhr = options.xhr
+    xhr.open(options.method, options.url)
+    for (const key in options.headers)
+      xhr.setRequestHeader(key, options.headers[key])
+
+    xhr.withCredentials = true
+    xhr.responseType = 'json'
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200)
+          resolve(xhr.response)
+        else
+          reject(xhr)
+      }
+    }
+    xhr.upload.onprogress = options.onprogress
+    xhr.send(options.data)
+  })
+}
+
 export const ssePost = (
   url: string,
   fetchOptions: FetchOptionType,
