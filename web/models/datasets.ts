@@ -37,12 +37,18 @@ export type CustomFile = File & {
   mime_type?: string
   created_by?: string
   created_at?: number
+
+  tmp_dataset_id?: string
+  progress_url?: string
+  document_id?: string
 }
 
 export type FileItem = {
   fileID: string
   file: CustomFile
   progress: number
+
+  progress_title?: string
 }
 
 export type DataSetListResponse = {

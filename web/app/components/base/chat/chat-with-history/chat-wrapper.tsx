@@ -60,12 +60,15 @@ const ChatWrapper = () => {
       currentChatInstanceRef.current.handleStop = handleStop
   }, [])
 
-  const doSend: OnSend = useCallback((message, files) => {
+  const doSend: OnSend = useCallback((message, tmpDatasetId, files) => {
     const data: any = {
       query: message,
       inputs: currentConversationId ? currentConversationItem?.inputs : newConversationInputs,
       conversation_id: currentConversationId,
     }
+
+    if (tmpDatasetId !== null && tmpDatasetId !== undefined && tmpDatasetId?.length > 0)
+      data.tmp_dataset_id = tmpDatasetId
 
     if (appConfig?.file_upload?.image.enabled && files?.length)
       data.files = files

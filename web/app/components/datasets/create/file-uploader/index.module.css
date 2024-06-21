@@ -182,6 +182,17 @@
   color: #344054;
 }
 
+.actionWrapper .percent_title {
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 18px;
+  color: #86d55e;
+}
+
+.actionWrapper .percent_title_error {
+  color: #dc0909;
+}
+
 .actionWrapper .remove {
   display: none;
   width: 24px;

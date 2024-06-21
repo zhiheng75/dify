@@ -173,6 +173,7 @@ const FileUploader = ({
       progress: -1,
     }))
     const newFiles = [...fileListRef.current, ...preparedFiles]
+    // console.log('hideUpload:', hideUpload)
     prepareFileList(newFiles)
     fileListRef.current = newFiles
     uploadMultipleFiles(preparedFiles)
