@@ -53,6 +53,8 @@ const DebugWithSingleModel = forwardRef<DebugWithSingleModelRefType, DebugWithSi
     handleAnnotationAdded,
     handleAnnotationEdited,
     handleAnnotationRemoved,
+
+    conversationId,
   } = useChat(
     config,
     {
@@ -64,7 +66,7 @@ const DebugWithSingleModel = forwardRef<DebugWithSingleModelRefType, DebugWithSi
   )
   useFormattingChangedSubscription(chatList)
 
-  const doSend: OnSend = useCallback((message, files) => {
+  const doSend: OnSend = useCallback((message, tmpDatasetId, files) => {
     if (checkCanSend && !checkCanSend())
       return
     const currentProvider = textGenerationModelList.find(item => item.provider === modelConfig.provider)
@@ -90,6 +92,10 @@ const DebugWithSingleModel = forwardRef<DebugWithSingleModelRefType, DebugWithSi
     if (visionConfig.enabled && files?.length && supportVision)
       data.files = files
 
+    if (tmpDatasetId !== null && tmpDatasetId !== undefined && tmpDatasetId?.length > 0)
+      data.tmp_dataset_id = tmpDatasetId
+
+    console.log('app/components/app/configuration/debug/debug-with-single-model', message)
     handleSend(
       `apps/${appId}/chat-messages`,
       data,
@@ -116,6 +122,7 @@ const DebugWithSingleModel = forwardRef<DebugWithSingleModelRefType, DebugWithSi
 
   return (
     <Chat
+      conversationId={conversationId}
       config={config}
       chatList={chatList}
       isResponding={isResponding}

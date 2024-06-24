@@ -17,6 +17,7 @@ import type {
 } from '../types'
 import { TransferMethod } from '../types'
 import { useChatWithHistoryContext } from '../chat-with-history/context'
+import { useChatContext } from './context'
 import TooltipPlus from '@/app/components/base/tooltip-plus'
 import { ToastContext } from '@/app/components/base/toast'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
@@ -60,7 +61,17 @@ const ChatInput: FC<ChatInputProps> = ({
   speechToTextConfig,
   onSend,
 }) => {
-  const { appData } = useChatWithHistoryContext()
+  const {
+    conversationId,
+  } = useChatContext()
+  // console.log('conversationId:', conversationId)
+
+  const {
+    appData,
+    currentConversationId,
+    currentConversationItem,
+  } = useChatWithHistoryContext()
+  // console.log('currentConversationId:', currentConversationId)
   const { t } = useTranslation()
   const { notify } = useContext(ToastContext)
   const [voiceInputShow, setVoiceInputShow] = useState(false)
@@ -181,6 +192,7 @@ const ChatInput: FC<ChatInputProps> = ({
     formData.append('file', fileItem.file)
     if (tmpDatasetId?.length > 0)
       formData.append('tmp_dataset_id', tmpDatasetId)
+    formData.append('conversation_id', (currentConversationId || ((conversationId !== undefined && conversationId?.length > 0) ? conversationId : '')))
 
     const onProgress = (e: ProgressEvent) => {
       if (e.lengthComputable) {
@@ -273,7 +285,7 @@ const ChatInput: FC<ChatInputProps> = ({
           if (progress_url?.length > 0) {
             const progress_url_temp = progress_url.replace('/console/api/', '')
             const status = await doFetchIndexingStatus({ url: progress_url_temp })
-            console.log(status)
+            // console.log(status)
             currTimingFrequency++
             const indexingStatusBatchDetail = status?.data || []
             // 'indexing' - 索引中, 'splitting'-分段中, 'parsing'-解析中, 'cleaning'-清洗中
@@ -529,7 +541,7 @@ const ChatInput: FC<ChatInputProps> = ({
                 <TooltipPlus
                   popupContent={
                     <div style={{
-                      backgroundColor: 'rgba(3,3,3,0.2)',
+                      /* backgroundColor: 'rgba(3,3,3,0.2)', */
                     }}>
                       <div>{t('common.operation.send')} Enter</div>
                       <div>{t('common.operation.lineBreak')} Shift Enter</div>

@@ -154,7 +154,12 @@ export type DataSourceInfo = {
     created_by: string
     extension: string
   }
+  // notion_page_icon?: string
   notion_page_icon?: string
+
+  notion_workspace_id?: string
+  notion_page_id?: string
+  type?: string
 }
 
 export type InitialDocumentDetail = {

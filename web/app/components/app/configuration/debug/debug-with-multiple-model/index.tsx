@@ -31,11 +31,11 @@ const DebugWithMultipleModel = () => {
   const isChatMode = mode === 'chat' || mode === 'agent-chat'
 
   // const handleSend: OnSend = useCallback((message: string, files?: VisionFile[]) => {
-  const handleSend: OnSend = useCallback((message, files) => {
+  const handleSend: OnSend = useCallback((message, tmpDatasetId, files) => {
     if (checkCanSend && !checkCanSend())
       return
 
-    console.log(message)
+    console.log('app/components/app/configuration/debug/debug-with-multiple-model', message)
     eventEmitter?.emit({
       type: APP_CHAT_WITH_MULTIPLE_MODEL,
       payload: {

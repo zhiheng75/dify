@@ -328,6 +328,7 @@ const baseFetch = <T>(
           // Error handler
           if (!/^(2|3)\d{2}$/.test(String(res.status))) {
             const bodyJson = res.json()
+            console.log('error handle:', String(res.status))
             switch (res.status) {
               case 401: {
                 if (isPublicAPI) {
@@ -346,6 +347,7 @@ const baseFetch = <T>(
                     return Promise.reject(data)
                   })
                 }
+                console.log('base>>>>>>>>>>>')
                 const loginUrl = `${globalThis.location.origin}/signin`
                 bodyJson.then((data: ResponseError) => {
                   if (data.code === 'init_validate_failed' && IS_CE_EDITION && !silent)

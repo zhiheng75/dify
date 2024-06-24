@@ -10,6 +10,7 @@ import {
 } from './context'
 import { useChatWithHistory } from './hooks'
 import Sidebar from './sidebar'
+import LeftSidebarHeader from './left-sidebar-header'
 import HeaderInMobile from './header-in-mobile'
 import ConfigPanel from './config-panel'
 import ChatWrapper from './chat-wrapper'
@@ -19,12 +20,26 @@ import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
 import { checkOrSetAccessToken } from '@/app/components/share/utils'
 import AppUnavailable from '@/app/components/base/app-unavailable'
 
+import { useAppContext } from '@/context/app-context'
+import { isInstalledAppUserChat } from '@/app/components/explore/chat-user-check'
+
 type ChatWithHistoryProps = {
   className?: string
 }
 const ChatWithHistory: FC<ChatWithHistoryProps> = ({
   className,
 }) => {
+  const { userProfile } = useAppContext()
+  const [hasInstalledAppUserChat, setHasInstalledAppUserChat] = useState(false)
+  useEffect(() => {
+    // console.log('components >>>>>> base >>>>>> chat >>>>>> chat-with-history >>>>>> index :', userProfile);
+
+    (async () => {
+      // 工作区 应用 用户处理
+      setHasInstalledAppUserChat(isInstalledAppUserChat(userProfile?.email))
+    })()
+  }, [])
+
   const {
     appInfoError,
     appData,
@@ -42,10 +57,10 @@ const ChatWithHistory: FC<ChatWithHistoryProps> = ({
 
   useEffect(() => {
     if (site) {
-      /*if (customConfig)
+      /* if (customConfig)
         document.title = `${site.title}`
       else
-        document.title = `${site.title} - Powered by Dify`*/
+        document.title = `${site.title} - Powered by Dify` */
       if (customConfig)
         document.title = `${site.title}`
       else
@@ -67,6 +82,12 @@ const ChatWithHistory: FC<ChatWithHistoryProps> = ({
 
   return (
     <div className={`h-full flex bg-white ${className} ${isMobile && 'flex-col'}`}>
+      {
+        hasInstalledAppUserChat && (
+          <LeftSidebarHeader />
+        )
+      }
+
       {
         !isMobile && (
           <Sidebar />

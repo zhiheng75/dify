@@ -49,12 +49,14 @@ const InstallForm = () => {
     },
   })
 
+  console.log('installForm>>>>>>>>>', '1')
   const onSubmit: SubmitHandler<AccountFormValues> = async (data) => {
     await setup({
       body: {
         ...data,
       },
     })
+    console.log('installForm>>>>>>>>>', '4')
     router.push('/signin')
   }
 
@@ -63,8 +65,11 @@ const InstallForm = () => {
   }
 
   useEffect(() => {
+    console.log('installForm>>>>>>>>>', '2')
     fetchSetupStatus().then((res: SetupStatusResponse) => {
       if (res.step === 'finished') {
+        // console.log('installForm>>>>>>>>>', '3', res)
+        console.log('installForm>>>>>>>>>', '3')
         window.location.href = '/signin'
       }
       else {

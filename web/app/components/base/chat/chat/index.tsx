@@ -55,6 +55,8 @@ export type ChatProps = {
   onFeedback?: (messageId: string, feedback: Feedback) => void
   chatAnswerContainerInner?: string
   hideProcessDetail?: boolean
+
+  conversationId?: string
 }
 const Chat: FC<ChatProps> = ({
   config,
@@ -80,7 +82,10 @@ const Chat: FC<ChatProps> = ({
   onFeedback,
   chatAnswerContainerInner,
   hideProcessDetail,
+
+  conversationId,
 }) => {
+  console.log('conversationId:', conversationId)
   const { t } = useTranslation()
   const { currentLogItem, setCurrentLogItem, showPromptLogModal, setShowPromptLogModal, showAgentLogModal, setShowAgentLogModal } = useAppStore(useShallow(state => ({
     currentLogItem: state.currentLogItem,
@@ -167,6 +172,7 @@ const Chat: FC<ChatProps> = ({
 
   return (
     <ChatContextProvider
+      conversationId={conversationId}
       config={config}
       chatList={chatList}
       isResponding={isResponding}

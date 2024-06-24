@@ -228,6 +228,7 @@ export const useChatWithHistory = (installedAppInfo?: InstalledApp) => {
     return true
   }, [inputsForms, notify, t])
   const handleStartChat = useCallback(() => {
+    console.log('components>>>base>>>chat>>>>chat-with-history>>>>hooks:', handleStartChat)
     if (checkInputsRequired()) {
       setShowConfigPanelBeforeChat(false)
       setShowNewConversationItemInList(true)
@@ -245,6 +246,7 @@ export const useChatWithHistory = (installedAppInfo?: InstalledApp) => {
       setShowConfigPanelBeforeChat(false)
   }, [handleConversationIdInfoChange, setShowConfigPanelBeforeChat, checkInputsRequired])
   const handleNewConversation = useCallback(() => {
+    console.log('handleNewConversation')
     currentChatInstanceRef.current.handleStop()
     setNewConversationId('')
 

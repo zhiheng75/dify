@@ -38,6 +38,7 @@ import type { SystemFeatures } from '@/types/feature'
 
 export const login: Fetcher<CommonResponse & { data: string }, { url: string; body: Record<string, any> }> = ({ url, body }) => {
   return post(url, { body }) as Promise<CommonResponse & { data: string }>
+  // return post(url, { body })
 }
 
 export const setup: Fetcher<CommonResponse, { body: Record<string, any> }> = ({ body }) => {

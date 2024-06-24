@@ -131,6 +131,7 @@ const ChatWrapper = () => {
 
   return (
     <Chat
+      conversationId={currentConversationId}
       config={appConfig}
       chatList={chatList}
       isResponding={isResponding}

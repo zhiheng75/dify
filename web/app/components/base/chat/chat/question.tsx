@@ -24,7 +24,8 @@ const Question: FC<QuestionProps> = ({
     message_files,
   } = item
 
-  const imgSrcs = message_files?.length ? message_files.map(item => item.url) : []
+  // const imgSrcs = message_files?.length ? message_files.map(item => item.url) : []
+  const imgSrcs = (message_files?.length && message_files?.length > 0) ? message_files.map(item => item.url) : []
 
   return (
     <div className='flex justify-end mb-2 last:mb-0 pl-10'>

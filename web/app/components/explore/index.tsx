@@ -7,6 +7,7 @@ import Sidebar from '@/app/components/explore/sidebar'
 import { useAppContext } from '@/context/app-context'
 import { fetchMembers } from '@/service/common'
 import type { InstalledApp } from '@/models/explore'
+import { isInstalledAppUserChat } from '@/app/components/explore/chat-user-check'
 
 export type IExploreProps = {
   children: React.ReactNode
@@ -21,7 +22,10 @@ const Explore: FC<IExploreProps> = ({
   const [hasEditPermission, setHasEditPermission] = useState(false)
   const [installedApps, setInstalledApps] = useState<InstalledApp[]>([])
 
+  const [hasInstalledAppUserChat, setHasInstalledAppUserChat] = useState(false)
+
   useEffect(() => {
+    console.log('components >>>>>> explore >>>>>> index :', userProfile)
     // document.title = `${t('explore.title')} -  Dify`;
     document.title = `${t('explore.title')} -  QAny`;
     (async () => {
@@ -30,6 +34,8 @@ const Explore: FC<IExploreProps> = ({
         return
       const currUser = accounts.find(account => account.id === userProfile.id)
       setHasEditPermission(currUser?.role !== 'normal')
+      // 工作区 应用 用户处理
+      setHasInstalledAppUserChat(isInstalledAppUserChat(userProfile?.email))
     })()
   }, [])
 
@@ -46,7 +52,7 @@ const Explore: FC<IExploreProps> = ({
           }
         }
       >
-        <Sidebar controlUpdateInstalledApps={controlUpdateInstalledApps} />
+        { !hasInstalledAppUserChat && <Sidebar controlUpdateInstalledApps={controlUpdateInstalledApps} /> }
         <div className='grow w-0'>
           {children}
         </div>
