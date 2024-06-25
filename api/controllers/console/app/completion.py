@@ -26,7 +26,8 @@ from libs.helper import uuid_value
 from libs.login import login_required
 from models.model import AppMode
 from services.app_generate_service import AppGenerateService
-
+from extensions.ext_database import db
+from models.conversation_tmp_dataset import ConversationTmpDataset
 
 # define completion message api for user
 class CompletionMessageApi(Resource):
@@ -115,6 +116,28 @@ class ChatMessageApi(Resource):
         streaming = args['response_mode'] != 'blocking'
         args['auto_generate_name'] = False
         # args['tmp_dataset_id'] = 'ee6127ec-ee2d-4739-9146-29c21220f573'
+
+        # 如果有conversation_id,则数据库肯定有记录,但需要查询是否已经关联tmp_dataset
+        conversation_id = args['conversation_id']
+        if conversation_id is not None and len(conversation_id.strip()) > 0:
+            conversation_id_db = conversation_id.strip()
+            # 有conversation_id,则以conversation_id为条件更新:
+            conversationTmpDatasetByConv = ConversationTmpDataset.query.filter_by(
+                conversation_id=conversation_id_db
+            ).first()
+            if conversationTmpDatasetByConv is not None and len(conversationTmpDatasetByConv.tmp_dataset_id) > 0:
+                # 如果数据库中有关联的,则直接使用数据库中的dataset
+                args['tmp_dataset_id'] = conversationTmpDatasetByConv.tmp_dataset_id;
+            elif conversationTmpDatasetByConv is not None and len(conversationTmpDatasetByConv.tmp_dataset_id) == 0:
+                # 新关联数据库
+                tmp_dataset_id_db = ""
+                if args.get('tmp_dataset_id'):
+                    tmp_dataset_id_db = args.get('tmp_dataset_id')
+                if len(tmp_dataset_id_db.strip()) > 0:
+                    ConversationTmpDataset.query.filter_by(conversation_id=conversation_id_db).update(
+                        {ConversationTmpDataset.tmp_dataset_id: tmp_dataset_id_db.strip()})
+                    db.session.commit()
+
 
         account = flask_login.current_user
 

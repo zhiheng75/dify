@@ -37,6 +37,9 @@ from controllers.console.app.error import (
     ProviderNotInitializeError,
     ProviderQuotaExceededError,
 )
+from extensions.ext_database import db
+from models.conversation_tmp_dataset import ConversationTmpDataset
+
 PREVIEW_WORDS_LIMIT = 3000
 TMP_DATA_SET_REDIS_QUEUE = "tmp_dataset_ids"
 
@@ -69,10 +72,27 @@ class FileAppApi(Resource):
         except services.errors.file.UnsupportedFileTypeError:
             raise UnsupportedFileTypeError()
 
+        conversation_id = request.form.get("conversation_id")
+        conversationTmpDatasetByConv = None
+        conversation_id_db = ""
+        if conversation_id is not None and len(conversation_id.strip()) > 0:
+            conversation_id_db = conversation_id.strip()
+            # 有conversation_id,则以conversation_id为条件更新:
+            conversationTmpDatasetByConv = ConversationTmpDataset.query.filter_by(
+                conversation_id=conversation_id_db
+            ).first()
+
         # create dataset
         tmp_dataset_id = request.form.get("tmp_dataset_id")
+        ref_finish = False
+        if conversationTmpDatasetByConv is not None and len(conversationTmpDatasetByConv.tmp_dataset_id) > 0:
+            #如果数据库中有关联的,则直接使用数据库中的dataset
+            tmp_dataset_id = conversationTmpDatasetByConv.tmp_dataset_id;
+            ref_finish = True
+
         name = "default"
-        if tmp_dataset_id is None:
+        new_tmp_dataset_id = False
+        if tmp_dataset_id is None or len(tmp_dataset_id.strip()) == 0:
             try:
                 random_number = str(random.randint(0, 999999))
                 random_number = random_number.zfill(6)
@@ -85,7 +105,9 @@ class FileAppApi(Resource):
                     account=current_user
                 )
                 tmp_dataset_id = dataset.id
-                redis_client.lpush(TMP_DATASET_REDIS_QUEUE,tmp_dataset_id+"#"+now_str)
+                new_tmp_dataset_id = True
+                # 不再删除临时对话dataset
+                # redis_client.lpush(TMP_DATASET_REDIS_QUEUE,tmp_dataset_id+"#"+now_str)
             except services.errors.dataset.DatasetNameDuplicateError:
                 raise DatasetNameDuplicateError()
         else:
@@ -93,6 +115,33 @@ class FileAppApi(Resource):
             dataset = DatasetService.get_dataset(dataset_id)
             if not dataset:
                 raise NotFound('Dataset not found.')
+
+        # 没有关联信息,试图关联
+        if not ref_finish:
+            conversationTmpDatasetByData = None
+
+            if not new_tmp_dataset_id:
+                conversationTmpDatasetByData = ConversationTmpDataset.query.filter_by(
+                    tmp_dataset_id=tmp_dataset_id
+                ).first()
+
+            if conversationTmpDatasetByData is not None and conversationTmpDatasetByConv is None and len(conversation_id_db.strip()) > 0:
+                ConversationTmpDataset.query.filter_by(tmp_dataset_id=tmp_dataset_id).update(
+                    {ConversationTmpDataset.conversation_id:conversation_id_db.strip()})
+                db.session.commit()
+
+            elif conversationTmpDatasetByConv is not None and conversationTmpDatasetByData is None and len(tmp_dataset_id.strip()) > 0:
+                ConversationTmpDataset.query.filter_by(conversation_id=conversation_id_db).update(
+                    {ConversationTmpDataset.tmp_dataset_id: tmp_dataset_id.strip()})
+                db.session.commit()
+
+            elif conversationTmpDatasetByConv is None and conversationTmpDatasetByData is None and ( len(conversation_id_db.strip()) > 0 or len(tmp_dataset_id.strip()) > 0 ):
+                record = ConversationTmpDataset(
+                        conversation_id = conversation_id_db.strip(),
+                        tmp_dataset_id = tmp_dataset_id.strip()
+                    )
+                db.session.add(record)
+                db.session.commit()
 
         # create document
         try:

@@ -110,7 +110,7 @@ class DatasetService:
                 return [], 0
 
         # 用户在对话时 , 上传的文件形成的临时知识库 , 不显示在知识库列表里面
-        # query = query.filter(db.and_(Dataset.name.not_like(TMP_DATASET_PREFIX+'%')))
+        query = query.filter(db.and_(Dataset.name.not_like(TMP_DATASET_PREFIX+'%')))
         datasets = query.paginate(
             page=page,
             per_page=per_page,
