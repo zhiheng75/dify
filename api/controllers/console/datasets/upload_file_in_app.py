@@ -195,9 +195,26 @@ class FileAppApi(Resource):
         return {"tmp_dataset_id":tmp_dataset_id,"progress_url":f"/console/api/datasets/{tmp_dataset_id}/batch/{batch}/indexing-status"}
 
 
-
-
+class ConvTmpDataSetIDApi(Resource):
+    @setup_required
+    @login_required
+    @account_initialization_required
+    def get(self, conversation_id):
+        conversation_id = str(conversation_id)
+        tmp_dataset_id = ""
+        conversationTmpDatasetByConv = None
+        if conversation_id is not None and len(conversation_id.strip()) > 0:
+            conversation_id_db = conversation_id.strip()
+            # 有conversation_id,则以conversation_id为条件更新:
+            conversationTmpDatasetByConv = ConversationTmpDataset.query.filter_by(
+                conversation_id=conversation_id_db
+            ).first()
+        if conversationTmpDatasetByConv is not None and len(conversationTmpDatasetByConv.tmp_dataset_id) > 0:
+            # 如果数据库中有关联的,则直接使用数据库中的dataset
+            tmp_dataset_id = conversationTmpDatasetByConv.tmp_dataset_id;
+        return {'tmp_dataset_id': tmp_dataset_id}
 
 
 
 api.add_resource(FileAppApi, '/files/upload_in_app')
+api.add_resource(ConvTmpDataSetIDApi, '/get_conv_tmp_dataset_id/<uuid:conversation_id>')
