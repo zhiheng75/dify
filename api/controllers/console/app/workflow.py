@@ -106,6 +106,7 @@ class AdvancedChatDraftWorkflowRunApi(Resource):
         parser.add_argument('query', type=str, required=True, location='json', default='')
         parser.add_argument('files', type=list, location='json')
         parser.add_argument('conversation_id', type=uuid_value, location='json')
+        parser.add_argument('tmp_dataset_id', type=str, required=False, location='json')
         args = parser.parse_args()
 
         try:

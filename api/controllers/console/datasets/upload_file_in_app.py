@@ -125,17 +125,17 @@ class FileAppApi(Resource):
                     tmp_dataset_id=tmp_dataset_id
                 ).first()
 
-            if conversationTmpDatasetByData is not None and conversationTmpDatasetByConv is None and len(conversation_id_db.strip()) > 0:
+            if conversationTmpDatasetByData is not None and len(conversation_id_db.strip()) > 0:
                 ConversationTmpDataset.query.filter_by(tmp_dataset_id=tmp_dataset_id).update(
                     {ConversationTmpDataset.conversation_id:conversation_id_db.strip()})
                 db.session.commit()
 
-            elif conversationTmpDatasetByConv is not None and conversationTmpDatasetByData is None and len(tmp_dataset_id.strip()) > 0:
+            if conversationTmpDatasetByConv is not None  and len(tmp_dataset_id.strip()) > 0:
                 ConversationTmpDataset.query.filter_by(conversation_id=conversation_id_db).update(
                     {ConversationTmpDataset.tmp_dataset_id: tmp_dataset_id.strip()})
                 db.session.commit()
 
-            elif conversationTmpDatasetByConv is None and conversationTmpDatasetByData is None and ( len(conversation_id_db.strip()) > 0 or len(tmp_dataset_id.strip()) > 0 ):
+            if conversationTmpDatasetByConv is None and conversationTmpDatasetByData is None and ( len(conversation_id_db.strip()) > 0 or len(tmp_dataset_id.strip()) > 0 ):
                 record = ConversationTmpDataset(
                         conversation_id = conversation_id_db.strip(),
                         tmp_dataset_id = tmp_dataset_id.strip()
