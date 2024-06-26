@@ -38,6 +38,7 @@ import { useStore } from '@/app/components/app/store'
 import { AiText, ChatBot, CuteRobote } from '@/app/components/base/icons/src/vender/solid/communication'
 import { Route } from '@/app/components/base/icons/src/vender/solid/mapsAndTravel'
 import { getLocaleOnClient } from '@/i18n'
+import { TOP_HEADER_NAV_BIG_LOGO } from '@/config'
 
 export type IAppDetailLayoutProps = {
   children: React.ReactNode
@@ -261,7 +262,7 @@ const DatasetDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
     <div className='grow flex overflow-hidden'>
       {!hideSideBar && <AppSideBar
         title={datasetRes?.name || '--'}
-        icon={datasetRes?.icon || '/logo/logo-site.png'}
+        icon={datasetRes?.icon || TOP_HEADER_NAV_BIG_LOGO}
         icon_background={datasetRes?.icon_background || '#F5F5F5'}
         desc={datasetRes?.description || '--'}
         navigation={navigation}
