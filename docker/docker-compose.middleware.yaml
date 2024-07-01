@@ -1,26 +1,10 @@
 version: '3'
 services:
-  # The elasticsearch search engine.
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
-    restart: always
-    environment:
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - xpack.security.enabled=false
-      - TZ=Asia/Shanghai
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    volumes:
-      - ./volumes/es:/usr/share/elasticsearch/data
-
   # The postgres database.
-  db:
+  db11:
     image: postgres:15-alpine
     restart: always
     environment:
-      PGUSER: postgres
       # The password for the default postgres user.
       POSTGRES_PASSWORD: difyai123456
       # The name of the default postgres database.
@@ -28,15 +12,9 @@ services:
       # postgres data directory
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - ./volumes/db/data:/var/lib/postgresql/data
-    # uncomment to expose db(postgresql) port to host
+      - ~/turbo/volumes/db/data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
-    healthcheck:
-      test: [ "CMD", "pg_isready" ]
-      interval: 1s
-      timeout: 3s
-      retries: 30
+      - "64320:5432"
 
   # The redis cache.
   redis:
@@ -44,14 +22,28 @@ services:
     restart: always
     volumes:
       # Mount the redis data directory to the container.
-      - ./volumes/redis/data:/data
+      - ~/turbo/volumes/redis/data:/data
     # Set the redis password when startup redis server.
     command: redis-server --requirepass difyai123456
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-    # uncomment to expose redis port to host
     ports:
-      - "6379:6379"
+      - "53790:6379"
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.7.0
+    environment:
+      # - network.host=0.0.0.0
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - xpack.security.enabled=false
+      - TZ=Asia/Shanghai
+    ports:
+      - "28712:9200"
+      - "28713:9300"
+    volumes:
+      - /es_28712:/usr/share/elasticsearch/data
+      #/es_28712 muse be 777
+
+
 
   # The Weaviate vector store.
   weaviate:
@@ -59,7 +51,7 @@ services:
     restart: always
     volumes:
       # Mount the Weaviate data directory to the container.
-      - ./volumes/weaviate:/var/lib/weaviate
+      - ~/turbo/volumes/weaviate:/var/lib/weaviate
     environment:
       # The Weaviate configurations
       # You can refer to the [Weaviate](https://weaviate.io/developers/weaviate/config-refs/env-vars) documentation for more information.
@@ -73,44 +65,25 @@ services:
       AUTHENTICATION_APIKEY_USERS: 'hello@dify.ai'
       AUTHORIZATION_ADMINLIST_ENABLED: 'true'
       AUTHORIZATION_ADMINLIST_USERS: 'hello@dify.ai'
-    # uncomment to expose weaviate port to host
     ports:
-      - "8080:8080"
+      - "28290:8080"
 
   # The DifySandbox
   sandbox:
-    image: langgenius/dify-sandbox:0.2.0
+    image: langgenius/dify-sandbox:latest
     restart: always
+    cap_add:
+      # Why is sys_admin permission needed?
+      # https://docs.dify.ai/getting-started/install-self-hosted/install-faq#id-16.-why-is-sys_admin-permission-needed
+      - SYS_ADMIN
     environment:
       # The DifySandbox configurations
-      # Make sure you are changing this key for your deployment with a strong key.
-      # You can generate a strong key using `openssl rand -base64 42`.
       API_KEY: dify-sandbox
       GIN_MODE: 'release'
       WORKER_TIMEOUT: 15
-      ENABLE_NETWORK: 'true'
-      HTTP_PROXY: 'http://ssrf_proxy:3128'
-      HTTPS_PROXY: 'http://ssrf_proxy:3128'
-    volumes:
-      - ./volumes/sandbox/dependencies:/dependencies
-    networks:
-      - ssrf_proxy_network
-
-  # ssrf_proxy server
-  # for more information, please refer to
-  # https://docs.dify.ai/getting-started/install-self-hosted/install-faq#id-16.-why-is-ssrf_proxy-needed
-  ssrf_proxy:
-    image: ubuntu/squid:latest
-    restart: always
     ports:
-      - "3128:3128"
-      - "8194:8194"
-    volumes:
-      # pls clearly modify the squid.conf file to fit your network environment.
-      - ./volumes/ssrf_proxy/squid.conf:/etc/squid/squid.conf
-    networks:
-      - ssrf_proxy_network
-      - default
+      - "28190:8194"
+
   # Qdrant vector store.
   # uncomment to use qdrant as vector store.
   # (if uncommented, you need to comment out the weaviate service above,
@@ -124,11 +97,3 @@ services:
   #     QDRANT_API_KEY: 'difyai123456'
   #   ports:
   #     - "6333:6333"
-  #     - "6334:6334"
-
-
-networks:
-  # create a network between sandbox, api and ssrf_proxy, and can not access outside.
-  ssrf_proxy_network:
-    driver: bridge
-    internal: true
