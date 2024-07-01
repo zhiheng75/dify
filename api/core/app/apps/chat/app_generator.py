@@ -22,6 +22,7 @@ from core.model_runtime.errors.invoke import InvokeAuthorizationError, InvokeErr
 from extensions.ext_database import db
 from models.account import Account
 from models.model import App, EndUser
+from models.conversation_tmp_dataset import ConversationTmpDataset
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +123,33 @@ class ChatAppGenerator(MessageBasedAppGenerator):
             conversation,
             message
         ) = self._init_generate_records(application_generate_entity, conversation)
+
+        # 新conversation_id处理,比如关联入库
+        if not args.get('conversation_id'):
+            conversationTmpDatasetByData = None
+            tmp_dataset_id_db = ""
+            if args.get('tmp_dataset_id'):
+                tmp_dataset_id_db = args.get('tmp_dataset_id').strip()
+                if len(tmp_dataset_id_db) > 0:
+                    conversationTmpDatasetByData = ConversationTmpDataset.query.filter_by(
+                        tmp_dataset_id=tmp_dataset_id_db
+                    ).first()
+
+            # 有值update
+            if conversationTmpDatasetByData is not None:
+                ConversationTmpDataset.query.filter_by(tmp_dataset_id=tmp_dataset_id_db).update(
+                    {ConversationTmpDataset.conversation_id: conversation.id})
+                db.session.commit()
+
+            # 无值insert
+            else:
+                record = ConversationTmpDataset(
+                    conversation_id=conversation.id,
+                    tmp_dataset_id=tmp_dataset_id_db
+                )
+                db.session.add(record)
+                db.session.commit()
+
 
         # init queue manager
         queue_manager = MessageBasedAppQueueManager(
