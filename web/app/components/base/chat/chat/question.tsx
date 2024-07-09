@@ -10,6 +10,8 @@ import { QuestionTriangle } from '@/app/components/base/icons/src/vender/solid/g
 import { User } from '@/app/components/base/icons/src/public/avatar'
 import { Markdown } from '@/app/components/base/markdown'
 import ImageGallery from '@/app/components/base/image-gallery'
+import Avatar from '@/app/components/base/avatar'
+import { useAppContext } from '@/context/app-context'
 
 type QuestionProps = {
   item: ChatItem
@@ -23,6 +25,8 @@ const Question: FC<QuestionProps> = ({
     content,
     message_files,
   } = item
+
+  const { userProfile } = useAppContext()
 
   // const imgSrcs = message_files?.length ? message_files.map(item => item.url) : []
   const imgSrcs = (message_files?.length && message_files?.length > 0) ? message_files.map(item => item.url) : []
@@ -45,7 +49,9 @@ const Question: FC<QuestionProps> = ({
         {
           questionIcon || (
             <div className='w-full h-full rounded-full border-[0.5px] border-black/5'>
-              <User className='w-full h-full' />
+              {
+                (userProfile?.name && userProfile?.name.length > 0) ? (<Avatar name={userProfile.name} size={40} className='mr-3' />) : (<User className='w-full h-full' />)
+              }
             </div>
           )
         }

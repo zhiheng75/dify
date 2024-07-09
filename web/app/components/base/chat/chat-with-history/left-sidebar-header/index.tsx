@@ -14,6 +14,9 @@ import AccountDropdown from '@/app/components/header/account-dropdown/pop-item'
 // import Tooltip from '@/app/components/base/tooltip'
 import TooltipPlus from '@/app/components/base/tooltip-plus'
 
+import cn from 'classnames'
+import s from './style.module.css'
+
 const LeftSidebarHeader = () => {
   const { t } = useTranslation()
   const {
@@ -79,7 +82,7 @@ const LeftSidebarHeader = () => {
 
   return (
     <div className='shrink-0 h-full flex flex-col w-auto border-r border-r-gray-100'>
-      <div className='nav--_oCPkwCp' style={{
+      <div className={cn(s.headerNav, 'flex', 'overflow-hidden', 'nav--_oCPkwCp')} style={{
         alignItems: 'center',
         display: 'flex',
         background: 'linear-gradient(4deg,#615ced,#534ad1 91%)',
