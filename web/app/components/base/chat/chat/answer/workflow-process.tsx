@@ -4,13 +4,15 @@ import {
   useMemo,
   useState,
 } from 'react'
-import cn from 'classnames'
+import {
+  RiArrowRightSLine,
+  RiErrorWarningFill,
+  RiLoader2Line,
+} from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import type { ChatItem, WorkflowProcess } from '../../types'
+import cn from '@/utils/classnames'
 import { CheckCircle } from '@/app/components/base/icons/src/vender/solid/general'
-import { AlertCircle } from '@/app/components/base/icons/src/vender/solid/alertsAndFeedback'
-import { Loading02 } from '@/app/components/base/icons/src/vender/line/general'
-import { ChevronRight } from '@/app/components/base/icons/src/vender/line/arrows'
 import { WorkflowRunningStatus } from '@/app/components/workflow/types'
 import NodePanel from '@/app/components/workflow/run/node'
 import { useStore as useAppStore } from '@/app/components/app/store'
@@ -65,7 +67,7 @@ const WorkflowProcessItem = ({
   return (
     <div
       className={cn(
-        'mb-2 rounded-xl border-[0.5px] border-black/[0.08]',
+        'mb-2 rounded-xl border-[0.5px] border-black/8',
         collapse ? 'py-[7px]' : hideInfo ? 'pt-2 pb-1' : 'py-2',
         collapse && (!grayBg ? 'bg-white' : 'bg-gray-50'),
         hideInfo ? 'mx-[-8px] px-1' : 'w-full px-3',
@@ -83,7 +85,7 @@ const WorkflowProcessItem = ({
       >
         {
           running && (
-            <Loading02 className='shrink-0 mr-1 w-3 h-3 text-[#667085] animate-spin' />
+            <RiLoader2Line className='shrink-0 mr-1 w-3 h-3 text-[#667085] animate-spin' />
           )
         }
         {
@@ -93,13 +95,13 @@ const WorkflowProcessItem = ({
         }
         {
           failed && (
-            <AlertCircle className='shrink-0 mr-1 w-3 h-3 text-[#F04438]' />
+            <RiErrorWarningFill className='shrink-0 mr-1 w-3 h-3 text-[#F04438]' />
           )
         }
         <div className='grow text-xs font-medium text-gray-700'>
           {t('workflow.common.workflowProcess')}
         </div>
-        <ChevronRight className={`'ml-1 w-3 h-3 text-gray-500' ${collapse ? '' : 'rotate-90'}`} />
+        <RiArrowRightSLine className={`'ml-1 w-3 h-3 text-gray-500' ${collapse ? '' : 'rotate-90'}`} />
       </div>
       {
         !collapse && (

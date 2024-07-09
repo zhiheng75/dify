@@ -5,7 +5,6 @@ import type {
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { useTranslation } from 'react-i18next'
-import cn from 'classnames'
 import type {
   DefaultModel,
   FormValue,
@@ -21,6 +20,7 @@ import type { ParameterValue } from './parameter-item'
 import Trigger from './trigger'
 import type { TriggerProps } from './trigger'
 import PresetsParameter from './presets-parameter'
+import cn from '@/utils/classnames'
 import {
   PortalToFollowElem,
   PortalToFollowElemContent,
@@ -86,7 +86,7 @@ const ModelParameterModal: FC<ModelParameterModalProps> = ({
   isInWorkflow,
 }) => {
   const { t } = useTranslation()
-  const { hasSettedApiKey } = useProviderContext()
+  const { isAPIKeySet } = useProviderContext()
   const [open, setOpen] = useState(false)
   const { data: parameterRulesData, isLoading } = useSWR((provider && modelId) ? `/workspaces/current/model-providers/${provider}/models/parameter-rules?model=${modelId}` : null, fetchModelParameterRules)
   const {
@@ -99,7 +99,7 @@ const ModelParameterModal: FC<ModelParameterModalProps> = ({
 
   const hasDeprecated = !currentProvider || !currentModel
   const modelDisabled = currentModel?.status !== ModelStatusEnum.active
-  const disabled = !hasSettedApiKey || hasDeprecated || modelDisabled
+  const disabled = !isAPIKeySet || hasDeprecated || modelDisabled
 
   const parameterRules: ModelParameterRule[] = useMemo(() => {
     return parameterRulesData?.data || []
@@ -152,7 +152,7 @@ const ModelParameterModal: FC<ModelParameterModalProps> = ({
     <PortalToFollowElem
       open={open}
       onOpenChange={setOpen}
-      placement='left'
+      placement={isInWorkflow ? 'left' : 'bottom-end'}
       offset={4}
     >
       <div className='relative'>
