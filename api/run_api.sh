@@ -2,6 +2,7 @@
 
 source ../venv/bin/activate
 pip install -r requirements.txt
+flask db migrate
 flask db upgrade
 
 ps -ef | grep celery |grep -v grep |awk '{print $2}' | xargs kill
