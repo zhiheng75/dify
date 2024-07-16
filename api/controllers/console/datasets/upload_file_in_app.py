@@ -1,47 +1,42 @@
-from flask import current_app, request
-from flask_login import current_user
-from flask_restful import Resource, marshal_with
-import pytz
 import random
-
-from flask import current_app
-import services
-from services.account_service import AccountService
-from services.dataset_service import  TMP_DATASET_PREFIX,TMP_DATASET_REDIS_QUEUE
-from controllers.console import api
-from controllers.console.datasets.error import (
-    FileTooLargeError,
-    NoFileUploadedError,
-    TooManyFilesError,
-    UnsupportedFileTypeError,
-)
-from extensions.ext_redis import redis_client
-from controllers.console.setup import setup_required
-from controllers.console.wraps import account_initialization_required, cloud_edition_billing_resource_check
-from fields.file_fields import file_fields, upload_config_fields
-from libs.login import login_required
-from services.file_service import ALLOWED_EXTENSIONS, UNSTRUSTURED_ALLOWED_EXTENSIONS, FileService
-from services.dataset_service import DatasetService, DocumentService
-from controllers.console.datasets.error import DatasetNameDuplicateError
-from flask_restful import Resource, marshal, reqparse
 from datetime import datetime
-from werkzeug.exceptions import Forbidden, NotFound
-from core.errors.error import (
-    LLMBadRequestError,
-    ModelCurrentlyNotSupportError,
-    ProviderTokenNotInitError,
-    QuotaExceededError,
-)
+
+import pytz
+from flask import request
+from flask_login import current_user
+from flask_restful import Resource
+from werkzeug.exceptions import NotFound
+
+import services
+from controllers.console import api
 from controllers.console.app.error import (
     ProviderModelCurrentlyNotSupportError,
     ProviderNotInitializeError,
     ProviderQuotaExceededError,
 )
+from controllers.console.datasets.error import (
+    DatasetNameDuplicateError,
+    FileTooLargeError,
+    NoFileUploadedError,
+    TooManyFilesError,
+    UnsupportedFileTypeError,
+)
+from controllers.console.setup import setup_required
+from controllers.console.wraps import account_initialization_required, cloud_edition_billing_resource_check
+from core.errors.error import (
+    ModelCurrentlyNotSupportError,
+    ProviderTokenNotInitError,
+    QuotaExceededError,
+)
 from extensions.ext_database import db
+from libs.login import login_required
 from models.conversation_tmp_dataset import ConversationTmpDataset
+from services.dataset_service import TMP_DATASET_PREFIX, DatasetService, DocumentService
+from services.file_service import FileService
 
 PREVIEW_WORDS_LIMIT = 3000
 TMP_DATA_SET_REDIS_QUEUE = "tmp_dataset_ids"
+
 
 class FileAppApi(Resource):
 
@@ -53,8 +48,6 @@ class FileAppApi(Resource):
 
         # get file from request
         file = request.files['file']
-
-
 
         # check file
         if 'file' not in request.files:
@@ -100,8 +93,8 @@ class FileAppApi(Resource):
                 name = now_str + "-" + str(random_number)
                 dataset = DatasetService.create_empty_dataset(
                     tenant_id=current_user.current_tenant_id,
-                    name = TMP_DATASET_PREFIX + name,
-                    indexing_technique = 'high_quality',
+                    name=TMP_DATASET_PREFIX + name,
+                    indexing_technique='high_quality',
                     account=current_user
                 )
                 tmp_dataset_id = dataset.id
@@ -127,19 +120,20 @@ class FileAppApi(Resource):
 
             if conversationTmpDatasetByData is not None and len(conversation_id_db.strip()) > 0:
                 ConversationTmpDataset.query.filter_by(tmp_dataset_id=tmp_dataset_id).update(
-                    {ConversationTmpDataset.conversation_id:conversation_id_db.strip()})
+                    {ConversationTmpDataset.conversation_id: conversation_id_db.strip()})
                 db.session.commit()
 
-            if conversationTmpDatasetByConv is not None  and len(tmp_dataset_id.strip()) > 0:
+            if conversationTmpDatasetByConv is not None and len(tmp_dataset_id.strip()) > 0:
                 ConversationTmpDataset.query.filter_by(conversation_id=conversation_id_db).update(
                     {ConversationTmpDataset.tmp_dataset_id: tmp_dataset_id.strip()})
                 db.session.commit()
 
-            if conversationTmpDatasetByConv is None and conversationTmpDatasetByData is None and ( len(conversation_id_db.strip()) > 0 or len(tmp_dataset_id.strip()) > 0 ):
+            if conversationTmpDatasetByConv is None and conversationTmpDatasetByData is None and (
+                    len(conversation_id_db.strip()) > 0 or len(tmp_dataset_id.strip()) > 0):
                 record = ConversationTmpDataset(
-                        conversation_id = conversation_id_db.strip(),
-                        tmp_dataset_id = tmp_dataset_id.strip()
-                    )
+                    conversation_id=conversation_id_db.strip(),
+                    tmp_dataset_id=tmp_dataset_id.strip()
+                )
                 db.session.add(record)
                 db.session.commit()
 
@@ -192,7 +186,8 @@ class FileAppApi(Resource):
 
         # "http://llm.genemodel.com:18082/console/api/datasets/ee6127ec-ee2d-4739-9146-29c21220f573/batch/20240613022930258792/indexing-status"
 
-        return {"tmp_dataset_id":tmp_dataset_id,"progress_url":f"/console/api/datasets/{tmp_dataset_id}/batch/{batch}/indexing-status"}
+        return {"tmp_dataset_id": tmp_dataset_id,
+                "progress_url": f"/console/api/datasets/{tmp_dataset_id}/batch/{batch}/indexing-status"}
 
 
 class ConvTmpDataSetIDApi(Resource):
@@ -213,7 +208,6 @@ class ConvTmpDataSetIDApi(Resource):
             # 如果数据库中有关联的,则直接使用数据库中的dataset
             tmp_dataset_id = conversationTmpDatasetByConv.tmp_dataset_id;
         return {'tmp_dataset_id': tmp_dataset_id}
-
 
 
 api.add_resource(FileAppApi, '/files/upload_in_app')
