@@ -3,6 +3,7 @@ import json
 import logging
 import random
 import time
+import traceback
 import uuid
 from typing import Optional, cast
 
@@ -11,6 +12,7 @@ from flask_login import current_user
 from sqlalchemy import func
 
 from core.errors.error import LLMBadRequestError, ProviderTokenNotInitError
+from core.es.es_conn import ELASTICSEARCH
 from core.model_manager import ModelManager
 from core.model_runtime.entities.model_entities import ModelType
 from core.model_runtime.model_providers.__base.text_embedding_model import TextEmbeddingModel
@@ -50,8 +52,44 @@ from tasks.duplicate_document_indexing_task import duplicate_document_indexing_t
 from tasks.recover_document_indexing_task import recover_document_indexing_task
 from tasks.retry_document_indexing_task import retry_document_indexing_task
 
+# tmp dataset formed by uploading files during conversation
+TMP_DATASET_PREFIX = "_tmp_"
+TMP_DATASET_REDIS_QUEUE = "queue_tmp_dataset_ids"  # save  delete tmp dataset ids to delete
+TMP_DATASET_EXPIRED = 3600*24*2
 
 class DatasetService:
+
+    @staticmethod
+    def delete_tmp_datasets(app):
+        if not app:
+            return False
+        redis_queue = TMP_DATASET_REDIS_QUEUE
+        try:
+            id = redis_client.rpop(redis_queue)
+            if id:
+                tmp_dataset_id = str(id.decode('utf-8')).split("#")[0]
+                data_str =  str(id.decode('utf-8')).split("#")[1]
+                sdf = "%Y%m%d%H%M%S"
+                parsed_datetime = datetime.datetime.strptime(data_str, sdf).timestamp()
+                now_datetime = datetime.datetime.now().timestamp()
+                diff = 3600*8 + now_datetime - parsed_datetime
+                if diff < TMP_DATASET_EXPIRED:
+                    redis_client.rpush(TMP_DATASET_REDIS_QUEUE, str(id.decode('utf-8')))
+                    return False
+                else:
+                    with app.app_context():
+                        dataset = DatasetService.get_dataset(tmp_dataset_id)
+                        if dataset is None:
+                            return False
+                        dataset_was_deleted.send(dataset)
+                        db.session.delete(dataset)
+                        db.session.commit()
+                    ELASTICSEARCH.deleteIdx(idxnm=tmp_dataset_id)  # 全文库
+                    ELASTICSEARCH.deleteIdx(idxnm="split_" + tmp_dataset_id)  # 文本分割库
+                    return True
+        except Exception as ex:
+            traceback.print_exc()
+            return False
 
     @staticmethod
     def get_datasets(page, per_page, provider="vendor", tenant_id=None, user=None, search=None, tag_ids=None):
@@ -71,6 +109,9 @@ class DatasetService:
                 query = query.filter(db.and_(Dataset.id.in_(target_ids)))
             else:
                 return [], 0
+
+        # 用户在对话时 , 上传的文件形成的临时知识库 , 不显示在知识库列表里面
+        query = query.filter(db.and_(Dataset.name.not_like(TMP_DATASET_PREFIX+'%')))
         datasets = query.paginate(
             page=page,
             per_page=per_page,

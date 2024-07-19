@@ -63,7 +63,7 @@ export type ChatItem = IChatItem & {
   conversationId?: string
 }
 
-export type OnSend = (message: string, files?: VisionFile[]) => void
+export type OnSend = (message: string, tmpDatasetId?: string, files?: VisionFile[]) => void
 
 export type Callback = {
   onSuccess: () => void

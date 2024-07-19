@@ -13,8 +13,9 @@ import {
 import type { DebugWithMultipleModelContextType } from './context'
 import { useEventEmitterContextContext } from '@/context/event-emitter'
 import ChatInput from '@/app/components/base/chat/chat/chat-input'
-import type { VisionFile } from '@/app/components/base/chat/types'
+// import type { VisionFile } from '@/app/components/base/chat/types'
 import { useDebugConfigurationContext } from '@/context/debug-configuration'
+import type { OnSend } from '@/app/components/base/chat/types'
 
 const DebugWithMultipleModel = () => {
   const {
@@ -29,10 +30,12 @@ const DebugWithMultipleModel = () => {
   const { eventEmitter } = useEventEmitterContextContext()
   const isChatMode = mode === 'chat' || mode === 'agent-chat'
 
-  const handleSend = useCallback((message: string, files?: VisionFile[]) => {
+  // const handleSend: OnSend = useCallback((message: string, files?: VisionFile[]) => {
+  const handleSend: OnSend = useCallback((message, tmpDatasetId, files) => {
     if (checkCanSend && !checkCanSend())
       return
 
+    console.log('app/components/app/configuration/debug/debug-with-multiple-model', message)
     eventEmitter?.emit({
       type: APP_CHAT_WITH_MULTIPLE_MODEL,
       payload: {

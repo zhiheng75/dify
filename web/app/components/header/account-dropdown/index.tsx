@@ -104,7 +104,7 @@ export default function AppSelector({ isMobile }: IAppSelecotr) {
                         <div>{t('common.userProfile.settings')}</div>
                       </div>
                     </Menu.Item>
-                    {/*<Menu.Item>
+                    {/* <Menu.Item>
                       <Link
                         className={classNames(itemClassName, 'group justify-between')}
                         href='https://github.com/langgenius/dify/discussions/categories/feedbacks'
@@ -121,9 +121,9 @@ export default function AppSelector({ isMobile }: IAppSelecotr) {
                         <div>{t('common.userProfile.community')}</div>
                         <ArrowUpRight className='hidden w-[14px] h-[14px] text-gray-500 group-hover:flex' />
                       </Link>
-                    </Menu.Item>*/}
+                    </Menu.Item> */}
                     <Menu.Item>
-                      {/*<Link
+                      {/* <Link
                         className={classNames(itemClassName, 'group justify-between')}
                         href={
                           locale !== LanguagesSupported[1] ? 'https://docs.dify.ai/' : `https://docs.dify.ai/v/${locale.toLowerCase()}/`
@@ -131,7 +131,7 @@ export default function AppSelector({ isMobile }: IAppSelecotr) {
                         target='_blank' rel='noopener noreferrer'>
                         <div>{t('common.userProfile.helpCenter')}</div>
                         <ArrowUpRight className='hidden w-[14px] h-[14px] text-gray-500 group-hover:flex' />
-                      </Link>*/}
+                      </Link> */}
                       <Link
                         className={classNames(itemClassName, 'group justify-between')}
                         href={

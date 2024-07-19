@@ -10,6 +10,7 @@ import { ProviderContextProvider } from '@/context/provider-context'
 import { ModalContextProvider } from '@/context/modal-context'
 
 const Layout = ({ children }: { children: ReactNode }) => {
+  console.log('commonLayout>layout', new Date())
   return (
     <>
       <GA gaType={GaType.admin} />

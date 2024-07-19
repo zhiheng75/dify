@@ -1,4 +1,5 @@
 """Abstract interface for document loader implementations."""
+from collections import Counter
 from collections.abc import Iterator
 from typing import Optional
 
@@ -37,13 +38,55 @@ class PdfExtractor(BaseExtractor):
                 pass
         documents = list(self.load())
         text_list = []
+        page_text_list = []
+        all_text_counter = {}
+
+        pages = len(documents)
         for document in documents:
-            text_list.append(document.page_content)
-        text = "\n\n".join(text_list)
+            # text_list.append(document.page_content)
+            page_all_texts = [txt.strip() for txt in document.page_content.strip().split("\n")]
+            page_text_list.append(page_all_texts)
+            line_counter = Counter(page_all_texts)
+            filtered_lines = [line for line in set(page_all_texts) if line_counter[line] >= 2]
+            for filtered_line in filtered_lines:
+                if filtered_line in all_text_counter:
+                    all_text_counter[filtered_line] = all_text_counter[filtered_line] + 1
+                else:
+                    all_text_counter[filtered_line] = 1
+
+
+        watermark_txts = []
+        for filtered_line in all_text_counter:
+
+            page_count = all_text_counter[filtered_line]
+            watermark = False
+            if pages - page_count <= 2 and pages > 5:
+                watermark = True
+            elif pages == page_count:
+                watermark = True
+            if len(filtered_line) > 50:
+                watermark = False
+
+            if watermark:
+                watermark_txts.append(filtered_line)
+        watermark_txts_set = set(watermark_txts)
+
+        final_text_list = []
+        for text_list in page_text_list:
+            filtered_lines = [line for line in text_list if line not in watermark_txts_set]
+            final_text_list.append("\n".join(filtered_lines))
+
+        text = "\n\n".join(final_text_list)
 
         # save plaintext file for caching
         if not plaintext_file_exists and plaintext_file_key:
             storage.save(plaintext_file_key, text.encode('utf-8'))
+
+        if len(documents) == len(final_text_list):
+            index = 0
+            for document in documents:
+                document.page_content = final_text_list[index]
+                index = index + 1
 
         return documents
 

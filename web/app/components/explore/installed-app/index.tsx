@@ -17,6 +17,7 @@ const InstalledApp: FC<IInstalledAppProps> = ({
   const { installedApps } = useContext(ExploreContext)
   const installedApp = installedApps.find(item => item.id === id)
 
+  console.log('installedApp', installedApp)
   if (!installedApp) {
     return (
       <div className='flex h-full items-center'>

@@ -30,6 +30,11 @@ else {
 export const API_PREFIX: string = apiPrefix
 export const PUBLIC_API_PREFIX: string = publicApiPrefix
 
+// 顶端头部导航 大logo 建议大小：192 X 80
+export const TOP_HEADER_NAV_BIG_LOGO = '/logo/logo-site.png'
+// 左侧头部导航 小logo 建议大小：128 X 177
+export const LEFT_SIDEBAR_HEADER_NAV_SMALL_LOGO = '/logo/logo-site-white.png'
+
 const EDITION = process.env.NEXT_PUBLIC_EDITION || globalThis.document?.body?.getAttribute('data-public-edition') || 'SELF_HOSTED'
 export const IS_CE_EDITION = EDITION === 'SELF_HOSTED'
 

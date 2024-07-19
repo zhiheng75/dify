@@ -11,6 +11,9 @@ import { IS_CE_EDITION, apiPrefix } from '@/config'
 import Button from '@/app/components/base/button'
 import { login, oauth } from '@/service/common'
 import { getPurifyHref } from '@/utils'
+
+import { getInstalledAppId } from '@/app/components/explore/chat-user-check'
+
 const validEmailReg = /^[\w\.-]+@([\w-]+\.)+[\w-]{2,}$/
 
 type IState = {
@@ -93,9 +96,15 @@ const NormalForm = () => {
           remember_me: true,
         },
       })
+      console.log('login result:', res)
       if (res.result === 'success') {
         localStorage.setItem('console_token', res.data)
-        router.replace('/apps')
+        const installedAppId = getInstalledAppId(email)
+        if (installedAppId?.length > 0)
+          router.replace(`/explore/installed-chat/${installedAppId}`)
+        else
+          router.replace('/apps')
+        // router.replace('/apps')
       }
       else {
         Toast.notify({

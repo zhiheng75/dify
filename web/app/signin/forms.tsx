@@ -10,6 +10,7 @@ const Forms = () => {
   const searchParams = useSearchParams()
   const step = searchParams.get('step')
 
+  // console.log('step', step)
   const getForm = () => {
     switch (step) {
       case 'next':

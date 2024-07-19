@@ -110,6 +110,11 @@ export const fetchIndexingStatusBatch: Fetcher<IndexingStatusBatchResponse, Batc
   return get<IndexingStatusBatchResponse>(`/datasets/${datasetId}/batch/${batchId}/indexing-status`, {})
 }
 
+export const fetchIndexingStatusBatchByUrl: Fetcher<IndexingStatusBatchResponse, { url: string }> = ({ url }) => {
+  // return get<IndexingStatusBatchResponse>(`${url}`, {})
+  return get<IndexingStatusBatchResponse>(url)
+}
+
 export const fetchDocumentDetail: Fetcher<DocumentDetailResponse, CommonDocReq & { params: { metadata?: MetadataType } }> = ({ datasetId, documentId, params }) => {
   return get<DocumentDetailResponse>(`/datasets/${datasetId}/documents/${documentId}`, { params })
 }

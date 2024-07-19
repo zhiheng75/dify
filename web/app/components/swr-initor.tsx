@@ -17,6 +17,8 @@ const SwrInitor = ({
   const consoleTokenFromLocalStorage = localStorage?.getItem('console_token')
   const [init, setInit] = useState(false)
 
+  // console.log('swr-initor:', searchParams.getAll('console_token'), consoleTokenFromLocalStorage)
+  console.log('swr-initor>>>>>>>', new Date())
   useEffect(() => {
     if (!(consoleToken || consoleTokenFromLocalStorage))
       router.replace('/signin')
