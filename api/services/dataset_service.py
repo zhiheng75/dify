@@ -3,6 +3,7 @@ import json
 import logging
 import random
 import time
+import traceback
 import uuid
 from typing import Optional, cast
 
@@ -11,6 +12,7 @@ from flask_login import current_user
 from sqlalchemy import func
 
 from core.errors.error import LLMBadRequestError, ProviderTokenNotInitError
+from core.es.es_conn import ELASTICSEARCH
 from core.model_manager import ModelManager
 from core.model_runtime.entities.model_entities import ModelType
 from core.model_runtime.model_providers.__base.text_embedding_model import TextEmbeddingModel
@@ -49,8 +51,6 @@ from tasks.document_indexing_update_task import document_indexing_update_task
 from tasks.duplicate_document_indexing_task import duplicate_document_indexing_task
 from tasks.recover_document_indexing_task import recover_document_indexing_task
 from tasks.retry_document_indexing_task import retry_document_indexing_task
-from core.es.es_conn import ELASTICSEARCH
-import traceback
 
 # tmp dataset formed by uploading files during conversation
 TMP_DATASET_PREFIX = "_tmp_"

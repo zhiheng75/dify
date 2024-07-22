@@ -11,12 +11,13 @@ if not os.environ.get("DEBUG") or os.environ.get("DEBUG").lower() != 'true':
 
 import json
 import logging
+import random
 import sys
 import threading
 import time
 import warnings
 from logging.handlers import RotatingFileHandler
-import random
+
 from flask import Flask, Response, request
 from flask_cors import CORS
 from werkzeug.exceptions import Unauthorized
@@ -42,7 +43,7 @@ from extensions import (
 from extensions.ext_database import db
 from extensions.ext_login import login_manager
 from libs.passport import PassportService
-from models import account, dataset, model, source, task, tool, tools, web,conversation_tmp_dataset
+from models import account, conversation_tmp_dataset, dataset, model, source, task, tool, tools, web
 from services.account_service import AccountService
 from services.dataset_service import DatasetService
 

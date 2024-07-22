@@ -12,10 +12,10 @@ from core.callback_handler.index_tool_callback_handler import DatasetIndexToolCa
 from core.memory.token_buffer_memory import TokenBufferMemory
 from core.model_manager import ModelInstance
 from core.moderation.base import ModerationException
+from core.rag.datasource.retrieval_service import RetrievalService
 from core.rag.retrieval.dataset_retrieval import DatasetRetrieval
 from extensions.ext_database import db
 from models.model import App, Conversation, Message
-from core.rag.datasource.retrieval_service import RetrievalService
 
 logger = logging.getLogger(__name__)
 

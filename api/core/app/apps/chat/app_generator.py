@@ -21,8 +21,8 @@ from core.file.message_file_parser import MessageFileParser
 from core.model_runtime.errors.invoke import InvokeAuthorizationError, InvokeError
 from extensions.ext_database import db
 from models.account import Account
-from models.model import App, EndUser
 from models.conversation_tmp_dataset import ConversationTmpDataset
+from models.model import App, EndUser
 
 logger = logging.getLogger(__name__)
 
