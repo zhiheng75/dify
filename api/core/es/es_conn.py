@@ -88,7 +88,7 @@ class ESConnection:
                             id=id,
                             refresh=True,
                             retry_on_conflict=100)
-                    es_logger.info("Successfully upsert: %s" % id)
+                    es_logger.info(f"Successfully upsert: {id}")
                     T = True
                     break
                 except Exception as e:
@@ -171,7 +171,7 @@ class ESConnection:
             ids[id] = copy.deepcopy(d["raw"])
             acts.append({"update": {"_id": id, "_index": self.idxnm}})
             acts.append(d["script"])
-            es_logger.info("bulk upsert: %s" % id)
+            es_logger.info(f"bulk upsert: {id}")
 
         res = []
         for _ in range(10):
@@ -221,7 +221,7 @@ class ESConnection:
                         id=d["id"],
                         refresh=True,
                         doc_type="_doc")
-                es_logger.info("Remove %s" % d["id"])
+                es_logger.info(f"Remove {d['id']}")
                 return True
             except Exception as e:
                 es_logger.warn("Fail to delete: " + str(d) + str(e))
