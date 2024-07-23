@@ -19,7 +19,6 @@ class UnstructuredWordExtractor(BaseExtractor):
         """Initialize with file path."""
         self._file_path = file_path
         self._api_url = api_url
-        print(f"======== Word Extracter file path: {self._file_path}")
 
     def extract(self) -> list[Document]:
         from unstructured.__version__ import __version__ as __unstructured_version__
@@ -33,13 +32,10 @@ class UnstructuredWordExtractor(BaseExtractor):
             import magic  # noqa: F401
 
             is_doc = detect_filetype(self._file_path) == FileType.DOC
-            print(f"======== Detected file type: {detect_filetype(self._file_path)}")
         except ImportError:
-            print("======== Failed to import magic, falling back to file extension")
+            logger.warning("Failed to import magic, falling back to file extension")
             _, extension = os.path.splitext(str(self._file_path))
             is_doc = extension == ".doc"
-
-        print(f"======== Is doc: {is_doc}")
 
         if is_doc and unstructured_version < (0, 4, 11):
             raise ValueError(
@@ -62,8 +58,6 @@ class UnstructuredWordExtractor(BaseExtractor):
         documents = []
         for chunk in chunks:
             text = chunk.text.strip()
-            # print(text)
-            # print('----------------')
             documents.append(Document(page_content=text))
         return documents
 
