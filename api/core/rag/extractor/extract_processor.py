@@ -1,3 +1,4 @@
+import logging
 import re
 import tempfile
 from pathlib import Path
@@ -6,6 +7,7 @@ from urllib.parse import unquote
 
 import requests
 from flask import current_app
+from unstructured.file_utils.filetype import EXT_TO_FILETYPE, FileType, detect_filetype
 
 from core.rag.extractor.csv_extractor import CSVExtractor
 from core.rag.extractor.entity.datasource_type import DatasourceType
@@ -31,6 +33,8 @@ from core.rag.extractor.word_extractor import WordExtractor
 from core.rag.models.document import Document
 from extensions.ext_storage import storage
 from models.model import UploadFile
+
+logger = logging.getLogger(__name__)
 
 SUPPORT_URL_CONTENT_TYPES = ['application/pdf', 'text/plain']
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -100,34 +104,46 @@ class ExtractProcessor:
                 unstructured_api_url = current_app.config['UNSTRUCTURED_API_URL']
                 unstructured_api_key = current_app.config['UNSTRUCTURED_API_KEY']
                 if etl_type == 'Unstructured':
-                    if file_extension == '.xlsx' or file_extension == '.xls':
+                    file_type = FileType.UNK
+                    try:
+                        import magic  # noqa: F401
+                        file_type = detect_filetype(file_path)
+                    except ImportError:
+                        logger.warning("Failed to import magic, falling back to file extension")
+                        file_type = EXT_TO_FILETYPE.get(file_extension, FileType.UNK)
+                    if file_type == FileType.UNK:
+                        # Fixed a few missing type in unstructured.
+                        if file_extension == '.markdown':
+                            file_type = FileType.MD
+
+                    if file_type == FileType.XLSX or file_type == FileType.XLS:
                         extractor = ExcelExtractor(file_path)
-                    elif file_extension == '.pdf':
+                    elif file_type == FileType.PDF:
                         extractor = MuPdfExtractor(file_path)
-                    elif file_extension in ['.md', '.markdown']:
+                    elif file_type == FileType.MD:
                         extractor = UnstructuredMarkdownExtractor(file_path, unstructured_api_url) if is_automatic \
                             else MarkdownExtractor(file_path, autodetect_encoding=True)
-                    elif file_extension in ['.htm', '.html']:
+                    elif file_type == FileType.HTML:
                         extractor = HtmlExtractor(file_path)
-                    elif file_extension in ['.doc']:
+                    elif file_type == FileType.DOC:
                         extractor = UnstructuredWordExtractor(file_path, unstructured_api_url)
-                    elif file_extension in ['.docx']:
+                    elif file_type == FileType.DOCX:
                         extractor = WordExtractor(file_path, upload_file.tenant_id, upload_file.created_by)
-                    elif file_extension == '.csv':
+                    elif file_type == FileType.CSV:
                         extractor = CSVExtractor(file_path, autodetect_encoding=True)
-                    elif file_extension == '.msg':
+                    elif file_type == FileType.MSG:
                         extractor = UnstructuredMsgExtractor(file_path, unstructured_api_url)
-                    elif file_extension == '.eml':
+                    elif file_type == FileType.EML:
                         extractor = UnstructuredEmailExtractor(file_path, unstructured_api_url)
-                    elif file_extension == '.ppt':
+                    elif file_type == FileType.PPT:
                         extractor = UnstructuredPPTExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                    elif file_extension == '.pptx':
+                    elif file_type == FileType.PPTX:
                         extractor = UnstructuredPPTXExtractor(file_path, unstructured_api_url)
-                    elif file_extension == '.xml':
+                    elif file_type == FileType.XML:
                         extractor = UnstructuredXmlExtractor(file_path, unstructured_api_url)
-                    elif file_extension == 'epub':
+                    elif file_type == FileType.EPUB:
                         extractor = UnstructuredEpubExtractor(file_path, unstructured_api_url)
-                    elif file_extension in ['.jpg', '.jpeg', '.png']:
+                    elif file_type == FileType.JPG or file_type == FileType.PNG:
                         extractor = UnstructuredImageExtractor(file_path, unstructured_api_url)
                     else:
                         # txt
