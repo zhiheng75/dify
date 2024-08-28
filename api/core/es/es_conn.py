@@ -1,7 +1,7 @@
-import os
 import copy
 import json
 import logging as es_logger
+import os
 import re
 import time
 
@@ -17,7 +17,6 @@ elasticsearch-dsl==8.12.0
 """
 es_logger.info("Elasticsearch version: "+str(elasticsearch.__version__))
 
-import os
 
 
 def singleton(cls, *args, **kw):
