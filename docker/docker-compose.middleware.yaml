@@ -103,6 +103,34 @@ services:
     ports:
       - "${EXPOSE_WEAVIATE_PORT:-8080}:8080"
 
+  # https://www.elastic.co/guide/en/elasticsearch/reference/current/settings.html
+  # https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-prod-prerequisites
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+    container_name: elasticsearch
+    profiles:
+      - elasticsearch
+    restart: always
+    volumes:
+      # - dify_es01_data:/usr/share/elasticsearch/data
+      - ./volumes/es:/usr/share/elasticsearch/data
+    environment:
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD:-elastic}
+      - cluster.name=dify-es-cluster
+      - node.name=dify-es0
+      - discovery.type=single-node
+      - xpack.license.self_generated.type=trial
+      - xpack.security.enabled=true
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    ports:
+      - ${ELASTICSEARCH_PORT:-9200}:9200
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:9200/_cluster/health?pretty"]
+      interval: 30s
+      timeout: 10s
+      retries: 50
+
 networks:
   # create a network between sandbox, api and ssrf_proxy, and can not access outside.
   ssrf_proxy_network:

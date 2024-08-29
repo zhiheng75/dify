@@ -46,6 +46,9 @@ class ESConnection:
                     # settings.ES["hosts"].split(","),
                     # get_env('ES_URL'),
                     f'http://{os.getenv("ELASTICSEARCH_HOST")}:{os.getenv("ELASTICSEARCH_PORT")}',
+                    basic_auth=(
+                        os.getenv("ELASTICSEARCH_USERNAME"),
+                        os.getenv("ELASTICSEARCH_PASSWORD")),
                     request_timeout=600
                 )
                 if self.es:
