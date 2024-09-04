@@ -1,7 +1,7 @@
 
-from flask import current_app
 from flask_restful import Resource, fields, marshal_with
 
+from configs import dify_config
 from controllers.service_api import api
 from controllers.service_api.app.error import AppUnavailableError
 from controllers.service_api.wraps import validate_app_token
@@ -78,7 +78,7 @@ class AppParameterApi(Resource):
                                                      "transfer_methods": ["remote_url", "local_file"]
                                                  }}),
             'system_parameters': {
-                'image_file_size_limit': current_app.config.get('UPLOAD_IMAGE_FILE_SIZE_LIMIT')
+                'image_file_size_limit': dify_config.UPLOAD_IMAGE_FILE_SIZE_LIMIT
             }
         }
 
@@ -92,7 +92,7 @@ class AppMetaApi(Resource):
 class AppInfoApi(Resource):
     @validate_app_token
     def get(self, app_model: App):
-        """Get app infomation"""
+        """Get app information"""
         return {
             'name':app_model.name,
             'description':app_model.description

@@ -12,6 +12,7 @@ const translation = {
     cancel: 'Cancelar',
     clear: 'Limpar',
     save: 'Salvar',
+    saveAndEnable: 'Salvar e Ativar',
     edit: 'Editar',
     add: 'Adicionar',
     added: 'Adicionado',
@@ -59,6 +60,10 @@ const translation = {
       ukUA: 'Ucraniano',
       viVN: 'Vietnamita',
       plPL: 'Polonês',
+      roRO: 'Romeno',
+      hiIN: 'Hindi',
+      trTR: 'Turco',
+      faIR: 'Persa',
     },
   },
   unit: {
@@ -119,6 +124,7 @@ const translation = {
   },
   userProfile: {
     settings: 'Configurações',
+    emailSupport: 'Suporte por e-mail',
     workspace: 'Espaço de trabalho',
     createWorkspace: 'Criar Espaço de Trabalho',
     helpCenter: 'Ajuda',
@@ -407,7 +413,7 @@ const translation = {
     latestAvailable: 'Dify {{version}} é a última versão disponível.',
   },
   appMenus: {
-    overview: 'Visão Geral',
+    overview: 'Monitoramento',
     promptEng: 'Orquestrar',
     apiAccess: 'Acesso à API',
     logAndAnn: 'Logs e Anúncios',

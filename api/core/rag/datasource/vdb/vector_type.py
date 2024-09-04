@@ -5,6 +5,7 @@ class VectorType(str, Enum):
     ANALYTICDB = 'analyticdb'
     CHROMA = 'chroma'
     MILVUS = 'milvus'
+    MYSCALE = 'myscale'
     PGVECTOR = 'pgvector'
     PGVECTO_RS = 'pgvecto-rs'
     QDRANT = 'qdrant'
@@ -14,3 +15,4 @@ class VectorType(str, Enum):
     OPENSEARCH = 'opensearch'
     TENCENT = 'tencent'
     ORACLE = 'oracle'
+    ELASTICSEARCH = 'elasticsearch'

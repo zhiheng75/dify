@@ -64,6 +64,10 @@ const translation = {
       ukUA: 'Ucraniano',
       viVN: 'Vietnamita',
       plPL: 'Polaco',
+      roRO: 'Rumano',
+      hiIN: 'Hindi',
+      trTR: 'Turco',
+      faIR: 'Persa',
     },
   },
   unit: {
@@ -124,6 +128,7 @@ const translation = {
   },
   userProfile: {
     settings: 'Configuraciones',
+    emailSupport: 'Soporte de Correo Electrónico',
     workspace: 'Espacio de trabajo',
     createWorkspace: 'Crear espacio de trabajo',
     helpCenter: 'Ayuda',

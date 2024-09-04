@@ -275,14 +275,14 @@ const translation = {
     typeSelect: 'Wybierz',
   },
   varKeyError: {
-    canNoBeEmpty: 'Klucz zmiennej nie może być pusty',
+    canNoBeEmpty: '{{klucz}} jest wymagany',
     tooLong:
-      'Klucz zmiennej: {{key}} za długi. Nie może być dłuższy niż 30 znaków',
+      '{{key}} za długi. Nie może być dłuższy niż 30 znaków',
     notValid:
-      'Klucz zmiennej: {{key}} jest nieprawidłowy. Może zawierać tylko litery, cyfry i podkreślenia',
+      '{{key}} jest nieprawidłowy. Może zawierać tylko litery, cyfry i podkreślenia',
     notStartWithNumber:
-      'Klucz zmiennej: {{key}} nie może zaczynać się od cyfry',
-    keyAlreadyExists: 'Klucz zmiennej: :{{key}} już istnieje',
+      '{{key}} nie może zaczynać się od cyfry',
+    keyAlreadyExists: '{{key}} już istnieje',
   },
   otherError: {
     promptNoBeEmpty: 'Monit nie może być pusty',
@@ -347,6 +347,9 @@ const translation = {
       language: 'Język',
       resolutionTooltip: 'Wsparcie językowe głosu tekstu na mowę.',
       voice: 'Głos',
+      autoPlay: 'Automatyczne odtwarzanie',
+      autoPlayEnabled: 'włączyć coś',
+      autoPlayDisabled: 'zamknięcie',
     },
   },
   openingStatement: {

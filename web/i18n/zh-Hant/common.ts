@@ -12,6 +12,7 @@ const translation = {
     cancel: '取消',
     clear: '清空',
     save: '儲存',
+    saveAndEnable: '儲存並啟用',
     edit: '編輯',
     add: '新增',
     added: '已新增',
@@ -59,6 +60,10 @@ const translation = {
       ukUA: '烏克蘭語',
       viVN: '越南語',
       plPL: '波蘭語',
+      roRO: '羅馬尼亞語',
+      hiIN: '印地語',
+      trTR: '土耳其語',
+      faIR: '波斯語',
     },
   },
   unit: {
@@ -119,6 +124,7 @@ const translation = {
   },
   userProfile: {
     settings: '設定',
+    emailSupport: '電子郵件支援',
     workspace: '工作空間',
     createWorkspace: '建立工作空間',
     helpCenter: '幫助文件',
@@ -407,7 +413,7 @@ const translation = {
     latestAvailable: 'Dify {{version}} 已是最新版本。',
   },
   appMenus: {
-    overview: '概覽',
+    overview: '監控',
     promptEng: '編排',
     apiAccess: '訪問 API',
     logAndAnn: '日誌與標註',

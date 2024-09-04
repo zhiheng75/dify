@@ -12,6 +12,7 @@ const translation = {
     cancel: 'Abbrechen',
     clear: 'Leeren',
     save: 'Speichern',
+    saveAndEnable: 'Speichern und Aktivieren',
     edit: 'Bearbeiten',
     add: 'Hinzufügen',
     added: 'Hinzugefügt',
@@ -59,6 +60,10 @@ const translation = {
       ukUA: 'Ukrainisch',
       viVN: 'Vietnamesisch',
       plPL: 'Polnisch',
+      roRO: 'Rumänisch',
+      hiIN: 'Hindi',
+      trTR: 'Türkisch',
+      faIR: 'Persisch',
     },
   },
   unit: {
@@ -119,6 +124,7 @@ const translation = {
   },
   userProfile: {
     settings: 'Einstellungen',
+    emailSupport: 'E-Mail-Support',
     workspace: 'Arbeitsbereich',
     createWorkspace: 'Arbeitsbereich erstellen',
     helpCenter: 'Hilfe',

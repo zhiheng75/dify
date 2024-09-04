@@ -9,7 +9,7 @@ import httpx
 import core.helper.ssrf_proxy as ssrf_proxy
 from configs import dify_config
 from core.workflow.entities.variable_entities import VariableSelector
-from core.workflow.entities.variable_pool import ValueType, VariablePool
+from core.workflow.entities.variable_pool import VariablePool
 from core.workflow.nodes.http_request.entities import (
     HttpRequestNodeAuthorization,
     HttpRequestNodeBody,
@@ -17,11 +17,6 @@ from core.workflow.nodes.http_request.entities import (
     HttpRequestNodeTimeout,
 )
 from core.workflow.utils.variable_template_parser import VariableTemplateParser
-
-MAX_BINARY_SIZE = dify_config.HTTP_REQUEST_NODE_MAX_BINARY_SIZE
-READABLE_MAX_BINARY_SIZE = dify_config.HTTP_REQUEST_NODE_READABLE_MAX_BINARY_SIZE
-MAX_TEXT_SIZE = dify_config.HTTP_REQUEST_NODE_MAX_TEXT_SIZE
-READABLE_MAX_TEXT_SIZE = dify_config.HTTP_REQUEST_NODE_READABLE_MAX_TEXT_SIZE
 
 
 class HttpExecutorResponse:
@@ -212,13 +207,11 @@ class HttpExecutor:
                 raise ValueError('self.authorization config is required')
             if authorization.config is None:
                 raise ValueError('authorization config is required')
-            if authorization.config.type != 'bearer' and authorization.config.header is None:
-                raise ValueError('authorization config header is required')
 
             if self.authorization.config.api_key is None:
                 raise ValueError('api_key is required')
 
-            if not self.authorization.config.header:
+            if not authorization.config.header:
                 authorization.config.header = 'Authorization'
 
             if self.authorization.config.type == 'bearer':
@@ -239,16 +232,14 @@ class HttpExecutor:
         else:
             raise ValueError(f'Invalid response type {type(response)}')
 
-        if executor_response.is_file:
-            if executor_response.size > MAX_BINARY_SIZE:
-                raise ValueError(
-                    f'File size is too large, max size is {READABLE_MAX_BINARY_SIZE}, but current size is {executor_response.readable_size}.'
-                )
-        else:
-            if executor_response.size > MAX_TEXT_SIZE:
-                raise ValueError(
-                    f'Text size is too large, max size is {READABLE_MAX_TEXT_SIZE}, but current size is {executor_response.readable_size}.'
-                )
+        threshold_size = dify_config.HTTP_REQUEST_NODE_MAX_BINARY_SIZE if executor_response.is_file \
+            else dify_config.HTTP_REQUEST_NODE_MAX_TEXT_SIZE
+        if executor_response.size > threshold_size:
+            raise ValueError(
+                f'{"File" if executor_response.is_file else "Text"} size is too large,'
+                f' max size is {threshold_size / 1024 / 1024:.2f} MB,'
+                f' but current size is {executor_response.readable_size}.'
+            )
 
         return executor_response
 
@@ -283,7 +274,7 @@ class HttpExecutor:
         # validate response
         return self._validate_and_parse_response(response)
 
-    def to_raw_request(self, mask_authorization_header: Optional[bool] = True) -> str:
+    def to_raw_request(self) -> str:
         """
         convert to raw request
         """
@@ -295,16 +286,15 @@ class HttpExecutor:
 
         headers = self._assembling_headers()
         for k, v in headers.items():
-            if mask_authorization_header:
-                # get authorization header
-                if self.authorization.type == 'api-key':
-                    authorization_header = 'Authorization'
-                    if self.authorization.config and self.authorization.config.header:
-                        authorization_header = self.authorization.config.header
+            # get authorization header
+            if self.authorization.type == 'api-key':
+                authorization_header = 'Authorization'
+                if self.authorization.config and self.authorization.config.header:
+                    authorization_header = self.authorization.config.header
 
-                    if k.lower() == authorization_header.lower():
-                        raw_request += f'{k}: {"*" * len(v)}\n'
-                        continue
+                if k.lower() == authorization_header.lower():
+                    raw_request += f'{k}: {"*" * len(v)}\n'
+                    continue
 
             raw_request += f'{k}: {v}\n'
 
@@ -336,16 +326,13 @@ class HttpExecutor:
         if variable_pool:
             variable_value_mapping = {}
             for variable_selector in variable_selectors:
-                value = variable_pool.get_variable_value(
-                    variable_selector=variable_selector.value_selector, target_value_type=ValueType.STRING
-                )
-
-                if value is None:
+                variable = variable_pool.get_any(variable_selector.value_selector)
+                if variable is None:
                     raise ValueError(f'Variable {variable_selector.variable} not found')
-
-                if escape_quotes and isinstance(value, str):
-                    value = value.replace('"', '\\"')
-
+                if escape_quotes and isinstance(variable, str):
+                    value = variable.replace('"', '\\"').replace('\n', '\\n')
+                else:
+                    value = variable
                 variable_value_mapping[variable_selector.variable] = value
 
             return variable_template_parser.format(variable_value_mapping), variable_selectors

@@ -5,7 +5,6 @@ import queue
 import threading
 import time
 from datetime import timedelta
-from enum import Enum
 from typing import Any, Optional, Union
 from uuid import UUID
 
@@ -24,6 +23,7 @@ from core.ops.entities.trace_entity import (
     ModerationTraceInfo,
     SuggestedQuestionTraceInfo,
     ToolTraceInfo,
+    TraceTaskName,
     WorkflowTraceInfo,
 )
 from core.ops.langfuse_trace.langfuse_trace import LangFuseDataTrace
@@ -38,7 +38,7 @@ provider_config_map = {
     TracingProviderEnum.LANGFUSE.value: {
         'config_class': LangfuseConfig,
         'secret_keys': ['public_key', 'secret_key'],
-        'other_keys': ['host'],
+        'other_keys': ['host', 'project_key'],
         'trace_instance': LangFuseDataTrace
     },
     TracingProviderEnum.LANGSMITH.value: {
@@ -123,7 +123,6 @@ class OpsTraceManager:
 
         for key in other_keys:
             new_config[key] = decrypt_tracing_config.get(key, "")
-
         return config_class(**new_config).model_dump()
 
     @classmethod
@@ -153,27 +152,12 @@ class OpsTraceManager:
     def get_ops_trace_instance(
         cls,
         app_id: Optional[Union[UUID, str]] = None,
-        message_id: Optional[str] = None,
-        conversation_id: Optional[str] = None
     ):
         """
         Get ops trace through model config
         :param app_id: app_id
-        :param message_id: message_id
-        :param conversation_id: conversation_id
         :return:
         """
-        if conversation_id is not None:
-            conversation_data: Conversation = db.session.query(Conversation).filter(
-                Conversation.id == conversation_id
-            ).first()
-            if conversation_data:
-                app_id = conversation_data.app_id
-
-        if message_id is not None:
-            record: Message = db.session.query(Message).filter(Message.id == message_id).first()
-            app_id = record.app_id
-
         if isinstance(app_id, UUID):
             app_id = str(app_id)
 
@@ -267,16 +251,18 @@ class OpsTraceManager:
         tracing_config = config_type(**tracing_config)
         return trace_instance(tracing_config).api_check()
 
-
-class TraceTaskName(str, Enum):
-    CONVERSATION_TRACE = 'conversation_trace'
-    WORKFLOW_TRACE = 'workflow_trace'
-    MESSAGE_TRACE = 'message_trace'
-    MODERATION_TRACE = 'moderation_trace'
-    SUGGESTED_QUESTION_TRACE = 'suggested_question_trace'
-    DATASET_RETRIEVAL_TRACE = 'dataset_retrieval_trace'
-    TOOL_TRACE = 'tool_trace'
-    GENERATE_NAME_TRACE = 'generate_name_trace'
+    @staticmethod
+    def get_trace_config_project_key(tracing_config: dict, tracing_provider: str):
+        """
+        get trace config is project key
+        :param tracing_config: tracing config
+        :param tracing_provider: tracing provider
+        :return:
+        """
+        config_type, trace_instance = provider_config_map[tracing_provider]['config_class'], \
+            provider_config_map[tracing_provider]['trace_instance']
+        tracing_config = config_type(**tracing_config)
+        return trace_instance(tracing_config).get_project_key()
 
 
 class TraceTask:
@@ -286,6 +272,7 @@ class TraceTask:
         message_id: Optional[str] = None,
         workflow_run: Optional[WorkflowRun] = None,
         conversation_id: Optional[str] = None,
+        user_id: Optional[str] = None,
         timer: Optional[Any] = None,
         **kwargs
     ):
@@ -293,45 +280,45 @@ class TraceTask:
         self.message_id = message_id
         self.workflow_run = workflow_run
         self.conversation_id = conversation_id
+        self.user_id = user_id
         self.timer = timer
         self.kwargs = kwargs
         self.file_base_url = os.getenv("FILES_URL", "http://127.0.0.1:5001")
 
+        self.app_id = None
+
     def execute(self):
-        method_name, trace_info = self.preprocess()
-        return trace_info
+        return self.preprocess()
 
     def preprocess(self):
-        if self.trace_type == TraceTaskName.CONVERSATION_TRACE:
-            return TraceTaskName.CONVERSATION_TRACE, self.conversation_trace(**self.kwargs)
-        if self.trace_type == TraceTaskName.WORKFLOW_TRACE:
-            return TraceTaskName.WORKFLOW_TRACE, self.workflow_trace(self.workflow_run, self.conversation_id)
-        elif self.trace_type == TraceTaskName.MESSAGE_TRACE:
-            return TraceTaskName.MESSAGE_TRACE, self.message_trace(self.message_id)
-        elif self.trace_type == TraceTaskName.MODERATION_TRACE:
-            return TraceTaskName.MODERATION_TRACE, self.moderation_trace(self.message_id, self.timer, **self.kwargs)
-        elif self.trace_type == TraceTaskName.SUGGESTED_QUESTION_TRACE:
-            return TraceTaskName.SUGGESTED_QUESTION_TRACE, self.suggested_question_trace(
+        preprocess_map = {
+            TraceTaskName.CONVERSATION_TRACE: lambda: self.conversation_trace(**self.kwargs),
+            TraceTaskName.WORKFLOW_TRACE: lambda: self.workflow_trace(
+                self.workflow_run, self.conversation_id, self.user_id
+            ),
+            TraceTaskName.MESSAGE_TRACE: lambda: self.message_trace(self.message_id),
+            TraceTaskName.MODERATION_TRACE: lambda: self.moderation_trace(
                 self.message_id, self.timer, **self.kwargs
-            )
-        elif self.trace_type == TraceTaskName.DATASET_RETRIEVAL_TRACE:
-            return TraceTaskName.DATASET_RETRIEVAL_TRACE, self.dataset_retrieval_trace(
+            ),
+            TraceTaskName.SUGGESTED_QUESTION_TRACE: lambda: self.suggested_question_trace(
                 self.message_id, self.timer, **self.kwargs
-            )
-        elif self.trace_type == TraceTaskName.TOOL_TRACE:
-            return TraceTaskName.TOOL_TRACE, self.tool_trace(self.message_id, self.timer, **self.kwargs)
-        elif self.trace_type == TraceTaskName.GENERATE_NAME_TRACE:
-            return TraceTaskName.GENERATE_NAME_TRACE, self.generate_name_trace(
+            ),
+            TraceTaskName.DATASET_RETRIEVAL_TRACE: lambda: self.dataset_retrieval_trace(
+                self.message_id, self.timer, **self.kwargs
+            ),
+            TraceTaskName.TOOL_TRACE: lambda: self.tool_trace(self.message_id, self.timer, **self.kwargs),
+            TraceTaskName.GENERATE_NAME_TRACE: lambda: self.generate_name_trace(
                 self.conversation_id, self.timer, **self.kwargs
-            )
-        else:
-            return '', {}
+            ),
+        }
+
+        return preprocess_map.get(self.trace_type, lambda: None)()
 
     # process methods for different trace types
     def conversation_trace(self, **kwargs):
         return kwargs
 
-    def workflow_trace(self, workflow_run: WorkflowRun, conversation_id):
+    def workflow_trace(self, workflow_run: WorkflowRun, conversation_id, user_id):
         workflow_id = workflow_run.workflow_id
         tenant_id = workflow_run.tenant_id
         workflow_run_id = workflow_run.id
@@ -376,6 +363,7 @@ class TraceTask:
             "total_tokens": total_tokens,
             "file_list": file_list,
             "triggered_form": workflow_run.triggered_from,
+            "user_id": user_id,
         }
 
         workflow_trace_info = WorkflowTraceInfo(
@@ -672,13 +660,12 @@ trace_manager_batch_size = int(os.getenv("TRACE_QUEUE_MANAGER_BATCH_SIZE", 100))
 
 
 class TraceQueueManager:
-    def __init__(self, app_id=None, conversation_id=None, message_id=None):
+    def __init__(self, app_id=None, user_id=None):
         global trace_manager_timer
 
         self.app_id = app_id
-        self.conversation_id = conversation_id
-        self.message_id = message_id
-        self.trace_instance = OpsTraceManager.get_ops_trace_instance(app_id, conversation_id, message_id)
+        self.user_id = user_id
+        self.trace_instance = OpsTraceManager.get_ops_trace_instance(app_id)
         self.flask_app = current_app._get_current_object()
         if trace_manager_timer is None:
             self.start_timer()
@@ -688,6 +675,7 @@ class TraceQueueManager:
         global trace_manager_queue
         try:
             if self.trace_instance:
+                trace_task.app_id = self.app_id
                 trace_manager_queue.put(trace_task)
         except Exception as e:
             logging.debug(f"Error adding trace task: {e}")
@@ -726,9 +714,7 @@ class TraceQueueManager:
             for task in tasks:
                 trace_info = task.execute()
                 task_data = {
-                    "app_id": self.app_id,
-                    "conversation_id": self.conversation_id,
-                    "message_id": self.message_id,
+                    "app_id": task.app_id,
                     "trace_info_type": type(trace_info).__name__,
                     "trace_info": trace_info.model_dump() if trace_info else {},
                 }

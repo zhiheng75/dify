@@ -12,6 +12,7 @@ const translation = {
     cancel: 'Anuluj',
     clear: 'Wyczyść',
     save: 'Zapisz',
+    saveAndEnable: 'Zapisz i Włącz',
     edit: 'Edytuj',
     add: 'Dodaj',
     added: 'Dodano',
@@ -59,6 +60,10 @@ const translation = {
       ukUA: 'Ukraiński',
       viVN: 'Wietnamski',
       plPL: 'Polski',
+      roRO: 'Rumuński',
+      hiIN: 'Hindi',
+      trTR: 'Turecki',
+      faIR: 'Perski',
     },
   },
   unit: {
@@ -124,6 +129,7 @@ const translation = {
   },
   userProfile: {
     settings: 'Ustawienia',
+    emailSupport: 'Wsparcie e-mail',
     workspace: 'Przestrzeń robocza',
     createWorkspace: 'Utwórz przestrzeń roboczą',
     helpCenter: 'Pomoc',
@@ -421,7 +427,7 @@ const translation = {
     latestAvailable: 'Dify {{version}} jest najnowszą dostępną wersją.',
   },
   appMenus: {
-    overview: 'Przegląd',
+    overview: 'Monitorowanie',
     promptEng: 'Orkiestracja',
     apiAccess: 'Dostęp API',
     logAndAnn: 'Logi i ogł.',

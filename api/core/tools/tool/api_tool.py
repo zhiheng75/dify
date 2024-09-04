@@ -144,7 +144,7 @@ class ApiTool(Tool):
                 path_params[parameter['name']] = value
 
             elif parameter['in'] == 'query':
-                params[parameter['name']] = value
+                if value !='': params[parameter['name']] = value
 
             elif parameter['in'] == 'cookie':
                 cookies[parameter['name']] = value
@@ -238,7 +238,7 @@ class ApiTool(Tool):
                     return int(value)
                 elif property['type'] == 'number':
                     # check if it is a float
-                    if '.' in value:
+                    if '.' in str(value):
                         return float(value)
                     else:
                         return int(value)
