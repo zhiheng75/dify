@@ -36,22 +36,6 @@ class UploadFileParser:
             return f'data:{upload_file.mime_type};base64,{encoded_string}'
 
     @classmethod
-    def get_text_data(cls, upload_file) -> Optional[str]:
-        if not upload_file:
-            return None
-
-        if upload_file.extension in IMAGE_EXTENSIONS:
-            return None
-
-        try:
-            data = storage.load(upload_file.key)
-        except FileNotFoundError:
-            logging.error(f'File not found: {upload_file.key}')
-            return None
-
-        return data.decode('utf-8')
-
-    @classmethod
     def get_signed_temp_image_url(cls, upload_file_id) -> str:
         """
         get signed url from upload file
