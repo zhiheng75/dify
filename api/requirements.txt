@@ -60,7 +60,7 @@ websocket-client~=1.7.0
 dashscope[tokenizer]~=1.17.0
 huggingface_hub~=0.16.4
 transformers~=4.35.0
-tokenizers~=0.15.0
+tokenizers
 pandas==1.5.3
 xinference-client==0.9.4
 safetensors~=0.4.3
@@ -97,5 +97,6 @@ pgvector==0.2.5
 google-cloud-aiplatform==1.49.0
 lxml
 lxml_html_clean
+pydantic_settings
 # Enable torch will make the docker image super large, disable for now
 # torch

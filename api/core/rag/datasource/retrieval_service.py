@@ -72,7 +72,7 @@ class RetrievalService:
 
         # retrieval source with full text
         if RetrievalMethod.is_support_fulltext_search(retrival_method):
-            full_text_index_thread = threading.Thread(target=RetrievalService.es_full_text_index_searc, kwargs={
+            full_text_index_thread = threading.Thread(target=RetrievalService.es_full_text_index_search, kwargs={
                 'flask_app': current_app._get_current_object(),
                 'dataset_id': dataset_id,
                 'query': query,
@@ -80,13 +80,12 @@ class RetrievalService:
                 'score_threshold': score_threshold,
                 'top_k': top_k,
                 'reranking_model': reranking_model,
-                'all_documents': all_documents,
-                'exceptions': exceptions,
+                'all_documents': all_documents
             })
             threads.append(full_text_index_thread)
             full_text_index_thread.start()
 
-        if retrival_method == 'es_text_search':
+        if retrival_method == RetrievalMethod.ES_TEXT_SEARCH.value:
             es_text_search_thread = threading.Thread(target=RetrievalService.es_text_search, kwargs={
                 'flask_app': current_app._get_current_object(),
                 'dataset_id': dataset_id,
@@ -115,6 +114,9 @@ class RetrievalService:
                 score_threshold=score_threshold,
                 top_n=top_k
             )
+        print('==========')
+        print(all_documents)
+        print('==========')
         return all_documents
 
     @classmethod
@@ -159,9 +161,6 @@ class RetrievalService:
             }
             src = ["id", "title","document_id", "tenant_id", "title", "body"]
             try:
-                print(q)
-                print(dataset_id)
-                print(src)
                 response = ELASTICSEARCH.search(q=q, idxnm=dataset_id, src=src)
 
                 for item in response['hits']['hits']:

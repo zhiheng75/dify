@@ -62,7 +62,7 @@ class HitTestingService:
         db.session.add(dataset_query)
         db.session.commit()
 
-        if "es_text_search" == retrieval_model["search_method"]:
+        if retrieval_model["search_method"] == RetrievalMethod.ES_TEXT_SEARCH.value:
             return cls.compact_retrieve_response(dataset, query, all_documents, True)
 
         return cls.compact_retrieve_response(dataset, query, all_documents)
@@ -87,21 +87,19 @@ class HitTestingService:
                 )
 
                 if not segment:
-                    continue
-
-                # fake data for ui
-                segment.content = document.page_content
-                segment.id = index_node_id
-                segment.keywords = []
-                segment.index_node_id = index_node_id
-                segment.index_node_hash = document.metadata["doc_hash"]
-                segment.word_count = len(document.page_content)
+                    # fake data for ui
+                    segment = DocumentSegment()
+                    segment.content = document.page_content
+                    segment.id = index_node_id
+                    segment.keywords = []
+                    segment.index_node_id = index_node_id
+                    segment.index_node_hash = document.metadata["doc_hash"]
+                    segment.word_count = len(document.page_content)
 
                 record = {
                     "segment": segment,
                     "score": document.metadata.get("score", None),
                 }
-
                 records.append(record)
 
             else:

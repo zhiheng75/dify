@@ -3,8 +3,9 @@ from enum import Enum
 
 class RetrievalMethod(Enum):
     SEMANTIC_SEARCH = 'semantic_search'
-    FULL_TEXT_SEARCH = 'full_text_search'
+    FULL_TEXT_SEARCH = 'full_text_search'  # ES text search with segment
     HYBRID_SEARCH = 'hybrid_search'
+    ES_TEXT_SEARCH = 'es_text_search'   # ES text search without segment
 
     @staticmethod
     def is_support_semantic_search(retrieval_method: str) -> bool:

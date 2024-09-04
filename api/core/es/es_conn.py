@@ -5,6 +5,7 @@ import os
 import re
 import time
 
+import dotenv
 import elasticsearch
 from elastic_transport import ConnectionTimeout
 from elasticsearch import Elasticsearch
@@ -17,7 +18,7 @@ elasticsearch-dsl==8.12.0
 """
 es_logger.info("Elasticsearch version: "+str(elasticsearch.__version__))
 
-
+dotenv.load_dotenv()
 
 def singleton(cls, *args, **kw):
     instances = {}
