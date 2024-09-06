@@ -9,7 +9,7 @@ from core.file.file_obj import FileBelongsTo, FileExtraConfig, FileTransferMetho
 from extensions.ext_database import db
 from models.account import Account
 from models.model import EndUser, MessageFile, UploadFile
-from services.file_service import IMAGE_EXTENSIONS
+from services.file_service import IMAGE_EXTENSIONS, TEXT_EXTENSIONS
 
 
 class MessageFileParser:
@@ -53,7 +53,37 @@ class MessageFileParser:
         # validate files
         new_files = []
         for file_type, file_objs in type_file_objs.items():
-            if file_type == FileType.IMAGE:
+            if file_type == FileType.TEXT:
+                # parse and validate files
+                # Only one text file is allowed
+                if len(file_objs) > 1:
+                    raise ValueError('Only one text file is allowed')
+
+                for file_obj in file_objs:
+                    # Validate transfer method, only local file is allowed for text file
+                    if file_obj.transfer_method.value not in [FileTransferMethod.LOCAL_FILE.value]:
+                        raise ValueError(f'Invalid transfer method for text file: {file_obj.transfer_method.value}')
+
+                    # Validate file type
+                    if file_obj.type != FileType.TEXT:
+                        raise ValueError(f'Invalid text file type: {file_obj.type}')
+
+                    # get upload file from upload_file_id
+                    upload_file = (db.session.query(UploadFile).filter(
+                        UploadFile.id == file_obj.related_id,
+                        UploadFile.tenant_id == self.tenant_id,
+                        UploadFile.created_by == user.id,
+                        UploadFile.created_by_role == ('account' if isinstance(user, Account) else 'end_user'),
+                        UploadFile.extension.in_(TEXT_EXTENSIONS)
+                    ).first())
+
+                    # check upload file is belong to tenant and user
+                    if not upload_file:
+                        raise ValueError('Invalid upload file')
+
+                    new_files.append(file_obj)
+
+            elif file_type == FileType.IMAGE:
                 # parse and validate files
                 image_config = file_extra_config.image_config
 
@@ -123,8 +153,9 @@ class MessageFileParser:
         :return:
         """
         type_file_objs: dict[FileType, list[FileVar]] = {
-            # Currently only support image
-            FileType.IMAGE: []
+            # Currently only support image and text
+            FileType.IMAGE: [],
+            FileType.TEXT: []
         }
 
         if not files:

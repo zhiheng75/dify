@@ -20,6 +20,9 @@ from services.errors.file import FileTooLargeError, UnsupportedFileTypeError
 IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "svg"]
 IMAGE_EXTENSIONS.extend([ext.upper() for ext in IMAGE_EXTENSIONS])
 
+TEXT_EXTENSIONS = ['txt', 'md', 'html', 'htm', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']
+TEXT_EXTENSIONS.extend([ext.upper() for ext in TEXT_EXTENSIONS])
+
 ALLOWED_EXTENSIONS = ["txt", "markdown", "md", "pdf", "html", "htm", "xlsx", "xls", "docx", "csv"]
 UNSTRUCTURED_ALLOWED_EXTENSIONS = [
     "txt",

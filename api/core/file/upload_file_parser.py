@@ -7,15 +7,7 @@ import time
 from typing import Optional
 
 from configs import dify_config
-from core.rag.extractor.extract_processor import ExtractProcessor
 from extensions.ext_storage import storage
-from models.model import UploadFile
-
-IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']
-IMAGE_EXTENSIONS.extend([ext.upper() for ext in IMAGE_EXTENSIONS])
-
-TEXT_EXTENSIONS = ['txt', 'md', 'html', 'htm', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']
-TEXT_EXTENSIONS.extend([ext.upper() for ext in TEXT_EXTENSIONS])
 
 
 class UploadFileParser:
@@ -24,6 +16,7 @@ class UploadFileParser:
         if not upload_file:
             return None
 
+        from services.file_service import IMAGE_EXTENSIONS
         if upload_file.extension not in IMAGE_EXTENSIONS:
             return None
 
@@ -41,15 +34,17 @@ class UploadFileParser:
             return f'data:{upload_file.mime_type};base64,{encoded_string}'
 
     @classmethod
-    def get_text_data(cls, upload_file: UploadFile, force_url: bool = False) -> Optional[str]:
+    def get_text_data(cls, upload_file) -> Optional[str]:
         if not upload_file:
             return None
 
+        from services.file_service import TEXT_EXTENSIONS
         if upload_file.extension not in TEXT_EXTENSIONS:
             return None
 
         try:
             # data = storage.load(upload_file.key)
+            from core.rag.extractor.extract_processor import ExtractProcessor
             data = ExtractProcessor.load_from_upload_file(upload_file)
         except FileNotFoundError:
             logging.error(f'File not found: {upload_file.key}')
