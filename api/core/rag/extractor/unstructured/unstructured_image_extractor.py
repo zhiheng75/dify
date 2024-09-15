@@ -14,11 +14,7 @@ class UnstructuredImageExtractor(BaseExtractor):
         file_path: Path to the image file to load.
     """
 
-    def __init__(
-        self,
-        file_path: str,
-        api_url: str
-    ):
+    def __init__(self, file_path: str, api_url: str):
         """Initialize with file path."""
         self._file_path = file_path
         self._api_url = api_url
@@ -26,11 +22,11 @@ class UnstructuredImageExtractor(BaseExtractor):
     def extract(self) -> list[Document]:
         from unstructured.partition.image import partition_image
 
-        elements = partition_image(filename=self._file_path,
-                                   languages=["chi_sim", "eng"],
-                                   strategy="auto",
-                                   api_url=self._api_url)
+        elements = partition_image(
+            filename=self._file_path, languages=["chi_sim", "eng"], strategy="auto", api_url=self._api_url
+        )
         from unstructured.chunking.title import chunk_by_title
+
         chunks = chunk_by_title(elements, max_characters=2000, combine_text_under_n_chars=0)
         documents = []
         for chunk in chunks:
@@ -43,7 +39,7 @@ class UnstructuredImageExtractor(BaseExtractor):
 if __name__ == "__main__":
     extractor = UnstructuredImageExtractor(
         file_path="/Users/zhihengw/projects/testdata/image0.jpg",
-        #file_path="/Users/zhihengw/projects/testdata/image1.png",
+        # file_path="/Users/zhihengw/projects/testdata/image1.png",
         api_url="http://localhost:8000",
     )
     documents = extractor.extract()

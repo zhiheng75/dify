@@ -10,6 +10,7 @@ MOCK = os.getenv("MOCK_SWITCH", "false") == "true"
 
 
 class MockedHttp:
+    @staticmethod
     def httpx_request(
         method: Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD"], url: str, **kwargs
     ) -> httpx.Response:
@@ -37,7 +38,7 @@ class MockedHttp:
 
 
 @pytest.fixture
-def setup_http_mock(request, monkeypatch: MonkeyPatch):
+def setup_http_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
     if not MOCK:
         yield
         return

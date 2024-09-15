@@ -9,6 +9,9 @@ from typing import Optional
 from configs import dify_config
 from extensions.ext_storage import storage
 
+IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "svg"]
+IMAGE_EXTENSIONS.extend([ext.upper() for ext in IMAGE_EXTENSIONS])
+
 
 class UploadFileParser:
     @classmethod
@@ -17,21 +20,22 @@ class UploadFileParser:
             return None
 
         from services.file_service import IMAGE_EXTENSIONS
+
         if upload_file.extension not in IMAGE_EXTENSIONS:
             return None
 
-        if dify_config.MULTIMODAL_SEND_IMAGE_FORMAT == 'url' or force_url:
+        if dify_config.MULTIMODAL_SEND_IMAGE_FORMAT == "url" or force_url:
             return cls.get_signed_temp_image_url(upload_file.id)
         else:
             # get image file base64
             try:
                 data = storage.load(upload_file.key)
             except FileNotFoundError:
-                logging.error(f'File not found: {upload_file.key}')
+                logging.error(f"File not found: {upload_file.key}")
                 return None
 
-            encoded_string = base64.b64encode(data).decode('utf-8')
-            return f'data:{upload_file.mime_type};base64,{encoded_string}'
+            encoded_string = base64.b64encode(data).decode("utf-8")
+            return f"data:{upload_file.mime_type};base64,{encoded_string}"
 
     @classmethod
     def get_text_data(cls, upload_file) -> Optional[str]:
@@ -39,18 +43,20 @@ class UploadFileParser:
             return None
 
         from services.file_service import TEXT_EXTENSIONS
+
         if upload_file.extension not in TEXT_EXTENSIONS:
             return None
 
         try:
             # data = storage.load(upload_file.key)
             from core.rag.extractor.extract_processor import ExtractProcessor
+
             data = ExtractProcessor.load_from_upload_file(upload_file)
         except FileNotFoundError:
-            logging.error(f'File not found: {upload_file.key}')
+            logging.error(f"File not found: {upload_file.key}")
             return None
         except Exception as e:
-            logging.error(f'Failed to load file: {upload_file.key}, {e}')
+            logging.error(f"Failed to load file: {upload_file.key}, {e}")
             return None
 
         return data
@@ -64,7 +70,7 @@ class UploadFileParser:
         :return:
         """
         base_url = dify_config.FILES_URL
-        image_preview_url = f'{base_url}/files/{upload_file_id}/image-preview'
+        image_preview_url = f"{base_url}/files/{upload_file_id}/image-preview"
 
         timestamp = str(int(time.time()))
         nonce = os.urandom(16).hex()

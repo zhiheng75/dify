@@ -24,7 +24,7 @@ class MockedCodeExecutor:
 
 
 @pytest.fixture
-def setup_code_executor_mock(request, monkeypatch: MonkeyPatch):
+def setup_code_executor_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
     if not MOCK:
         yield
         return

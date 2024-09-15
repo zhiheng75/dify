@@ -42,7 +42,7 @@ class MockXinferenceClass:
             model_uid = url.split("/")[-1] or ""
             if not re.match(
                 r"[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}", model_uid
-            ) and model_uid not in ["generate", "chat", "embedding", "rerank"]:
+            ) and model_uid not in {"generate", "chat", "embedding", "rerank"}:
                 response.status_code = 404
                 response._content = b"{}"
                 return response
@@ -53,7 +53,7 @@ class MockXinferenceClass:
                 response._content = b"{}"
                 return response
 
-            if model_uid in ["generate", "chat"]:
+            if model_uid in {"generate", "chat"}:
                 response.status_code = 200
                 response._content = b"""{
                     "model_type": "LLM",
@@ -160,7 +160,7 @@ MOCK = os.getenv("MOCK_SWITCH", "false").lower() == "true"
 
 
 @pytest.fixture
-def setup_xinference_mock(request, monkeypatch: MonkeyPatch):
+def setup_xinference_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
     if MOCK:
         monkeypatch.setattr(Client, "get_model", MockXinferenceClass.get_chat_model)
         monkeypatch.setattr(Client, "_check_cluster_authenticated", MockXinferenceClass._check_cluster_authenticated)

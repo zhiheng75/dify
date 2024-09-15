@@ -88,7 +88,7 @@ class MockAnthropicClass:
 
 
 @pytest.fixture
-def setup_anthropic_mock(request, monkeypatch: MonkeyPatch):
+def setup_anthropic_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
     if MOCK:
         monkeypatch.setattr(Messages, "create", MockAnthropicClass.mocked_anthropic)
 

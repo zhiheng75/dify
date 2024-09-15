@@ -13,7 +13,7 @@ def get_example_text() -> str:
 
 
 @pytest.fixture(scope="module")
-def setup_mock_redis():
+def setup_mock_redis():  # noqa: PT004
     ext_redis.redis_client.get = MagicMock(return_value=None)
     ext_redis.redis_client.set = MagicMock(return_value=None)
 
@@ -34,7 +34,7 @@ class TestOpenSearchVector:
         self.vector._client = MagicMock()
 
     @pytest.mark.parametrize(
-        "search_response, expected_length, expected_doc_id",
+        ("search_response", "expected_length", "expected_doc_id"),
         [
             (
                 {

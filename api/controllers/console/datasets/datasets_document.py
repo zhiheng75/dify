@@ -304,6 +304,8 @@ class DatasetInitApi(Resource):
             "doc_language", type=str, default="English", required=False, nullable=False, location="json"
         )
         parser.add_argument("retrieval_model", type=dict, required=False, nullable=False, location="json")
+        parser.add_argument("embedding_model", type=str, required=False, nullable=True, location="json")
+        parser.add_argument("embedding_model_provider", type=str, required=False, nullable=True, location="json")
         args = parser.parse_args()
 
         # The role of the current user in the ta table must be admin, owner, or editor, or dataset_operator
@@ -311,6 +313,8 @@ class DatasetInitApi(Resource):
             raise Forbidden()
 
         if args["indexing_technique"] == "high_quality":
+            if args["embedding_model"] is None or args["embedding_model_provider"] is None:
+                raise ValueError("embedding model and embedding model provider are required for high quality indexing.")
             try:
                 model_manager = ModelManager()
                 model_manager.get_default_model_instance(
@@ -352,7 +356,7 @@ class DocumentIndexingEstimateApi(DocumentResource):
         document_id = str(document_id)
         document = self.get_document(dataset_id, document_id)
 
-        if document.indexing_status in ["completed", "error"]:
+        if document.indexing_status in {"completed", "error"}:
             raise DocumentAlreadyFinishedError()
 
         data_process_rule = document.dataset_process_rule
@@ -419,7 +423,7 @@ class DocumentBatchIndexingEstimateApi(DocumentResource):
         info_list = []
         extract_settings = []
         for document in documents:
-            if document.indexing_status in ["completed", "error"]:
+            if document.indexing_status in {"completed", "error"}:
                 raise DocumentAlreadyFinishedError()
             data_source_info = document.data_source_info_dict
             # format document files info
@@ -663,7 +667,7 @@ class DocumentProcessingApi(DocumentResource):
             db.session.commit()
 
         elif action == "resume":
-            if document.indexing_status not in ["paused", "error"]:
+            if document.indexing_status not in {"paused", "error"}:
                 raise InvalidActionError("Document not in paused or error state.")
 
             document.paused_by = None
@@ -693,8 +697,8 @@ class DocumentDeleteApi(DocumentResource):
 
         try:
             DocumentService.delete_document(document)
-            ELASTICSEARCH.deleteByQuery(Q("match", document_id=document_id),idxnm=dataset_id) #全文库
-            ELASTICSEARCH.deleteByQuery(Q("match", document_id=document_id), idxnm="split_"+dataset_id) #文本分割库
+            ELASTICSEARCH.deleteByQuery(Q("match", document_id=document_id), idxnm=dataset_id)  # 全文库
+            ELASTICSEARCH.deleteByQuery(Q("match", document_id=document_id), idxnm="split_" + dataset_id)  # 文本分割库
         except services.errors.document.DocumentIndexingError:
             raise DocumentIndexingError("Cannot delete document during indexing.")
 

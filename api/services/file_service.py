@@ -20,7 +20,7 @@ from services.errors.file import FileTooLargeError, UnsupportedFileTypeError
 IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "svg"]
 IMAGE_EXTENSIONS.extend([ext.upper() for ext in IMAGE_EXTENSIONS])
 
-TEXT_EXTENSIONS = ['txt', 'md', 'html', 'htm', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx']
+TEXT_EXTENSIONS = ["txt", "md", "html", "htm", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"]
 TEXT_EXTENSIONS.extend([ext.upper() for ext in TEXT_EXTENSIONS])
 
 ALLOWED_EXTENSIONS = ["txt", "markdown", "md", "pdf", "html", "htm", "xlsx", "xls", "docx", "csv"]
@@ -59,9 +59,7 @@ class FileService:
             if etl_type == "Unstructured"
             else ALLOWED_EXTENSIONS + IMAGE_EXTENSIONS
         )
-        if extension.lower() not in allowed_extensions:
-            raise UnsupportedFileTypeError()
-        elif only_image and extension.lower() not in IMAGE_EXTENSIONS:
+        if extension.lower() not in allowed_extensions or only_image and extension.lower() not in IMAGE_EXTENSIONS:
             raise UnsupportedFileTypeError()
 
         # read file content

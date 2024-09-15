@@ -1,4 +1,5 @@
 """Abstract interface for document loader implementations."""
+
 from collections import Counter
 from typing import Optional
 
@@ -18,27 +19,24 @@ class MuPdfExtractor(BaseExtractor):
         file_path: Path to the file to load.
     """
 
-    def __init__(
-            self,
-            file_path: str,
-            file_cache_key: Optional[str] = None
-    ):
+    def __init__(self, file_path: str, file_cache_key: Optional[str] = None):
         """Initialize with file path."""
         self._file_path = file_path
         self._file_cache_key = file_cache_key
 
     def extract(self) -> list[Document]:
-        plaintext_file_key = ''
+        plaintext_file_key = ""
         plaintext_file_exists = False
         if self._file_cache_key:
             try:
-                text = storage.load(self._file_cache_key).decode('utf-8')
+                text = storage.load(self._file_cache_key).decode("utf-8")
                 plaintext_file_exists = True
                 return [Document(page_content=text)]
             except FileNotFoundError:
                 pass
 
         import pymupdf
+
         watermark_line_threshold = 10
         blob = Blob.from_path(self._file_path)
         with blob.as_bytes_io() as file_path:
@@ -61,7 +59,7 @@ class MuPdfExtractor(BaseExtractor):
                     image_list = page.get_images(full=True)
                     for image in image_list:
                         pmap = Pixmap(doc, image[0])
-                        imgpdf = pymupdf.open("pdf", pmap.pdfocr_tobytes(compress=False, language='chi_sim+eng'))
+                        imgpdf = pymupdf.open("pdf", pmap.pdfocr_tobytes(compress=False, language="chi_sim+eng"))
                         lines = imgpdf[0].get_text().split("\n")
 
                 text_list.append("\n".join(lines))
@@ -71,6 +69,6 @@ class MuPdfExtractor(BaseExtractor):
 
             # save plaintext file for caching
             if not plaintext_file_exists and plaintext_file_key:
-                storage.save(plaintext_file_key, text.encode('utf-8'))
+                storage.save(plaintext_file_key, text.encode("utf-8"))
 
             return document_list
