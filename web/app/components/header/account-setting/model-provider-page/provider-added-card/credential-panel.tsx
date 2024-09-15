@@ -2,7 +2,7 @@ import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ModelProvider } from '../declarations'
 import {
-  ConfigurateMethodEnum,
+  ConfigurationMethodEnum,
   CustomConfigurationStatusEnum,
   PreferredProviderTypeEnum,
 } from '../declarations'
@@ -36,7 +36,7 @@ const CredentialPanel: FC<CredentialPanelProps> = ({
   const customConfig = provider.custom_configuration
   const systemConfig = provider.system_configuration
   const priorityUseType = provider.preferred_provider_type
-  const customConfiged = customConfig.status === CustomConfigurationStatusEnum.active
+  const isCustomConfigured = customConfig.status === CustomConfigurationStatusEnum.active
   const configurateMethods = provider.configurate_methods
 
   const handleChangePriority = async (key: PreferredProviderTypeEnum) => {
@@ -51,7 +51,7 @@ const CredentialPanel: FC<CredentialPanelProps> = ({
       updateModelProviders()
 
       configurateMethods.forEach((method) => {
-        if (method === ConfigurateMethodEnum.predefinedModel)
+        if (method === ConfigurationMethodEnum.predefinedModel)
           provider.supported_model_types.forEach(modelType => updateModelList(modelType))
       })
 
@@ -69,18 +69,19 @@ const CredentialPanel: FC<CredentialPanelProps> = ({
           <div className='shrink-0 relative ml-1 p-1 w-[112px] rounded-lg bg-white/[0.3] border-[0.5px] border-black/5'>
             <div className='flex items-center justify-between mb-1 pt-1 pl-2 pr-[7px] h-5 text-xs font-medium text-gray-500'>
               API-KEY
-              <Indicator color={customConfiged ? 'green' : 'gray'} />
+              <Indicator color={isCustomConfigured ? 'green' : 'gray'} />
             </div>
             <div className='flex items-center gap-0.5'>
               <Button
-                className='grow px-0 h-6 bg-white text-xs font-medium rounded-md'
+                className='grow'
+                size='small'
                 onClick={onSetup}
               >
                 <Settings01 className='mr-1 w-3 h-3' />
                 {t('common.operation.setup')}
               </Button>
               {
-                systemConfig.enabled && customConfiged && (
+                systemConfig.enabled && isCustomConfigured && (
                   <PrioritySelector
                     value={priorityUseType}
                     onSelect={handleChangePriority}
@@ -97,7 +98,7 @@ const CredentialPanel: FC<CredentialPanelProps> = ({
         )
       }
       {
-        systemConfig.enabled && customConfiged && !provider.provider_credential_schema && (
+        systemConfig.enabled && isCustomConfigured && !provider.provider_credential_schema && (
           <div className='ml-1'>
             <PrioritySelector
               value={priorityUseType}

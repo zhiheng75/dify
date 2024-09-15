@@ -9,7 +9,8 @@ const translation = {
   play: '再生',
   pause: '一時停止',
   playing: '再生中',
-  merMaind: {
+  loading: '読み込み中',
+  merMaid: {
     rerender: '再レンダリング',
   },
   never: 'なし',

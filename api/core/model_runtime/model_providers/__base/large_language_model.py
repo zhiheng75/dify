@@ -3,8 +3,10 @@ import os
 import re
 import time
 from abc import abstractmethod
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from typing import Optional, Union
+
+from pydantic import ConfigDict
 
 from core.model_runtime.callbacks.base_callback import Callback
 from core.model_runtime.callbacks.logging_callback import LoggingCallback
@@ -12,6 +14,7 @@ from core.model_runtime.entities.llm_entities import LLMMode, LLMResult, LLMResu
 from core.model_runtime.entities.message_entities import (
     AssistantPromptMessage,
     PromptMessage,
+    PromptMessageContentType,
     PromptMessageTool,
     SystemPromptMessage,
     UserPromptMessage,
@@ -32,13 +35,24 @@ class LargeLanguageModel(AIModel):
     """
     Model class for large language model.
     """
+
     model_type: ModelType = ModelType.LLM
 
-    def invoke(self, model: str, credentials: dict,
-               prompt_messages: list[PromptMessage], model_parameters: Optional[dict] = None,
-               tools: Optional[list[PromptMessageTool]] = None, stop: Optional[list[str]] = None,
-               stream: bool = True, user: Optional[str] = None, callbacks: list[Callback] = None) \
-            -> Union[LLMResult, Generator]:
+    # pydantic configs
+    model_config = ConfigDict(protected_namespaces=())
+
+    def invoke(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: Optional[dict] = None,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+        callbacks: Optional[list[Callback]] = None,
+    ) -> Union[LLMResult, Generator]:
         """
         Invoke large language model
 
@@ -63,7 +77,7 @@ class LargeLanguageModel(AIModel):
 
         callbacks = callbacks or []
 
-        if bool(os.environ.get("DEBUG", 'False').lower() == 'true'):
+        if bool(os.environ.get("DEBUG", "False").lower() == "true"):
             callbacks.append(LoggingCallback())
 
         # trigger before invoke callbacks
@@ -76,7 +90,7 @@ class LargeLanguageModel(AIModel):
             stop=stop,
             stream=stream,
             user=user,
-            callbacks=callbacks
+            callbacks=callbacks,
         )
 
         try:
@@ -90,7 +104,7 @@ class LargeLanguageModel(AIModel):
                     stop=stop,
                     stream=stream,
                     user=user,
-                    callbacks=callbacks
+                    callbacks=callbacks,
                 )
             else:
                 result = self._invoke(model, credentials, prompt_messages, model_parameters, tools, stop, stream, user)
@@ -105,7 +119,7 @@ class LargeLanguageModel(AIModel):
                 stop=stop,
                 stream=stream,
                 user=user,
-                callbacks=callbacks
+                callbacks=callbacks,
             )
 
             raise self._transform_invoke_error(e)
@@ -121,9 +135,9 @@ class LargeLanguageModel(AIModel):
                 stop=stop,
                 stream=stream,
                 user=user,
-                callbacks=callbacks
+                callbacks=callbacks,
             )
-        else:
+        elif isinstance(result, LLMResult):
             self._trigger_after_invoke_callbacks(
                 model=model,
                 result=result,
@@ -134,15 +148,23 @@ class LargeLanguageModel(AIModel):
                 stop=stop,
                 stream=stream,
                 user=user,
-                callbacks=callbacks
+                callbacks=callbacks,
             )
 
         return result
 
-    def _code_block_mode_wrapper(self, model: str, credentials: dict, prompt_messages: list[PromptMessage],
-                           model_parameters: dict, tools: Optional[list[PromptMessageTool]] = None,
-                           stop: Optional[list[str]] = None, stream: bool = True, user: Optional[str] = None,
-                           callbacks: list[Callback] = None) -> Union[LLMResult, Generator]:
+    def _code_block_mode_wrapper(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+        callbacks: Optional[list[Callback]] = None,
+    ) -> Union[LLMResult, Generator]:
         """
         Code block mode wrapper, ensure the response is a code block with output markdown quote
 
@@ -165,7 +187,7 @@ if you are not sure about the structure.
 <instructions>
 {{instructions}}
 </instructions>
-"""
+"""  # noqa: E501
 
         code_block = model_parameters.get("response_format", "")
         if not code_block:
@@ -177,9 +199,9 @@ if you are not sure about the structure.
                 tools=tools,
                 stop=stop,
                 stream=stream,
-                user=user
+                user=user,
             )
-        
+
         model_parameters.pop("response_format")
         stop = stop or []
         stop.extend(["\n```", "```\n"])
@@ -189,24 +211,29 @@ if you are not sure about the structure.
         if len(prompt_messages) > 0 and isinstance(prompt_messages[0], SystemPromptMessage):
             # override the system message
             prompt_messages[0] = SystemPromptMessage(
-                content=block_prompts
-                    .replace("{{instructions}}", prompt_messages[0].content)
+                content=block_prompts.replace("{{instructions}}", str(prompt_messages[0].content))
             )
         else:
             # insert the system message
-            prompt_messages.insert(0, SystemPromptMessage(
-                content=block_prompts
-                    .replace("{{instructions}}", f"Please output a valid {code_block} object.")
-            ))
+            prompt_messages.insert(
+                0,
+                SystemPromptMessage(
+                    content=block_prompts.replace("{{instructions}}", f"Please output a valid {code_block} object.")
+                ),
+            )
 
         if len(prompt_messages) > 0 and isinstance(prompt_messages[-1], UserPromptMessage):
-            # add ```JSON\n to the last message
-            prompt_messages[-1].content += f"\n```{code_block}\n"
+            # add ```JSON\n to the last text message
+            if isinstance(prompt_messages[-1].content, str):
+                prompt_messages[-1].content += f"\n```{code_block}\n"
+            elif isinstance(prompt_messages[-1].content, list):
+                for i in range(len(prompt_messages[-1].content) - 1, -1, -1):
+                    if prompt_messages[-1].content[i].type == PromptMessageContentType.TEXT:
+                        prompt_messages[-1].content[i].data += f"\n```{code_block}\n"
+                        break
         else:
             # append a user message
-            prompt_messages.append(UserPromptMessage(
-                content=f"```{code_block}\n"
-            ))
+            prompt_messages.append(UserPromptMessage(content=f"```{code_block}\n"))
 
         response = self._invoke(
             model=model,
@@ -216,33 +243,30 @@ if you are not sure about the structure.
             tools=tools,
             stop=stop,
             stream=stream,
-            user=user
+            user=user,
         )
 
         if isinstance(response, Generator):
             first_chunk = next(response)
+
             def new_generator():
                 yield first_chunk
                 yield from response
 
             if first_chunk.delta.message.content and first_chunk.delta.message.content.startswith("`"):
                 return self._code_block_mode_stream_processor_with_backtick(
-                    model=model,
-                    prompt_messages=prompt_messages,
-                    input_generator=new_generator()
+                    model=model, prompt_messages=prompt_messages, input_generator=new_generator()
                 )
             else:
                 return self._code_block_mode_stream_processor(
-                    model=model,
-                    prompt_messages=prompt_messages,
-                    input_generator=new_generator()
+                    model=model, prompt_messages=prompt_messages, input_generator=new_generator()
                 )
-            
+
         return response
 
-    def _code_block_mode_stream_processor(self, model: str, prompt_messages: list[PromptMessage], 
-                                          input_generator: Generator[LLMResultChunk, None, None]
-                                        ) -> Generator[LLMResultChunk, None, None]:
+    def _code_block_mode_stream_processor(
+        self, model: str, prompt_messages: list[PromptMessage], input_generator: Generator[LLMResultChunk, None, None]
+    ) -> Generator[LLMResultChunk, None, None]:
         """
         Code block mode stream processor, ensure the response is a code block with output markdown quote
 
@@ -262,8 +286,9 @@ if you are not sure about the structure.
             else:
                 yield piece
                 continue
-            new_piece = ""
+            new_piece: str = ""
             for char in piece:
+                char = str(char)
                 if state == "normal":
                     if char == "`":
                         state = "in_backticks"
@@ -290,16 +315,13 @@ if you are not sure about the structure.
                     prompt_messages=prompt_messages,
                     delta=LLMResultChunkDelta(
                         index=0,
-                        message=AssistantPromptMessage(
-                            content=new_piece,
-                            tool_calls=[]
-                        ),
-                    )
+                        message=AssistantPromptMessage(content=new_piece, tool_calls=[]),
+                    ),
                 )
 
-    def _code_block_mode_stream_processor_with_backtick(self, model: str, prompt_messages: list, 
-                                        input_generator:  Generator[LLMResultChunk, None, None]) \
-                                    ->  Generator[LLMResultChunk, None, None]:
+    def _code_block_mode_stream_processor_with_backtick(
+        self, model: str, prompt_messages: list, input_generator: Generator[LLMResultChunk, None, None]
+    ) -> Generator[LLMResultChunk, None, None]:
         """
         Code block mode stream processor, ensure the response is a code block with output markdown quote.
         This version skips the language identifier that follows the opening triple backticks.
@@ -328,7 +350,7 @@ if you are not sure about the structure.
             if state == "done":
                 continue
 
-            new_piece = ""
+            new_piece: str = ""
             for char in piece:
                 if state == "search_start":
                     if char == "`":
@@ -353,7 +375,7 @@ if you are not sure about the structure.
                             # If backticks were counted but we're still collecting content, it was a false start
                             new_piece += "`" * backtick_count
                             backtick_count = 0
-                        new_piece += char
+                        new_piece += str(char)
 
                 elif state == "done":
                     break
@@ -365,27 +387,31 @@ if you are not sure about the structure.
                     prompt_messages=prompt_messages,
                     delta=LLMResultChunkDelta(
                         index=0,
-                        message=AssistantPromptMessage(
-                            content=new_piece,
-                            tool_calls=[]
-                        ),
-                    )
+                        message=AssistantPromptMessage(content=new_piece, tool_calls=[]),
+                    ),
                 )
 
-    def _invoke_result_generator(self, model: str, result: Generator, credentials: dict,
-                                 prompt_messages: list[PromptMessage], model_parameters: dict,
-                                 tools: Optional[list[PromptMessageTool]] = None,
-                                 stop: Optional[list[str]] = None, stream: bool = True,
-                                 user: Optional[str] = None, callbacks: list[Callback] = None) -> Generator:
+    def _invoke_result_generator(
+        self,
+        model: str,
+        result: Generator,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+        callbacks: Optional[list[Callback]] = None,
+    ) -> Generator:
         """
         Invoke result generator
 
         :param result: result generator
         :return: result generator
         """
-        prompt_message = AssistantPromptMessage(
-            content=""
-        )
+        callbacks = callbacks or []
+        prompt_message = AssistantPromptMessage(content="")
         usage = None
         system_fingerprint = None
         real_model = model
@@ -404,7 +430,7 @@ if you are not sure about the structure.
                     stop=stop,
                     stream=stream,
                     user=user,
-                    callbacks=callbacks
+                    callbacks=callbacks,
                 )
 
                 prompt_message.content += chunk.delta.message.content
@@ -423,8 +449,8 @@ if you are not sure about the structure.
                 model=real_model,
                 prompt_messages=prompt_messages,
                 message=prompt_message,
-                usage=usage if usage else LLMUsage.empty_usage(),
-                system_fingerprint=system_fingerprint
+                usage=usage or LLMUsage.empty_usage(),
+                system_fingerprint=system_fingerprint,
             ),
             credentials=credentials,
             prompt_messages=prompt_messages,
@@ -433,15 +459,21 @@ if you are not sure about the structure.
             stop=stop,
             stream=stream,
             user=user,
-            callbacks=callbacks
+            callbacks=callbacks,
         )
 
     @abstractmethod
-    def _invoke(self, model: str, credentials: dict,
-                prompt_messages: list[PromptMessage], model_parameters: dict,
-                tools: Optional[list[PromptMessageTool]] = None, stop: Optional[list[str]] = None,
-                stream: bool = True, user: Optional[str] = None) \
-            -> Union[LLMResult, Generator]:
+    def _invoke(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+    ) -> Union[LLMResult, Generator]:
         """
         Invoke large language model
 
@@ -456,10 +488,15 @@ if you are not sure about the structure.
         :return: full response or stream response chunk generator result
         """
         raise NotImplementedError
-    
+
     @abstractmethod
-    def get_num_tokens(self, model: str, credentials: dict, prompt_messages: list[PromptMessage],
-                       tools: Optional[list[PromptMessageTool]] = None) -> int:
+    def get_num_tokens(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        tools: Optional[list[PromptMessageTool]] = None,
+    ) -> int:
         """
         Get number of tokens for given prompt messages
 
@@ -475,36 +512,6 @@ if you are not sure about the structure.
         """Cut off the text as soon as any stop words occur."""
         return re.split("|".join(stop), text, maxsplit=1)[0]
 
-    def _llm_result_to_stream(self, result: LLMResult) -> Generator:
-        """
-        Transform llm result to stream
-
-        :param result: llm result
-        :return: stream
-        """
-        index = 0
-
-        tool_calls = result.message.tool_calls
-
-        for word in result.message.content:
-            assistant_prompt_message = AssistantPromptMessage(
-                content=word,
-                tool_calls=tool_calls if index == (len(result.message.content) - 1) else []
-            )
-
-            yield LLMResultChunk(
-                model=result.model,
-                prompt_messages=result.prompt_messages,
-                system_fingerprint=result.system_fingerprint,
-                delta=LLMResultChunkDelta(
-                    index=index,
-                    message=assistant_prompt_message,
-                )
-            )
-
-            index += 1
-            time.sleep(0.01)
-
     def get_parameter_rules(self, model: str, credentials: dict) -> list[ParameterRule]:
         """
         Get parameter rules
@@ -519,7 +526,7 @@ if you are not sure about the structure.
 
         return []
 
-    def get_model_mode(self, model: str, credentials: Optional[dict] = None) -> LLMMode:
+    def get_model_mode(self, model: str, credentials: Optional[Mapping] = None) -> LLMMode:
         """
         Get model mode
 
@@ -535,7 +542,9 @@ if you are not sure about the structure.
 
         return mode
 
-    def _calc_response_usage(self, model: str, credentials: dict, prompt_tokens: int, completion_tokens: int) -> LLMUsage:
+    def _calc_response_usage(
+        self, model: str, credentials: dict, prompt_tokens: int, completion_tokens: int
+    ) -> LLMUsage:
         """
         Calculate response usage
 
@@ -555,10 +564,7 @@ if you are not sure about the structure.
 
         # get completion price info
         completion_price_info = self.get_price(
-            model=model,
-            credentials=credentials,
-            price_type=PriceType.OUTPUT,
-            tokens=completion_tokens
+            model=model, credentials=credentials, price_type=PriceType.OUTPUT, tokens=completion_tokens
         )
 
         # transform usage
@@ -574,16 +580,23 @@ if you are not sure about the structure.
             total_tokens=prompt_tokens + completion_tokens,
             total_price=prompt_price_info.total_amount + completion_price_info.total_amount,
             currency=prompt_price_info.currency,
-            latency=time.perf_counter() - self.started_at
+            latency=time.perf_counter() - self.started_at,
         )
 
         return usage
 
-    def _trigger_before_invoke_callbacks(self, model: str, credentials: dict,
-                                         prompt_messages: list[PromptMessage], model_parameters: dict,
-                                         tools: Optional[list[PromptMessageTool]] = None,
-                                         stop: Optional[list[str]] = None, stream: bool = True,
-                                         user: Optional[str] = None, callbacks: list[Callback] = None) -> None:
+    def _trigger_before_invoke_callbacks(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+        callbacks: Optional[list[Callback]] = None,
+    ) -> None:
         """
         Trigger before invoke callbacks
 
@@ -609,7 +622,7 @@ if you are not sure about the structure.
                         tools=tools,
                         stop=stop,
                         stream=stream,
-                        user=user
+                        user=user,
                     )
                 except Exception as e:
                     if callback.raise_error:
@@ -617,11 +630,19 @@ if you are not sure about the structure.
                     else:
                         logger.warning(f"Callback {callback.__class__.__name__} on_before_invoke failed with error {e}")
 
-    def _trigger_new_chunk_callbacks(self, chunk: LLMResultChunk, model: str, credentials: dict,
-                                     prompt_messages: list[PromptMessage], model_parameters: dict,
-                                     tools: Optional[list[PromptMessageTool]] = None,
-                                     stop: Optional[list[str]] = None, stream: bool = True,
-                                     user: Optional[str] = None, callbacks: list[Callback] = None) -> None:
+    def _trigger_new_chunk_callbacks(
+        self,
+        chunk: LLMResultChunk,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+        callbacks: Optional[list[Callback]] = None,
+    ) -> None:
         """
         Trigger new chunk callbacks
 
@@ -648,7 +669,7 @@ if you are not sure about the structure.
                         tools=tools,
                         stop=stop,
                         stream=stream,
-                        user=user
+                        user=user,
                     )
                 except Exception as e:
                     if callback.raise_error:
@@ -656,11 +677,19 @@ if you are not sure about the structure.
                     else:
                         logger.warning(f"Callback {callback.__class__.__name__} on_new_chunk failed with error {e}")
 
-    def _trigger_after_invoke_callbacks(self, model: str, result: LLMResult, credentials: dict,
-                                        prompt_messages: list[PromptMessage], model_parameters: dict,
-                                        tools: Optional[list[PromptMessageTool]] = None,
-                                        stop: Optional[list[str]] = None, stream: bool = True,
-                                        user: Optional[str] = None, callbacks: list[Callback] = None) -> None:
+    def _trigger_after_invoke_callbacks(
+        self,
+        model: str,
+        result: LLMResult,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+        callbacks: Optional[list[Callback]] = None,
+    ) -> None:
         """
         Trigger after invoke callbacks
 
@@ -688,7 +717,7 @@ if you are not sure about the structure.
                         tools=tools,
                         stop=stop,
                         stream=stream,
-                        user=user
+                        user=user,
                     )
                 except Exception as e:
                     if callback.raise_error:
@@ -696,11 +725,19 @@ if you are not sure about the structure.
                     else:
                         logger.warning(f"Callback {callback.__class__.__name__} on_after_invoke failed with error {e}")
 
-    def _trigger_invoke_error_callbacks(self, model: str, ex: Exception, credentials: dict,
-                                        prompt_messages: list[PromptMessage], model_parameters: dict,
-                                        tools: Optional[list[PromptMessageTool]] = None,
-                                        stop: Optional[list[str]] = None, stream: bool = True,
-                                        user: Optional[str] = None, callbacks: list[Callback] = None) -> None:
+    def _trigger_invoke_error_callbacks(
+        self,
+        model: str,
+        ex: Exception,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+        callbacks: Optional[list[Callback]] = None,
+    ) -> None:
         """
         Trigger invoke error callbacks
 
@@ -728,7 +765,7 @@ if you are not sure about the structure.
                         tools=tools,
                         stop=stop,
                         stream=stream,
-                        user=user
+                        user=user,
                     )
                 except Exception as e:
                     if callback.raise_error:
@@ -774,11 +811,13 @@ if you are not sure about the structure.
                 # validate parameter value range
                 if parameter_rule.min is not None and parameter_value < parameter_rule.min:
                     raise ValueError(
-                        f"Model Parameter {parameter_name} should be greater than or equal to {parameter_rule.min}.")
+                        f"Model Parameter {parameter_name} should be greater than or equal to {parameter_rule.min}."
+                    )
 
                 if parameter_rule.max is not None and parameter_value > parameter_rule.max:
                     raise ValueError(
-                        f"Model Parameter {parameter_name} should be less than or equal to {parameter_rule.max}.")
+                        f"Model Parameter {parameter_name} should be less than or equal to {parameter_rule.max}."
+                    )
             elif parameter_rule.type == ParameterType.FLOAT:
                 if not isinstance(parameter_value, float | int):
                     raise ValueError(f"Model Parameter {parameter_name} should be float.")
@@ -791,22 +830,33 @@ if you are not sure about the structure.
                     else:
                         if parameter_value != round(parameter_value, parameter_rule.precision):
                             raise ValueError(
-                                f"Model Parameter {parameter_name} should be round to {parameter_rule.precision} decimal places.")
+                                f"Model Parameter {parameter_name} should be round to {parameter_rule.precision}"
+                                f" decimal places."
+                            )
 
                 # validate parameter value range
                 if parameter_rule.min is not None and parameter_value < parameter_rule.min:
                     raise ValueError(
-                        f"Model Parameter {parameter_name} should be greater than or equal to {parameter_rule.min}.")
+                        f"Model Parameter {parameter_name} should be greater than or equal to {parameter_rule.min}."
+                    )
 
                 if parameter_rule.max is not None and parameter_value > parameter_rule.max:
                     raise ValueError(
-                        f"Model Parameter {parameter_name} should be less than or equal to {parameter_rule.max}.")
+                        f"Model Parameter {parameter_name} should be less than or equal to {parameter_rule.max}."
+                    )
             elif parameter_rule.type == ParameterType.BOOLEAN:
                 if not isinstance(parameter_value, bool):
                     raise ValueError(f"Model Parameter {parameter_name} should be bool.")
             elif parameter_rule.type == ParameterType.STRING:
                 if not isinstance(parameter_value, str):
                     raise ValueError(f"Model Parameter {parameter_name} should be string.")
+
+                # validate options
+                if parameter_rule.options and parameter_value not in parameter_rule.options:
+                    raise ValueError(f"Model Parameter {parameter_name} should be one of {parameter_rule.options}.")
+            elif parameter_rule.type == ParameterType.TEXT:
+                if not isinstance(parameter_value, str):
+                    raise ValueError(f"Model Parameter {parameter_name} should be text.")
 
                 # validate options
                 if parameter_rule.options and parameter_value not in parameter_rule.options:

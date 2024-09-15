@@ -5,6 +5,7 @@ import type {
 import {
   memo,
   useCallback,
+  useMemo,
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -12,8 +13,12 @@ import type {
   OffsetOptions,
   Placement,
 } from '@floating-ui/react'
+import {
+  RiSearchLine,
+} from '@remixicon/react'
 import type { BlockEnum, OnSelectBlock } from '../types'
 import Tabs from './tabs'
+import { TabsEnum } from './types'
 import {
   PortalToFollowElem,
   PortalToFollowElemContent,
@@ -21,7 +26,6 @@ import {
 } from '@/app/components/base/portal-to-follow-elem'
 import {
   Plus02,
-  SearchLg,
 } from '@/app/components/base/icons/src/vender/line/general'
 import { XCircle } from '@/app/components/base/icons/src/vender/solid/general'
 
@@ -39,6 +43,7 @@ type NodeSelectorProps = {
   asChild?: boolean
   availableBlocksTypes?: BlockEnum[]
   disabled?: boolean
+  noBlocks?: boolean
 }
 const NodeSelector: FC<NodeSelectorProps> = ({
   open: openFromProps,
@@ -54,6 +59,7 @@ const NodeSelector: FC<NodeSelectorProps> = ({
   asChild,
   availableBlocksTypes,
   disabled,
+  noBlocks = false,
 }) => {
   const { t } = useTranslation()
   const [searchText, setSearchText] = useState('')
@@ -61,6 +67,9 @@ const NodeSelector: FC<NodeSelectorProps> = ({
   const open = openFromProps === undefined ? localOpen : openFromProps
   const handleOpenChange = useCallback((newOpen: boolean) => {
     setLocalOpen(newOpen)
+
+    if (!newOpen)
+      setSearchText('')
 
     if (onOpenChange)
       onOpenChange(newOpen)
@@ -75,6 +84,19 @@ const NodeSelector: FC<NodeSelectorProps> = ({
     handleOpenChange(false)
     onSelect(type, toolDefaultValue)
   }, [handleOpenChange, onSelect])
+
+  const [activeTab, setActiveTab] = useState(noBlocks ? TabsEnum.Tools : TabsEnum.Blocks)
+  const handleActiveTabChange = useCallback((newActiveTab: TabsEnum) => {
+    setActiveTab(newActiveTab)
+  }, [])
+  const searchPlaceholder = useMemo(() => {
+    if (activeTab === TabsEnum.Blocks)
+      return t('workflow.tabs.searchBlock')
+
+    if (activeTab === TabsEnum.Tools)
+      return t('workflow.tabs.searchTool')
+    return ''
+  }, [activeTab, t])
 
   return (
     <PortalToFollowElem
@@ -112,11 +134,11 @@ const NodeSelector: FC<NodeSelectorProps> = ({
               className='flex items-center px-2 rounded-lg bg-gray-100'
               onClick={e => e.stopPropagation()}
             >
-              <SearchLg className='shrink-0 ml-[1px] mr-[5px] w-3.5 h-3.5 text-gray-400' />
+              <RiSearchLine className='shrink-0 ml-[1px] mr-[5px] w-3.5 h-3.5 text-gray-400' />
               <input
                 value={searchText}
                 className='grow px-0.5 py-[7px] text-[13px] text-gray-700 bg-transparent appearance-none outline-none caret-primary-600 placeholder:text-gray-400'
-                placeholder={t('workflow.tabs.searchBlock') || ''}
+                placeholder={searchPlaceholder}
                 onChange={e => setSearchText(e.target.value)}
                 autoFocus
               />
@@ -133,9 +155,12 @@ const NodeSelector: FC<NodeSelectorProps> = ({
             </div>
           </div>
           <Tabs
+            activeTab={activeTab}
+            onActiveTabChange={handleActiveTabChange}
             onSelect={handleSelect}
             searchText={searchText}
             availableBlocksTypes={availableBlocksTypes}
+            noBlocks={noBlocks}
           />
         </div>
       </PortalToFollowElemContent>

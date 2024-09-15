@@ -1,13 +1,14 @@
 import type { FC } from 'react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import cn from 'classnames'
 import useConfig from './use-config'
 import ApiInput from './components/api-input'
 import KeyValue from './components/key-value'
 import EditBody from './components/edit-body'
 import AuthorizationModal from './components/authorization'
 import type { HttpNodeType } from './types'
+import Timeout from './components/timeout'
+import cn from '@/utils/classnames'
 import Field from '@/app/components/workflow/nodes/_base/components/field'
 import Split from '@/app/components/workflow/nodes/_base/components/split'
 import OutputVars, { VarItem } from '@/app/components/workflow/nodes/_base/components/output-vars'
@@ -40,6 +41,7 @@ const Panel: FC<NodePanelProps<HttpNodeType>> = ({
     showAuthorization,
     hideAuthorization,
     setAuthorization,
+    setTimeout,
     // single run
     isShowSingleRun,
     hideSingleRun,
@@ -112,8 +114,18 @@ const Panel: FC<NodePanelProps<HttpNodeType>> = ({
           />
         </Field>
       </div>
+      <Split />
+      <div className='px-4 pt-4 pb-4'>
+        <Timeout
+          nodeId={id}
+          readonly={readOnly}
+          payload={inputs.timeout}
+          onChange={setTimeout}
+        />
+      </div>
       {(isShowAuthorization && !readOnly) && (
         <AuthorizationModal
+          nodeId={id}
           isShow
           onHide={hideAuthorization}
           payload={inputs.authorization}

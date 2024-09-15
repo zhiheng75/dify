@@ -7,11 +7,11 @@ class DevDocsProvider(BuiltinToolProviderController):
     def _validate_credentials(self, credentials: dict) -> None:
         try:
             SearchDevDocsTool().fork_tool_runtime(
-                meta={
+                runtime={
                     "credentials": credentials,
                 }
             ).invoke(
-                user_id='',
+                user_id="",
                 tool_parameters={
                     "doc": "python~3.12",
                     "topic": "library/code",

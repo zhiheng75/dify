@@ -1,11 +1,14 @@
 import type { FC } from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Edit02, Trash03 } from '@/app/components/base/icons/src/vender/line/general'
+import {
+  RiDeleteBinLine,
+} from '@remixicon/react'
+import { Edit02 } from '@/app/components/base/icons/src/vender/line/general'
 import type { ApiBasedExtension } from '@/models/common'
 import { useModalContext } from '@/context/modal-context'
 import { deleteApiBasedExtension } from '@/service/common'
-import ConfirmCommon from '@/app/components/base/confirm/common'
+import Confirm from '@/app/components/base/confirm'
 
 type ItemProps = {
   data: ApiBasedExtension
@@ -50,22 +53,18 @@ const Item: FC<ItemProps> = ({
           className='flex items-center justify-center w-7 h-7 bg-white text-gray-700 rounded-md border-[0.5px] border-gray-200 shadow-xs cursor-pointer'
           onClick={() => setShowDeleteConfirm(true)}
         >
-          <Trash03 className='w-4 h-4' />
+          <RiDeleteBinLine className='w-4 h-4' />
         </div>
       </div>
       {
-        showDeleteConfirm && (
-          <ConfirmCommon
-            type='danger'
+        showDeleteConfirm
+          && <Confirm
             isShow={showDeleteConfirm}
             onCancel={() => setShowDeleteConfirm(false)}
             title={`${t('common.operation.delete')} “${data.name}”?`}
             onConfirm={handleDeleteApiBasedExtension}
-            confirmWrapperClassName='!z-30'
             confirmText={t('common.operation.delete') || ''}
-            confirmBtnClassName='!bg-[#D92D20]'
           />
-        )
       }
     </div>
   )

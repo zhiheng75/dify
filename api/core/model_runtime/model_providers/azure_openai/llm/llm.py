@@ -1,14 +1,14 @@
 import copy
+import json
 import logging
-from collections.abc import Generator
+from collections.abc import Generator, Sequence
 from typing import Optional, Union, cast
 
 import tiktoken
 from openai import AzureOpenAI, Stream
 from openai.types import Completion
 from openai.types.chat import ChatCompletion, ChatCompletionChunk, ChatCompletionMessageToolCall
-from openai.types.chat.chat_completion_chunk import ChoiceDeltaFunctionCall, ChoiceDeltaToolCall
-from openai.types.chat.chat_completion_message import FunctionCall
+from openai.types.chat.chat_completion_chunk import ChoiceDeltaToolCall
 
 from core.model_runtime.entities.llm_entities import LLMMode, LLMResult, LLMResultChunk, LLMResultChunkDelta
 from core.model_runtime.entities.message_entities import (
@@ -16,6 +16,7 @@ from core.model_runtime.entities.message_entities import (
     ImagePromptMessageContent,
     PromptMessage,
     PromptMessageContentType,
+    PromptMessageFunction,
     PromptMessageTool,
     SystemPromptMessage,
     TextPromptMessageContent,
@@ -26,22 +27,30 @@ from core.model_runtime.entities.model_entities import AIModelEntity, ModelPrope
 from core.model_runtime.errors.validate import CredentialsValidateFailedError
 from core.model_runtime.model_providers.__base.large_language_model import LargeLanguageModel
 from core.model_runtime.model_providers.azure_openai._common import _CommonAzureOpenAI
-from core.model_runtime.model_providers.azure_openai._constant import LLM_BASE_MODELS, AzureBaseModel
+from core.model_runtime.model_providers.azure_openai._constant import LLM_BASE_MODELS
+from core.model_runtime.utils import helper
 
 logger = logging.getLogger(__name__)
 
 
 class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
+    def _invoke(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+    ) -> Union[LLMResult, Generator]:
+        base_model_name = credentials.get("base_model_name")
+        if not base_model_name:
+            raise ValueError("Base Model Name is required")
+        ai_model_entity = self._get_ai_model_entity(base_model_name=base_model_name, model=model)
 
-    def _invoke(self, model: str, credentials: dict,
-                prompt_messages: list[PromptMessage], model_parameters: dict,
-                tools: Optional[list[PromptMessageTool]] = None, stop: Optional[list[str]] = None,
-                stream: bool = True, user: Optional[str] = None) \
-            -> Union[LLMResult, Generator]:
-
-        ai_model_entity = self._get_ai_model_entity(credentials.get('base_model_name'), model)
-
-        if ai_model_entity.entity.model_properties.get(ModelPropertyKey.MODE) == LLMMode.CHAT.value:
+        if ai_model_entity and ai_model_entity.entity.model_properties.get(ModelPropertyKey.MODE) == LLMMode.CHAT.value:
             # chat model
             return self._chat_generate(
                 model=model,
@@ -51,7 +60,7 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
                 tools=tools,
                 stop=stop,
                 stream=stream,
-                user=user
+                user=user,
             )
         else:
             # text completion model
@@ -62,33 +71,47 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
                 model_parameters=model_parameters,
                 stop=stop,
                 stream=stream,
-                user=user
+                user=user,
             )
 
-    def get_num_tokens(self, model: str, credentials: dict, prompt_messages: list[PromptMessage],
-                       tools: Optional[list[PromptMessageTool]] = None) -> int:
-
-        model_mode = self._get_ai_model_entity(credentials.get('base_model_name'), model).entity.model_properties.get(
-            ModelPropertyKey.MODE)
+    def get_num_tokens(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        tools: Optional[list[PromptMessageTool]] = None,
+    ) -> int:
+        base_model_name = credentials.get("base_model_name")
+        if not base_model_name:
+            raise ValueError("Base Model Name is required")
+        model_entity = self._get_ai_model_entity(base_model_name=base_model_name, model=model)
+        if not model_entity:
+            raise ValueError(f"Base Model Name {base_model_name} is invalid")
+        model_mode = model_entity.entity.model_properties.get(ModelPropertyKey.MODE)
 
         if model_mode == LLMMode.CHAT.value:
             # chat model
             return self._num_tokens_from_messages(credentials, prompt_messages, tools)
         else:
             # text completion model, do not support tool calling
-            return self._num_tokens_from_string(credentials, prompt_messages[0].content)
+            content = prompt_messages[0].content
+            assert isinstance(content, str)
+            return self._num_tokens_from_string(credentials, content)
 
     def validate_credentials(self, model: str, credentials: dict) -> None:
-        if 'openai_api_base' not in credentials:
-            raise CredentialsValidateFailedError('Azure OpenAI API Base Endpoint is required')
+        if "openai_api_base" not in credentials:
+            raise CredentialsValidateFailedError("Azure OpenAI API Base Endpoint is required")
 
-        if 'openai_api_key' not in credentials:
-            raise CredentialsValidateFailedError('Azure OpenAI API key is required')
+        if "openai_api_key" not in credentials:
+            raise CredentialsValidateFailedError("Azure OpenAI API key is required")
 
-        if 'base_model_name' not in credentials:
-            raise CredentialsValidateFailedError('Base Model Name is required')
+        if "base_model_name" not in credentials:
+            raise CredentialsValidateFailedError("Base Model Name is required")
 
-        ai_model_entity = self._get_ai_model_entity(credentials.get('base_model_name'), model)
+        base_model_name = credentials.get("base_model_name")
+        if not base_model_name:
+            raise CredentialsValidateFailedError("Base Model Name is required")
+        ai_model_entity = self._get_ai_model_entity(base_model_name=base_model_name, model=model)
 
         if not ai_model_entity:
             raise CredentialsValidateFailedError(f'Base Model Name {credentials["base_model_name"]} is invalid')
@@ -99,7 +122,7 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
             if ai_model_entity.entity.model_properties.get(ModelPropertyKey.MODE) == LLMMode.CHAT.value:
                 # chat model
                 client.chat.completions.create(
-                    messages=[{"role": "user", "content": 'ping'}],
+                    messages=[{"role": "user", "content": "ping"}],
                     model=model,
                     temperature=0,
                     max_tokens=20,
@@ -108,7 +131,7 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
             else:
                 # text completion model
                 client.completions.create(
-                    prompt='ping',
+                    prompt="ping",
                     model=model,
                     temperature=0,
                     max_tokens=20,
@@ -118,30 +141,35 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
             raise CredentialsValidateFailedError(str(ex))
 
     def get_customizable_model_schema(self, model: str, credentials: dict) -> Optional[AIModelEntity]:
-        ai_model_entity = self._get_ai_model_entity(credentials.get('base_model_name'), model)
+        base_model_name = credentials.get("base_model_name")
+        if not base_model_name:
+            raise ValueError("Base Model Name is required")
+        ai_model_entity = self._get_ai_model_entity(base_model_name=base_model_name, model=model)
         return ai_model_entity.entity if ai_model_entity else None
 
-    def _generate(self, model: str, credentials: dict,
-                  prompt_messages: list[PromptMessage], model_parameters: dict, stop: Optional[list[str]] = None,
-                  stream: bool = True, user: Optional[str] = None) -> Union[LLMResult, Generator]:
-
+    def _generate(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+    ) -> Union[LLMResult, Generator]:
         client = AzureOpenAI(**self._to_credential_kwargs(credentials))
 
         extra_model_kwargs = {}
 
         if stop:
-            extra_model_kwargs['stop'] = stop
+            extra_model_kwargs["stop"] = stop
 
         if user:
-            extra_model_kwargs['user'] = user
+            extra_model_kwargs["user"] = user
 
         # text completion model
         response = client.completions.create(
-            prompt=prompt_messages[0].content,
-            model=model,
-            stream=stream,
-            **model_parameters,
-            **extra_model_kwargs
+            prompt=prompt_messages[0].content, model=model, stream=stream, **model_parameters, **extra_model_kwargs
         )
 
         if stream:
@@ -149,14 +177,13 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
 
         return self._handle_generate_response(model, credentials, response, prompt_messages)
 
-    def _handle_generate_response(self, model: str, credentials: dict, response: Completion,
-                                  prompt_messages: list[PromptMessage]) -> LLMResult:
+    def _handle_generate_response(
+        self, model: str, credentials: dict, response: Completion, prompt_messages: list[PromptMessage]
+    ):
         assistant_text = response.choices[0].text
 
         # transform assistant message to prompt message
-        assistant_prompt_message = AssistantPromptMessage(
-            content=assistant_text
-        )
+        assistant_prompt_message = AssistantPromptMessage(content=assistant_text)
 
         # calculate num tokens
         if response.usage:
@@ -165,7 +192,9 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
             completion_tokens = response.usage.completion_tokens
         else:
             # calculate num tokens
-            prompt_tokens = self._num_tokens_from_string(credentials, prompt_messages[0].content)
+            content = prompt_messages[0].content
+            assert isinstance(content, str)
+            prompt_tokens = self._num_tokens_from_string(credentials, content)
             completion_tokens = self._num_tokens_from_string(credentials, assistant_text)
 
         # transform usage
@@ -182,23 +211,22 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
 
         return result
 
-    def _handle_generate_stream_response(self, model: str, credentials: dict, response: Stream[Completion],
-                                         prompt_messages: list[PromptMessage]) -> Generator:
-        full_text = ''
+    def _handle_generate_stream_response(
+        self, model: str, credentials: dict, response: Stream[Completion], prompt_messages: list[PromptMessage]
+    ) -> Generator:
+        full_text = ""
         for chunk in response:
             if len(chunk.choices) == 0:
                 continue
 
             delta = chunk.choices[0]
 
-            if delta.finish_reason is None and (delta.text is None or delta.text == ''):
+            if delta.finish_reason is None and (delta.text is None or delta.text == ""):
                 continue
 
             # transform assistant message to prompt message
-            text = delta.text if delta.text else ''
-            assistant_prompt_message = AssistantPromptMessage(
-                content=text
-            )
+            text = delta.text or ""
+            assistant_prompt_message = AssistantPromptMessage(content=text)
 
             full_text += text
 
@@ -210,7 +238,9 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
                     completion_tokens = chunk.usage.completion_tokens
                 else:
                     # calculate num tokens
-                    prompt_tokens = self._num_tokens_from_string(credentials, prompt_messages[0].content)
+                    content = prompt_messages[0].content
+                    assert isinstance(content, str)
+                    prompt_tokens = self._num_tokens_from_string(credentials, content)
                     completion_tokens = self._num_tokens_from_string(credentials, full_text)
 
                 # transform usage
@@ -224,8 +254,8 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
                         index=delta.index,
                         message=assistant_prompt_message,
                         finish_reason=delta.finish_reason,
-                        usage=usage
-                    )
+                        usage=usage,
+                    ),
                 )
             else:
                 yield LLMResultChunk(
@@ -235,44 +265,57 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
                     delta=LLMResultChunkDelta(
                         index=delta.index,
                         message=assistant_prompt_message,
-                    )
+                    ),
                 )
 
-    def _chat_generate(self, model: str, credentials: dict,
-                       prompt_messages: list[PromptMessage], model_parameters: dict,
-                       tools: Optional[list[PromptMessageTool]] = None, stop: Optional[list[str]] = None,
-                       stream: bool = True, user: Optional[str] = None) -> Union[LLMResult, Generator]:
-
+    def _chat_generate(
+        self,
+        model: str,
+        credentials: dict,
+        prompt_messages: list[PromptMessage],
+        model_parameters: dict,
+        tools: Optional[list[PromptMessageTool]] = None,
+        stop: Optional[list[str]] = None,
+        stream: bool = True,
+        user: Optional[str] = None,
+    ) -> Union[LLMResult, Generator]:
         client = AzureOpenAI(**self._to_credential_kwargs(credentials))
 
         response_format = model_parameters.get("response_format")
         if response_format:
-            if response_format == "json_object":
-                response_format = {"type": "json_object"}
+            if response_format == "json_schema":
+                json_schema = model_parameters.get("json_schema")
+                if not json_schema:
+                    raise ValueError("Must define JSON Schema when the response format is json_schema")
+                try:
+                    schema = json.loads(json_schema)
+                except:
+                    raise ValueError(f"not correct json_schema format: {json_schema}")
+                model_parameters.pop("json_schema")
+                model_parameters["response_format"] = {"type": "json_schema", "json_schema": schema}
             else:
-                response_format = {"type": "text"}
-
-            model_parameters["response_format"] = response_format
+                model_parameters["response_format"] = {"type": response_format}
 
         extra_model_kwargs = {}
 
         if tools:
-            # extra_model_kwargs['tools'] = [helper.dump_model(PromptMessageFunction(function=tool)) for tool in tools]
-            extra_model_kwargs['functions'] = [{
-                "name": tool.name,
-                "description": tool.description,
-                "parameters": tool.parameters
-            } for tool in tools]
+            extra_model_kwargs["tools"] = [helper.dump_model(PromptMessageFunction(function=tool)) for tool in tools]
+            # extra_model_kwargs['functions'] = [{
+            #     "name": tool.name,
+            #     "description": tool.description,
+            #     "parameters": tool.parameters
+            # } for tool in tools]
 
         if stop:
-            extra_model_kwargs['stop'] = stop
+            extra_model_kwargs["stop"] = stop
 
         if user:
-            extra_model_kwargs['user'] = user
+            extra_model_kwargs["user"] = user
 
         # chat model
+        messages = [self._convert_prompt_message_to_dict(m) for m in prompt_messages]
         response = client.chat.completions.create(
-            messages=[self._convert_prompt_message_to_dict(m) for m in prompt_messages],
+            messages=messages,
             model=model,
             stream=stream,
             **model_parameters,
@@ -284,24 +327,23 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
 
         return self._handle_chat_generate_response(model, credentials, response, prompt_messages, tools)
 
-    def _handle_chat_generate_response(self, model: str, credentials: dict, response: ChatCompletion,
-                                       prompt_messages: list[PromptMessage],
-                                       tools: Optional[list[PromptMessageTool]] = None) -> LLMResult:
-
+    def _handle_chat_generate_response(
+        self,
+        model: str,
+        credentials: dict,
+        response: ChatCompletion,
+        prompt_messages: list[PromptMessage],
+        tools: Optional[list[PromptMessageTool]] = None,
+    ):
         assistant_message = response.choices[0].message
-        # assistant_message_tool_calls = assistant_message.tool_calls
-        assistant_message_function_call = assistant_message.function_call
+        assistant_message_tool_calls = assistant_message.tool_calls
 
         # extract tool calls from response
-        # tool_calls = self._extract_response_tool_calls(assistant_message_tool_calls)
-        function_call = self._extract_response_function_call(assistant_message_function_call)
-        tool_calls = [function_call] if function_call else []
+        tool_calls = []
+        self._update_tool_calls(tool_calls=tool_calls, tool_calls_response=assistant_message_tool_calls)
 
         # transform assistant message to prompt message
-        assistant_prompt_message = AssistantPromptMessage(
-            content=assistant_message.content,
-            tool_calls=tool_calls
-        )
+        assistant_prompt_message = AssistantPromptMessage(content=assistant_message.content, tool_calls=tool_calls)
 
         # calculate num tokens
         if response.usage:
@@ -317,7 +359,7 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
         usage = self._calc_response_usage(model, credentials, prompt_tokens, completion_tokens)
 
         # transform response
-        response = LLMResult(
+        result = LLMResult(
             model=response.model or model,
             prompt_messages=prompt_messages,
             message=assistant_prompt_message,
@@ -325,70 +367,46 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
             system_fingerprint=response.system_fingerprint,
         )
 
-        return response
+        return result
 
-    def _handle_chat_generate_stream_response(self, model: str, credentials: dict,
-                                              response: Stream[ChatCompletionChunk],
-                                              prompt_messages: list[PromptMessage],
-                                              tools: Optional[list[PromptMessageTool]] = None) -> Generator:
+    def _handle_chat_generate_stream_response(
+        self,
+        model: str,
+        credentials: dict,
+        response: Stream[ChatCompletionChunk],
+        prompt_messages: list[PromptMessage],
+        tools: Optional[list[PromptMessageTool]] = None,
+    ):
         index = 0
-        full_assistant_content = ''
-        delta_assistant_message_function_call_storage: ChoiceDeltaFunctionCall = None
+        full_assistant_content = ""
         real_model = model
         system_fingerprint = None
-        completion = ''
+        completion = ""
+        tool_calls = []
         for chunk in response:
             if len(chunk.choices) == 0:
                 continue
 
             delta = chunk.choices[0]
+            # NOTE: For fix https://github.com/langgenius/dify/issues/5790
+            if delta.delta is None:
+                continue
+
+            # extract tool calls from response
+            self._update_tool_calls(tool_calls=tool_calls, tool_calls_response=delta.delta.tool_calls)
 
             # Handling exceptions when content filters' streaming mode is set to asynchronous modified filter
-            if delta.delta is None or (
-                delta.finish_reason is None
-                and (delta.delta.content is None or delta.delta.content == '')
-                and delta.delta.function_call is None
-            ):
+            if delta.finish_reason is None and not delta.delta.content:
                 continue
-            
-            # assistant_message_tool_calls = delta.delta.tool_calls
-            assistant_message_function_call = delta.delta.function_call
-
-            # extract tool calls from response
-            if delta_assistant_message_function_call_storage is not None:
-                # handle process of stream function call
-                if assistant_message_function_call:
-                    # message has not ended ever
-                    delta_assistant_message_function_call_storage.arguments += assistant_message_function_call.arguments
-                    continue
-                else:
-                    # message has ended
-                    assistant_message_function_call = delta_assistant_message_function_call_storage
-                    delta_assistant_message_function_call_storage = None
-            else:
-                if assistant_message_function_call:
-                    # start of stream function call
-                    delta_assistant_message_function_call_storage = assistant_message_function_call
-                    if delta_assistant_message_function_call_storage.arguments is None:
-                        delta_assistant_message_function_call_storage.arguments = ''
-                    continue
-
-            # extract tool calls from response
-            # tool_calls = self._extract_response_tool_calls(assistant_message_tool_calls)
-            function_call = self._extract_response_function_call(assistant_message_function_call)
-            tool_calls = [function_call] if function_call else []
 
             # transform assistant message to prompt message
-            assistant_prompt_message = AssistantPromptMessage(
-                content=delta.delta.content if delta.delta.content else '',
-                tool_calls=tool_calls
-            )
+            assistant_prompt_message = AssistantPromptMessage(content=delta.delta.content or "", tool_calls=tool_calls)
 
-            full_assistant_content += delta.delta.content if delta.delta.content else ''
+            full_assistant_content += delta.delta.content or ""
 
             real_model = chunk.model
             system_fingerprint = chunk.system_fingerprint
-            completion += delta.delta.content if delta.delta.content else ''
+            completion += delta.delta.content or ""
 
             yield LLMResultChunk(
                 model=real_model,
@@ -397,17 +415,15 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
                 delta=LLMResultChunkDelta(
                     index=index,
                     message=assistant_prompt_message,
-                )
+                ),
             )
 
-            index += 0
+            index += 1
 
         # calculate num tokens
         prompt_tokens = self._num_tokens_from_messages(credentials, prompt_messages, tools)
 
-        full_assistant_prompt_message = AssistantPromptMessage(
-            content=completion
-        )
+        full_assistant_prompt_message = AssistantPromptMessage(content=completion)
         completion_tokens = self._num_tokens_from_messages(credentials, [full_assistant_prompt_message])
 
         # transform usage
@@ -418,107 +434,88 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
             prompt_messages=prompt_messages,
             system_fingerprint=system_fingerprint,
             delta=LLMResultChunkDelta(
-                index=index,
-                message=AssistantPromptMessage(content=''),
-                finish_reason='stop',
-                usage=usage
-            )
+                index=index, message=AssistantPromptMessage(content=""), finish_reason="stop", usage=usage
+            ),
         )
 
     @staticmethod
-    def _extract_response_tool_calls(response_tool_calls: list[ChatCompletionMessageToolCall | ChoiceDeltaToolCall]) \
-            -> list[AssistantPromptMessage.ToolCall]:
+    def _update_tool_calls(
+        tool_calls: list[AssistantPromptMessage.ToolCall],
+        tool_calls_response: Optional[Sequence[ChatCompletionMessageToolCall | ChoiceDeltaToolCall]],
+    ) -> None:
+        if tool_calls_response:
+            for response_tool_call in tool_calls_response:
+                if isinstance(response_tool_call, ChatCompletionMessageToolCall):
+                    function = AssistantPromptMessage.ToolCall.ToolCallFunction(
+                        name=response_tool_call.function.name, arguments=response_tool_call.function.arguments
+                    )
 
-        tool_calls = []
-        if response_tool_calls:
-            for response_tool_call in response_tool_calls:
-                function = AssistantPromptMessage.ToolCall.ToolCallFunction(
-                    name=response_tool_call.function.name,
-                    arguments=response_tool_call.function.arguments
-                )
+                    tool_call = AssistantPromptMessage.ToolCall(
+                        id=response_tool_call.id, type=response_tool_call.type, function=function
+                    )
+                    tool_calls.append(tool_call)
+                elif isinstance(response_tool_call, ChoiceDeltaToolCall):
+                    index = response_tool_call.index
+                    if index < len(tool_calls):
+                        tool_calls[index].id = response_tool_call.id or tool_calls[index].id
+                        tool_calls[index].type = response_tool_call.type or tool_calls[index].type
+                        if response_tool_call.function:
+                            tool_calls[index].function.name = (
+                                response_tool_call.function.name or tool_calls[index].function.name
+                            )
+                            tool_calls[index].function.arguments += response_tool_call.function.arguments or ""
+                    else:
+                        assert response_tool_call.id is not None
+                        assert response_tool_call.type is not None
+                        assert response_tool_call.function is not None
+                        assert response_tool_call.function.name is not None
+                        assert response_tool_call.function.arguments is not None
 
-                tool_call = AssistantPromptMessage.ToolCall(
-                    id=response_tool_call.id,
-                    type=response_tool_call.type,
-                    function=function
-                )
-                tool_calls.append(tool_call)
-
-        return tool_calls
+                        function = AssistantPromptMessage.ToolCall.ToolCallFunction(
+                            name=response_tool_call.function.name, arguments=response_tool_call.function.arguments
+                        )
+                        tool_call = AssistantPromptMessage.ToolCall(
+                            id=response_tool_call.id, type=response_tool_call.type, function=function
+                        )
+                        tool_calls.append(tool_call)
 
     @staticmethod
-    def _extract_response_function_call(response_function_call: FunctionCall | ChoiceDeltaFunctionCall) \
-            -> AssistantPromptMessage.ToolCall:
-
-        tool_call = None
-        if response_function_call:
-            function = AssistantPromptMessage.ToolCall.ToolCallFunction(
-                name=response_function_call.name,
-                arguments=response_function_call.arguments
-            )
-
-            tool_call = AssistantPromptMessage.ToolCall(
-                id=response_function_call.name,
-                type="function",
-                function=function
-            )
-
-        return tool_call
-
-    @staticmethod
-    def _convert_prompt_message_to_dict(message: PromptMessage) -> dict:
-
+    def _convert_prompt_message_to_dict(message: PromptMessage):
         if isinstance(message, UserPromptMessage):
             message = cast(UserPromptMessage, message)
             if isinstance(message.content, str):
                 message_dict = {"role": "user", "content": message.content}
             else:
                 sub_messages = []
+                assert message.content is not None
                 for message_content in message.content:
                     if message_content.type == PromptMessageContentType.TEXT:
                         message_content = cast(TextPromptMessageContent, message_content)
-                        sub_message_dict = {
-                            "type": "text",
-                            "text": message_content.data
-                        }
+                        sub_message_dict = {"type": "text", "text": message_content.data}
                         sub_messages.append(sub_message_dict)
                     elif message_content.type == PromptMessageContentType.IMAGE:
                         message_content = cast(ImagePromptMessageContent, message_content)
                         sub_message_dict = {
                             "type": "image_url",
-                            "image_url": {
-                                "url": message_content.data,
-                                "detail": message_content.detail.value
-                            }
+                            "image_url": {"url": message_content.data, "detail": message_content.detail.value},
                         }
                         sub_messages.append(sub_message_dict)
-
                 message_dict = {"role": "user", "content": sub_messages}
         elif isinstance(message, AssistantPromptMessage):
-            message = cast(AssistantPromptMessage, message)
+            # message = cast(AssistantPromptMessage, message)
             message_dict = {"role": "assistant", "content": message.content}
             if message.tool_calls:
-                # message_dict["tool_calls"] = [helper.dump_model(tool_call) for tool_call in
-                #                               message.tool_calls]
-                function_call = message.tool_calls[0]
-                message_dict["function_call"] = {
-                    "name": function_call.function.name,
-                    "arguments": function_call.function.arguments,
-                }
+                message_dict["tool_calls"] = [helper.dump_model(tool_call) for tool_call in message.tool_calls]
         elif isinstance(message, SystemPromptMessage):
             message = cast(SystemPromptMessage, message)
             message_dict = {"role": "system", "content": message.content}
         elif isinstance(message, ToolPromptMessage):
             message = cast(ToolPromptMessage, message)
-            # message_dict = {
-            #     "role": "tool",
-            #     "content": message.content,
-            #     "tool_call_id": message.tool_call_id
-            # }
             message_dict = {
-                "role": "function",
+                "role": "tool",
+                "name": message.name,
                 "content": message.content,
-                "name": message.tool_call_id
+                "tool_call_id": message.tool_call_id,
             }
         else:
             raise ValueError(f"Got unknown type {message}")
@@ -528,10 +525,11 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
 
         return message_dict
 
-    def _num_tokens_from_string(self, credentials: dict, text: str,
-                                tools: Optional[list[PromptMessageTool]] = None) -> int:
+    def _num_tokens_from_string(
+        self, credentials: dict, text: str, tools: Optional[list[PromptMessageTool]] = None
+    ) -> int:
         try:
-            encoding = tiktoken.encoding_for_model(credentials['base_model_name'])
+            encoding = tiktoken.encoding_for_model(credentials["base_model_name"])
         except KeyError:
             encoding = tiktoken.get_encoding("cl100k_base")
 
@@ -542,13 +540,14 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
 
         return num_tokens
 
-    def _num_tokens_from_messages(self, credentials: dict, messages: list[PromptMessage],
-                                  tools: Optional[list[PromptMessageTool]] = None) -> int:
+    def _num_tokens_from_messages(
+        self, credentials: dict, messages: list[PromptMessage], tools: Optional[list[PromptMessageTool]] = None
+    ) -> int:
         """Calculate num tokens for gpt-3.5-turbo and gpt-4 with tiktoken package.
 
         Official documentation: https://github.com/openai/openai-cookbook/blob/
         main/examples/How_to_format_inputs_to_ChatGPT_models.ipynb"""
-        model = credentials['base_model_name']
+        model = credentials["base_model_name"]
         try:
             encoding = tiktoken.encoding_for_model(model)
         except KeyError:
@@ -582,15 +581,16 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
                 #  which need to download the image and then get the resolution for calculation,
                 #  and will increase the request delay
                 if isinstance(value, list):
-                    text = ''
+                    text = ""
                     for item in value:
-                        if isinstance(item, dict) and item['type'] == 'text':
-                            text += item['text']
+                        if isinstance(item, dict) and item["type"] == "text":
+                            text += item["text"]
 
                     value = text
 
                 if key == "tool_calls":
                     for tool_call in value:
+                        assert isinstance(tool_call, dict)
                         for t_key, t_value in tool_call.items():
                             num_tokens += len(encoding.encode(t_key))
                             if t_key == "function":
@@ -616,47 +616,46 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
 
     @staticmethod
     def _num_tokens_for_tools(encoding: tiktoken.Encoding, tools: list[PromptMessageTool]) -> int:
-
         num_tokens = 0
         for tool in tools:
-            num_tokens += len(encoding.encode('type'))
-            num_tokens += len(encoding.encode('function'))
+            num_tokens += len(encoding.encode("type"))
+            num_tokens += len(encoding.encode("function"))
 
             # calculate num tokens for function object
-            num_tokens += len(encoding.encode('name'))
+            num_tokens += len(encoding.encode("name"))
             num_tokens += len(encoding.encode(tool.name))
-            num_tokens += len(encoding.encode('description'))
+            num_tokens += len(encoding.encode("description"))
             num_tokens += len(encoding.encode(tool.description))
             parameters = tool.parameters
-            num_tokens += len(encoding.encode('parameters'))
-            if 'title' in parameters:
-                num_tokens += len(encoding.encode('title'))
-                num_tokens += len(encoding.encode(parameters.get("title")))
-            num_tokens += len(encoding.encode('type'))
-            num_tokens += len(encoding.encode(parameters.get("type")))
-            if 'properties' in parameters:
-                num_tokens += len(encoding.encode('properties'))
-                for key, value in parameters.get('properties').items():
+            num_tokens += len(encoding.encode("parameters"))
+            if "title" in parameters:
+                num_tokens += len(encoding.encode("title"))
+                num_tokens += len(encoding.encode(parameters["title"]))
+            num_tokens += len(encoding.encode("type"))
+            num_tokens += len(encoding.encode(parameters["type"]))
+            if "properties" in parameters:
+                num_tokens += len(encoding.encode("properties"))
+                for key, value in parameters["properties"].items():
                     num_tokens += len(encoding.encode(key))
                     for field_key, field_value in value.items():
                         num_tokens += len(encoding.encode(field_key))
-                        if field_key == 'enum':
+                        if field_key == "enum":
                             for enum_field in field_value:
                                 num_tokens += 3
                                 num_tokens += len(encoding.encode(enum_field))
                         else:
                             num_tokens += len(encoding.encode(field_key))
                             num_tokens += len(encoding.encode(str(field_value)))
-            if 'required' in parameters:
-                num_tokens += len(encoding.encode('required'))
-                for required_field in parameters['required']:
+            if "required" in parameters:
+                num_tokens += len(encoding.encode("required"))
+                for required_field in parameters["required"]:
                     num_tokens += 3
                     num_tokens += len(encoding.encode(required_field))
 
         return num_tokens
 
     @staticmethod
-    def _get_ai_model_entity(base_model_name: str, model: str) -> AzureBaseModel:
+    def _get_ai_model_entity(base_model_name: str, model: str):
         for ai_model_entity in LLM_BASE_MODELS:
             if ai_model_entity.base_model_name == base_model_name:
                 ai_model_entity_copy = copy.deepcopy(ai_model_entity)
@@ -664,5 +663,3 @@ class AzureOpenAILargeLanguageModel(_CommonAzureOpenAI, LargeLanguageModel):
                 ai_model_entity_copy.entity.label.en_US = model
                 ai_model_entity_copy.entity.label.zh_Hans = model
                 return ai_model_entity_copy
-
-        return None

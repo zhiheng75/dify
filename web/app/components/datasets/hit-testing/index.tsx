@@ -1,11 +1,9 @@
 'use client'
 import type { FC } from 'react'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import { omit } from 'lodash-es'
-import cn from 'classnames'
-import dayjs from 'dayjs'
 import { useBoolean } from 'ahooks'
 import { useContext } from 'use-context-selector'
 import SegmentCard from '../documents/detail/completed/SegmentCard'
@@ -14,6 +12,7 @@ import Textarea from './textarea'
 import s from './style.module.css'
 import HitDetail from './hit-detail'
 import ModifyRetrievalModal from './modify-retrieval-modal'
+import cn from '@/utils/classnames'
 import type { HitTestingResponse, HitTesting as HitTestingType } from '@/models/datasets'
 import Loading from '@/app/components/base/loading'
 import Modal from '@/app/components/base/modal'
@@ -24,6 +23,7 @@ import { fetchTestingRecords } from '@/service/datasets'
 import DatasetDetailContext from '@/context/dataset-detail'
 import type { RetrievalConfig } from '@/types/app'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
+import useTimestamp from '@/hooks/use-timestamp'
 
 const limit = 10
 
@@ -43,6 +43,7 @@ const RecordsEmpty: FC = () => {
 
 const HitTesting: FC<Props> = ({ datasetId }: Props) => {
   const { t } = useTranslation()
+  const { formatTime } = useTimestamp()
 
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
@@ -60,8 +61,6 @@ const HitTesting: FC<Props> = ({ datasetId }: Props) => {
   }, apiParams => fetchTestingRecords(omit(apiParams, 'action')))
 
   const total = recordsRes?.total || 0
-
-  const points = useMemo(() => (hitResult?.records.map(v => [v.tsne_position.x, v.tsne_position.y]) || []), [hitResult?.records])
 
   const onClickCard = (detail: HitTestingType) => {
     setCurrParagraph({ paraInfo: detail, showModal: true })
@@ -129,7 +128,7 @@ const HitTesting: FC<Props> = ({ datasetId }: Props) => {
                           </td>
                           <td className='max-w-xs group-hover:text-primary-600'>{record.content}</td>
                           <td className='w-36'>
-                            {dayjs.unix(record.created_at).format(t('datasetHitTesting.dateTimeFormat') as string)}
+                            {formatTime(record.created_at, t('datasetHitTesting.dateTimeFormat') as string)}
                           </td>
                         </tr>
                       })}
@@ -193,18 +192,13 @@ const HitTesting: FC<Props> = ({ datasetId }: Props) => {
         </div>
       </FloatRightContainer>
       <Modal
-        className='!max-w-[960px] !p-0'
-        wrapperClassName='!z-40'
+        className='w-[520px] p-0'
         closable
         onClose={() => setCurrParagraph({ showModal: false })}
         isShow={currParagraph.showModal}
       >
         {currParagraph.showModal && <HitDetail
           segInfo={currParagraph.paraInfo?.segment}
-          vectorInfo={{
-            curr: [[currParagraph.paraInfo?.tsne_position?.x || 0, currParagraph.paraInfo?.tsne_position.y || 0]],
-            points,
-          }}
         />}
       </Modal>
       <Drawer isOpen={isShowModifyRetrievalModal} onClose={() => setIsShowModifyRetrievalModal(false)} footer={null} mask={isMobile} panelClassname='mt-16 mx-2 sm:mr-2 mb-3 !p-0 !max-w-[640px] rounded-xl'>

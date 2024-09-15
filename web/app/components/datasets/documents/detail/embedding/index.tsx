@@ -6,21 +6,19 @@ import { useContext } from 'use-context-selector'
 import { useTranslation } from 'react-i18next'
 import { omit } from 'lodash-es'
 import { ArrowRightIcon } from '@heroicons/react/24/solid'
-import cn from 'classnames'
 import SegmentCard from '../completed/SegmentCard'
 import { FieldInfo } from '../metadata'
 import style from '../completed/style.module.css'
 import { DocumentContext } from '../index'
 import s from './style.module.css'
+import cn from '@/utils/classnames'
 import Button from '@/app/components/base/button'
 import Divider from '@/app/components/base/divider'
 import { ToastContext } from '@/app/components/base/toast'
 import type { FullDocumentDetail, ProcessRuleResponse } from '@/models/datasets'
 import type { CommonResponse } from '@/models/common'
 import { asyncRunSafe, sleep } from '@/utils'
-import { formatNumber } from '@/utils/format'
-import { fetchIndexingStatus as doFetchIndexingStatus, fetchIndexingEstimate, fetchProcessRule, pauseDocIndexing, resumeDocIndexing } from '@/service/datasets'
-import DatasetDetailContext from '@/context/dataset-detail'
+import { fetchIndexingStatus as doFetchIndexingStatus, fetchProcessRule, pauseDocIndexing, resumeDocIndexing } from '@/service/datasets'
 import StopEmbeddingModal from '@/app/components/datasets/create/stop-embedding-modal'
 
 type Props = {
@@ -108,16 +106,14 @@ const RuleDetail: FC<{ sourceData?: ProcessRuleResponse; docName?: string }> = (
   </div>
 }
 
-const EmbeddingDetail: FC<Props> = ({ detail, stopPosition = 'top', datasetId: dstId, documentId: docId, indexingType, detailUpdate }) => {
+const EmbeddingDetail: FC<Props> = ({ detail, stopPosition = 'top', datasetId: dstId, documentId: docId, detailUpdate }) => {
   const onTop = stopPosition === 'top'
   const { t } = useTranslation()
   const { notify } = useContext(ToastContext)
 
   const { datasetId = '', documentId = '' } = useContext(DocumentContext)
-  const { indexingTechnique } = useContext(DatasetDetailContext)
   const localDatasetId = dstId ?? datasetId
   const localDocumentId = docId ?? documentId
-  const localIndexingTechnique = indexingType ?? indexingTechnique
 
   const [indexingStatusDetail, setIndexingStatusDetail] = useState<any>(null)
   const fetchIndexingStatus = async () => {
@@ -126,17 +122,13 @@ const EmbeddingDetail: FC<Props> = ({ detail, stopPosition = 'top', datasetId: d
     return status
   }
 
-  const [isStopQuery, setIsStopQuery] = useState(false)
-  const isStopQueryRef = useRef(isStopQuery)
-  useEffect(() => {
-    isStopQueryRef.current = isStopQuery
-  }, [isStopQuery])
-  const stopQueryStatus = () => {
-    setIsStopQuery(true)
-  }
+  const isStopQuery = useRef(false)
+  const stopQueryStatus = useCallback(() => {
+    isStopQuery.current = true
+  }, [])
 
-  const startQueryStatus = async () => {
-    if (isStopQueryRef.current)
+  const startQueryStatus = useCallback(async () => {
+    if (isStopQuery.current)
       return
 
     try {
@@ -146,6 +138,7 @@ const EmbeddingDetail: FC<Props> = ({ detail, stopPosition = 'top', datasetId: d
         detailUpdate()
         return
       }
+
       await sleep(2500)
       await startQueryStatus()
     }
@@ -153,24 +146,15 @@ const EmbeddingDetail: FC<Props> = ({ detail, stopPosition = 'top', datasetId: d
       await sleep(2500)
       await startQueryStatus()
     }
-  }
+  }, [stopQueryStatus])
 
   useEffect(() => {
-    setIsStopQuery(false)
+    isStopQuery.current = false
     startQueryStatus()
     return () => {
       stopQueryStatus()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const { data: indexingEstimateDetail, error: indexingEstimateErr } = useSWR({
-    action: 'fetchIndexingEstimate',
-    datasetId: localDatasetId,
-    documentId: localDocumentId,
-  }, apiParams => fetchIndexingEstimate(omit(apiParams, 'action')), {
-    revalidateOnFocus: false,
-  })
+  }, [startQueryStatus, stopQueryStatus])
 
   const { data: ruleDetail, error: ruleError } = useSWR({
     action: 'fetchProcessRule',
@@ -254,21 +238,6 @@ const EmbeddingDetail: FC<Props> = ({ detail, stopPosition = 'top', datasetId: d
       </div>
       <div className={s.progressData}>
         <div>{t('datasetDocuments.embedding.segments')} {indexingStatusDetail?.completed_segments}/{indexingStatusDetail?.total_segments} · {percent}%</div>
-        {localIndexingTechnique === 'high_quaility' && (
-          <div className='flex items-center'>
-            <div className={cn(s.commonIcon, s.highIcon)} />
-            {t('datasetDocuments.embedding.highQuality')} · {t('datasetDocuments.embedding.estimate')}
-            <span className={s.tokens}>{formatNumber(indexingEstimateDetail?.tokens || 0)}</span>tokens
-            (<span className={s.price}>${formatNumber(indexingEstimateDetail?.total_price || 0)}</span>)
-          </div>
-        )}
-        {localIndexingTechnique === 'economy' && (
-          <div className='flex items-center'>
-            <div className={cn(s.commonIcon, s.economyIcon)} />
-            {t('datasetDocuments.embedding.economy')} · {t('datasetDocuments.embedding.estimate')}
-            <span className={s.tokens}>0</span>tokens
-          </div>
-        )}
       </div>
       <RuleDetail sourceData={ruleDetail} docName={detail?.name} />
       {!onTop && (
@@ -283,7 +252,7 @@ const EmbeddingDetail: FC<Props> = ({ detail, stopPosition = 'top', datasetId: d
               {t('datasetCreation.stepThree.resume')}
             </Button>
           )}
-          <Button className='w-fit' type='primary' onClick={navToDocument}>
+          <Button className='w-fit' variant='primary' onClick={navToDocument}>
             <span>{t('datasetCreation.stepThree.navTo')}</span>
             <ArrowRightIcon className='h-4 w-4 ml-2 stroke-current stroke-1' />
           </Button>

@@ -9,16 +9,12 @@ class AzureDALLEProvider(BuiltinToolProviderController):
     def _validate_credentials(self, credentials: dict[str, Any]) -> None:
         try:
             DallE3Tool().fork_tool_runtime(
-                meta={
+                runtime={
                     "credentials": credentials,
                 }
             ).invoke(
-                user_id='',
-                tool_parameters={
-                    "prompt": "cute girl, blue eyes, white hair, anime style",
-                    "size": "square",
-                    "n": 1
-                },
+                user_id="",
+                tool_parameters={"prompt": "cute girl, blue eyes, white hair, anime style", "size": "square", "n": 1},
             )
         except Exception as e:
             raise ToolProviderCredentialValidationError(str(e))

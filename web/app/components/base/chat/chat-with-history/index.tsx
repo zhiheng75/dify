@@ -4,6 +4,7 @@ import {
   useState,
 } from 'react'
 import { useAsyncEffect } from 'ahooks'
+import { useThemeContext } from '../embedded-chatbot/theme/theme-context'
 import {
   ChatWithHistoryContext,
   useChatWithHistoryContext,
@@ -34,6 +35,7 @@ const ChatWithHistory: FC<ChatWithHistoryProps> = ({
     appChatListDataLoading,
     chatShouldReloadKey,
     isMobile,
+    themeBuilder,
   } = useChatWithHistoryContext()
 
   const chatReady = (!showConfigPanelBeforeChat || !!appPrevChatList.length)
@@ -41,13 +43,14 @@ const ChatWithHistory: FC<ChatWithHistoryProps> = ({
   const site = appData?.site
 
   useEffect(() => {
+    themeBuilder?.buildTheme(site?.chat_color_theme, site?.chat_color_theme_inverted)
     if (site) {
       if (customConfig)
         document.title = `${site.title}`
       else
         document.title = `${site.title} - Powered by Dify`
     }
-  }, [site, customConfig])
+  }, [site, customConfig, themeBuilder])
 
   if (appInfoLoading) {
     return (
@@ -106,6 +109,7 @@ const ChatWithHistoryWrap: FC<ChatWithHistoryWrapProps> = ({
 }) => {
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
+  const themeBuilder = useThemeContext()
 
   const {
     appInfoError,
@@ -171,6 +175,7 @@ const ChatWithHistoryWrap: FC<ChatWithHistoryWrapProps> = ({
       appId,
       handleFeedback,
       currentChatInstanceRef,
+      themeBuilder,
     }}>
       <ChatWithHistory className={className} />
     </ChatWithHistoryContext.Provider>
@@ -181,12 +186,12 @@ const ChatWithHistoryWrapWithCheckToken: FC<ChatWithHistoryWrapProps> = ({
   installedAppInfo,
   className,
 }) => {
-  const [inited, setInited] = useState(false)
+  const [initialized, setInitialized] = useState(false)
   const [appUnavailable, setAppUnavailable] = useState<boolean>(false)
-  const [isUnknwonReason, setIsUnknwonReason] = useState<boolean>(false)
+  const [isUnknownReason, setIsUnknownReason] = useState<boolean>(false)
 
   useAsyncEffect(async () => {
-    if (!inited) {
+    if (!initialized) {
       if (!installedAppInfo) {
         try {
           await checkOrSetAccessToken()
@@ -196,20 +201,20 @@ const ChatWithHistoryWrapWithCheckToken: FC<ChatWithHistoryWrapProps> = ({
             setAppUnavailable(true)
           }
           else {
-            setIsUnknwonReason(true)
+            setIsUnknownReason(true)
             setAppUnavailable(true)
           }
         }
       }
-      setInited(true)
+      setInitialized(true)
     }
   }, [])
 
-  if (appUnavailable)
-    return <AppUnavailable isUnknwonReason={isUnknwonReason} />
-
-  if (!inited)
+  if (!initialized)
     return null
+
+  if (appUnavailable)
+    return <AppUnavailable isUnknownReason={isUnknownReason} />
 
   return (
     <ChatWithHistoryWrap

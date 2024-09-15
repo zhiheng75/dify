@@ -1,21 +1,21 @@
 import type { FC } from 'react'
 import React, { useState } from 'react'
-import cn from 'classnames'
 import { ArrowUpRightIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
+import {
+  RiDeleteBinLine,
+} from '@remixicon/react'
 import { StatusItem } from '../../list'
 import { DocumentTitle } from '../index'
 import s from './style.module.css'
 import { SegmentIndexTag } from './index'
-import Modal from '@/app/components/base/modal'
-import Button from '@/app/components/base/button'
+import cn from '@/utils/classnames'
+import Confirm from '@/app/components/base/confirm'
 import Switch from '@/app/components/base/switch'
 import Divider from '@/app/components/base/divider'
 import Indicator from '@/app/components/header/indicator'
 import { formatNumber } from '@/utils/format'
 import type { SegmentDetailModel } from '@/models/datasets'
-import { AlertCircle } from '@/app/components/base/icons/src/vender/solid/alertsAndFeedback'
-import { Trash03 } from '@/app/components/base/icons/src/vender/line/general'
 
 const ProgressBar: FC<{ percent: number; loading: boolean }> = ({ percent, loading }) => {
   return (
@@ -23,7 +23,7 @@ const ProgressBar: FC<{ percent: number; loading: boolean }> = ({ percent, loadi
       <div className={cn(s.progress, loading ? s.progressLoading : '')}>
         <div
           className={s.progressInner}
-          style={{ width: `${loading ? 0 : (percent * 100).toFixed(2)}%` }}
+          style={{ width: `${loading ? 0 : (Math.min(percent, 1) * 100).toFixed(2)}%` }}
         />
       </div>
       <div className={loading ? s.progressTextLoading : s.progressText}>{loading ? null : percent.toFixed(2)}</div>
@@ -188,7 +188,7 @@ const SegmentCard: FC<ISegmentCardProps> = ({
                     e.stopPropagation()
                     setShowModal(true)
                   }}>
-                    <Trash03 className='w-[14px] h-[14px] text-gray-500 group-hover/delete:text-red-600' />
+                    <RiDeleteBinLine className='w-[14px] h-[14px] text-gray-500 group-hover/delete:text-red-600' />
                   </div>
                 )}
               </div>
@@ -215,26 +215,15 @@ const SegmentCard: FC<ISegmentCardProps> = ({
               </div>
             </>
         )}
-      {showModal && <Modal isShow={showModal} onClose={() => setShowModal(false)} className={s.delModal} closable>
-        <div>
-          <div className={s.warningWrapper}>
-            <AlertCircle className='w-6 h-6 text-red-600' />
-          </div>
-          <div className='text-xl font-semibold text-gray-900 mb-1'>{t('datasetDocuments.segment.delete')}</div>
-          <div className='flex gap-2 justify-end'>
-            <Button onClick={() => setShowModal(false)}>{t('common.operation.cancel')}</Button>
-            <Button
-              type='warning'
-              onClick={async () => {
-                await onDelete?.(id)
-              }}
-              className='border-red-700 border-[0.5px]'
-            >
-              {t('common.operation.sure')}
-            </Button>
-          </div>
-        </div>
-      </Modal>}
+      {showModal
+        && <Confirm
+          isShow={showModal}
+          title={t('datasetDocuments.segment.delete')}
+          confirmText={t('common.operation.sure')}
+          onConfirm={async () => { await onDelete?.(id) }}
+          onCancel={() => setShowModal(false)}
+        />
+      }
     </div>
   )
 }

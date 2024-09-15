@@ -5,12 +5,16 @@ import { HashtagIcon } from '@heroicons/react/24/solid'
 import { useTranslation } from 'react-i18next'
 import { useContext } from 'use-context-selector'
 import { debounce, isNil, omitBy } from 'lodash-es'
-import cn from 'classnames'
+import {
+  RiCloseLine,
+  RiEditLine,
+} from '@remixicon/react'
 import { StatusItem } from '../../list'
 import { DocumentContext } from '../index'
 import { ProcessStatus } from '../segment-add'
 import s from './style.module.css'
 import InfiniteVirtualList from './InfiniteVirtualList'
+import cn from '@/utils/classnames'
 import { formatNumber } from '@/utils/format'
 import Modal from '@/app/components/base/modal'
 import Switch from '@/app/components/base/switch'
@@ -20,10 +24,9 @@ import { ToastContext } from '@/app/components/base/toast'
 import type { Item } from '@/app/components/base/select'
 import { SimpleSelect } from '@/app/components/base/select'
 import { deleteSegment, disableSegment, enableSegment, fetchSegments, updateSegment } from '@/service/datasets'
-import type { SegmentDetailModel, SegmentUpdator, SegmentsQuery, SegmentsResponse } from '@/models/datasets'
+import type { SegmentDetailModel, SegmentUpdater, SegmentsQuery, SegmentsResponse } from '@/models/datasets'
 import { asyncRunSafe } from '@/utils'
 import type { CommonResponse } from '@/models/common'
-import { Edit03, XClose } from '@/app/components/base/icons/src/vender/line/general'
 import AutoHeightTextarea from '@/app/components/base/auto-height-textarea/common'
 import Button from '@/app/components/base/button'
 import NewSegmentModal from '@/app/components/datasets/documents/detail/new-segment-modal'
@@ -134,13 +137,12 @@ const SegmentDetailComponent: FC<ISegmentDetailProps> = ({
         {isEditing && (
           <>
             <Button
-              className='mr-2 !h-7 !px-3 !py-[5px] text-xs font-medium text-gray-700 !rounded-md'
               onClick={handleCancel}>
               {t('common.operation.cancel')}
             </Button>
             <Button
-              type='primary'
-              className='!h-7 !px-3 !py-[5px] text-xs font-medium !rounded-md'
+              variant='primary'
+              className='ml-3'
               onClick={handleSave}
               disabled={loading}
             >
@@ -152,13 +154,13 @@ const SegmentDetailComponent: FC<ISegmentDetailProps> = ({
           <>
             <div className='group relative flex justify-center items-center w-6 h-6 hover:bg-gray-100 rounded-md cursor-pointer'>
               <div className={cn(s.editTip, 'hidden items-center absolute -top-10 px-3 h-[34px] bg-white rounded-lg whitespace-nowrap text-xs font-semibold text-gray-700 group-hover:flex')}>{t('common.operation.edit')}</div>
-              <Edit03 className='w-4 h-4 text-gray-500' onClick={() => setIsEditing(true)} />
+              <RiEditLine className='w-4 h-4 text-gray-500' onClick={() => setIsEditing(true)} />
             </div>
             <div className='mx-3 w-[1px] h-3 bg-gray-200' />
           </>
         )}
         <div className='flex justify-center items-center w-6 h-6 cursor-pointer' onClick={onCancel}>
-          <XClose className='w-4 h-4 text-gray-500' />
+          <RiCloseLine className='w-4 h-4 text-gray-500' />
         </div>
       </div>
       <SegmentIndexTag positionId={segInfo?.position || ''} className='w-fit mt-[2px] mb-6' />
@@ -320,7 +322,7 @@ const Completed: FC<ICompletedProps> = ({
   }
 
   const handleUpdateSegment = async (segmentId: string, question: string, answer: string, keywords: string[]) => {
-    const params: SegmentUpdator = { content: '' }
+    const params: SegmentUpdater = { content: '' }
     if (docForm === 'qa_model') {
       if (!question.trim())
         return notify({ type: 'error', message: t('datasetDocuments.segment.questionEmpty') })
@@ -389,7 +391,7 @@ const Completed: FC<ICompletedProps> = ({
           defaultValue={'all'}
           className={s.select}
           wrapperClassName='h-fit w-[120px] mr-2' />
-        <Input showPrefix wrapperClassName='!w-52' className='!h-8' onChange={debounce(setSearchValue, 500)} />
+        <Input showLeftIcon wrapperClassName='!w-52' className='!h-8' onChange={debounce(e => setSearchValue(e.target.value), 500)} />
       </div>
       <InfiniteVirtualList
         embeddingAvailable={embeddingAvailable}
@@ -402,7 +404,7 @@ const Completed: FC<ICompletedProps> = ({
         onClick={onClickCard}
         archived={archived}
       />
-      <Modal isShow={currSegment.showModal} onClose={() => {}} className='!max-w-[640px] !overflow-visible'>
+      <Modal isShow={currSegment.showModal} onClose={() => { }} className='!max-w-[640px] !overflow-visible'>
         <SegmentDetail
           embeddingAvailable={embeddingAvailable}
           segInfo={currSegment.segInfo ?? { id: '' }}

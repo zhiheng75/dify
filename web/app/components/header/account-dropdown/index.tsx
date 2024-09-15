@@ -3,25 +3,30 @@ import { useTranslation } from 'react-i18next'
 import { Fragment, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useContext } from 'use-context-selector'
-import classNames from 'classnames'
+import { RiArrowDownSLine } from '@remixicon/react'
 import Link from 'next/link'
 import { Menu, Transition } from '@headlessui/react'
 import Indicator from '../indicator'
 import AccountAbout from '../account-about'
+import { mailToSupport } from '../utils/util'
 import WorkplaceSelector from './workplace-selector'
+import classNames from '@/utils/classnames'
 import I18n from '@/context/i18n'
 import Avatar from '@/app/components/base/avatar'
 import { logout } from '@/service/common'
 import { useAppContext } from '@/context/app-context'
-import { ArrowUpRight, ChevronDown } from '@/app/components/base/icons/src/vender/line/arrows'
+import { ArrowUpRight } from '@/app/components/base/icons/src/vender/line/arrows'
 import { LogOut01 } from '@/app/components/base/icons/src/vender/line/general'
 import { useModalContext } from '@/context/modal-context'
 import { LanguagesSupported } from '@/i18n/language'
-export type IAppSelecotr = {
+import { useProviderContext } from '@/context/provider-context'
+import { Plan } from '@/app/components/billing/type'
+
+export type IAppSelector = {
   isMobile: boolean
 }
 
-export default function AppSelector({ isMobile }: IAppSelecotr) {
+export default function AppSelector({ isMobile }: IAppSelector) {
   const itemClassName = `
     flex items-center w-full h-9 px-3 text-gray-700 text-[14px]
     rounded-lg font-normal hover:bg-gray-50 cursor-pointer
@@ -33,6 +38,8 @@ export default function AppSelector({ isMobile }: IAppSelecotr) {
   const { t } = useTranslation()
   const { userProfile, langeniusVersionInfo } = useAppContext()
   const { setShowAccountSettingModal } = useModalContext()
+  const { plan } = useProviderContext()
+  const canEmailSupport = plan.type === Plan.professional || plan.type === Plan.team || plan.type === Plan.enterprise
 
   const handleLogout = async () => {
     await logout({
@@ -65,7 +72,7 @@ export default function AppSelector({ isMobile }: IAppSelecotr) {
                   <Avatar name={userProfile.name} className='sm:mr-2 mr-0' size={32} />
                   {!isMobile && <>
                     {userProfile.name}
-                    <ChevronDown className="w-3 h-3 ml-1 text-gray-700" />
+                    <RiArrowDownSLine className="w-3 h-3 ml-1 text-gray-700" />
                   </>}
                 </Menu.Button>
               </div>
@@ -104,12 +111,21 @@ export default function AppSelector({ isMobile }: IAppSelecotr) {
                         <div>{t('common.userProfile.settings')}</div>
                       </div>
                     </Menu.Item>
+                    {canEmailSupport && <Menu.Item>
+                      <a
+                        className={classNames(itemClassName, 'group justify-between')}
+                        href={mailToSupport(userProfile.email, plan.type, langeniusVersionInfo.current_version)}
+                        target='_blank' rel='noopener noreferrer'>
+                        <div>{t('common.userProfile.emailSupport')}</div>
+                        <ArrowUpRight className='hidden w-[14px] h-[14px] text-gray-500 group-hover:flex' />
+                      </a>
+                    </Menu.Item>}
                     <Menu.Item>
                       <Link
                         className={classNames(itemClassName, 'group justify-between')}
                         href='https://github.com/langgenius/dify/discussions/categories/feedbacks'
                         target='_blank' rel='noopener noreferrer'>
-                        <div>{t('common.userProfile.roadmapAndFeedback')}</div>
+                        <div>{t('common.userProfile.communityFeedback')}</div>
                         <ArrowUpRight className='hidden w-[14px] h-[14px] text-gray-500 group-hover:flex' />
                       </Link>
                     </Menu.Item>
@@ -130,6 +146,15 @@ export default function AppSelector({ isMobile }: IAppSelecotr) {
                         }
                         target='_blank' rel='noopener noreferrer'>
                         <div>{t('common.userProfile.helpCenter')}</div>
+                        <ArrowUpRight className='hidden w-[14px] h-[14px] text-gray-500 group-hover:flex' />
+                      </Link>
+                    </Menu.Item>
+                    <Menu.Item>
+                      <Link
+                        className={classNames(itemClassName, 'group justify-between')}
+                        href='https://roadmap.dify.ai'
+                        target='_blank' rel='noopener noreferrer'>
+                        <div>{t('common.userProfile.roadmap')}</div>
                         <ArrowUpRight className='hidden w-[14px] h-[14px] text-gray-500 group-hover:flex' />
                       </Link>
                     </Menu.Item>

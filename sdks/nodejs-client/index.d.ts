@@ -14,15 +14,6 @@ interface HeaderParams {
 interface User {
 }
 
-interface ChatMessageConfig {
-  inputs: any;
-  query: string;
-  user: User;
-  stream?: boolean;
-  conversation_id?: string | null;
-  files?: File[] | null;
-}
-
 export declare class DifyClient {
   constructor(apiKey: string, baseUrl?: string);
 
@@ -42,6 +33,10 @@ export declare class DifyClient {
   getApplicationParameters(user: User): Promise<any>;
 
   fileUpload(data: FormData): Promise<any>;
+
+  textToAudio(text: string ,user: string, streaming?: boolean): Promise<any>;
+
+  getMeta(user: User): Promise<any>;
 }
 
 export declare class CompletionClient extends DifyClient {
@@ -54,7 +49,26 @@ export declare class CompletionClient extends DifyClient {
 }
 
 export declare class ChatClient extends DifyClient {
-  createChatMessage(config: ChatMessageConfig): Promise<any>;
+  createChatMessage(
+    inputs: any,
+    query: string,
+    user: User,
+    stream?: boolean,
+    conversation_id?: string | null,
+    files?: File[] | null
+  ): Promise<any>;
+
+  getSuggested(message_id: string, user: User): Promise<any>;
+
+  stopMessage(task_id: string, user: User) : Promise<any>;
+
+
+  getConversations(
+    user: User, 
+    first_id?: string | null, 
+    limit?: number | null, 
+    pinned?: boolean | null
+  ): Promise<any>;
 
   getConversationMessages(
     user: User,
@@ -63,9 +77,15 @@ export declare class ChatClient extends DifyClient {
     limit?: number | null
   ): Promise<any>;
 
-  getConversations(user: User, first_id?: string | null, limit?: number | null, pinned?: boolean | null): Promise<any>;
-
-  renameConversation(conversation_id: string, name: string, user: User): Promise<any>;
+  renameConversation(conversation_id: string, name: string,  user: User,auto_generate:boolean): Promise<any>;
 
   deleteConversation(conversation_id: string, user: User): Promise<any>;
+  
+  audioToText(data: FormData): Promise<any>;
+}
+
+export declare class WorkflowClient extends DifyClient {
+  run(inputs: any, user: User, stream?: boolean,): Promise<any>;
+
+  stop(task_id: string, user: User): Promise<any>;
 }

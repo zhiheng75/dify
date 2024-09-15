@@ -8,7 +8,6 @@ import ConfigContext from '@/context/debug-configuration'
 import { Resolution, TransferMethod } from '@/types/app'
 import ParamItem from '@/app/components/base/param-item'
 import Tooltip from '@/app/components/base/tooltip'
-import { HelpCircle } from '@/app/components/base/icons/src/vender/line/general'
 
 const MIN = 1
 const MAX = 6
@@ -35,13 +34,15 @@ const ParamConfigContent: FC = () => {
           <div>
             <div className='mb-2 flex items-center  space-x-1'>
               <div className='leading-[18px] text-[13px] font-semibold text-gray-800'>{t('appDebug.vision.visionSettings.resolution')}</div>
-              <Tooltip htmlContent={<div className='w-[180px]' >
-                {t('appDebug.vision.visionSettings.resolutionTooltip').split('\n').map(item => (
-                  <div key={item}>{item}</div>
-                ))}
-              </div>} selector='config-resolution-tooltip'>
-                <HelpCircle className='w-[14px] h-[14px] text-gray-400' />
-              </Tooltip>
+              <Tooltip
+                popupContent={
+                  <div className='w-[180px]' >
+                    {t('appDebug.vision.visionSettings.resolutionTooltip').split('\n').map(item => (
+                      <div key={item}>{item}</div>
+                    ))}
+                  </div>
+                }
+              />
             </div>
             <RadioGroup
               className='space-x-3'

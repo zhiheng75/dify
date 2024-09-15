@@ -1,5 +1,5 @@
 from core.tools.errors import ToolProviderCredentialValidationError
-from core.tools.provider.builtin.duckduckgo.tools.duckduckgo_search import DuckDuckGoSearchTool
+from core.tools.provider.builtin.duckduckgo.tools.ddgo_search import DuckDuckGoSearchTool
 from core.tools.provider.builtin_tool_provider import BuiltinToolProviderController
 
 
@@ -7,11 +7,11 @@ class DuckDuckGoProvider(BuiltinToolProviderController):
     def _validate_credentials(self, credentials: dict) -> None:
         try:
             DuckDuckGoSearchTool().fork_tool_runtime(
-                meta={
+                runtime={
                     "credentials": credentials,
                 }
             ).invoke(
-                user_id='',
+                user_id="",
                 tool_parameters={
                     "query": "John Doe",
                 },

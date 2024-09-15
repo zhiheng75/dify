@@ -13,6 +13,10 @@ const translation = {
   exportFailed: '导出 DSL 失败',
   importDSL: '导入 DSL 文件',
   createFromConfigFile: '通过 DSL 文件创建',
+  importFromDSL: '导入 DSL',
+  importFromDSLFile: '文件',
+  importFromDSLUrl: 'URL',
+  importFromDSLUrlPlaceholder: '输入 DSL 文件的 URL',
   deleteAppConfirmTitle: '确认删除应用?',
   deleteAppConfirmContent:
     '删除应用将无法撤销。用户将不能访问你的应用，所有 Prompt 编排配置和日志均将一并被删除。',
@@ -66,9 +70,16 @@ const translation = {
   editAppTitle: '编辑应用信息',
   editDone: '应用信息已更新',
   editFailed: '更新应用信息失败',
-  emoji: {
+  iconPicker: {
     ok: '确认',
     cancel: '取消',
+    emoji: '表情符号',
+    image: '图片',
+  },
+  answerIcon: {
+    title: '使用 WebApp 图标替换 🤖',
+    description: '是否使用 WebApp 图标替换分享的应用界面中的 🤖',
+    descriptionInExplore: '是否使用 WebApp 图标替换 Explore 界面中的 🤖',
   },
   switch: '迁移为工作流编排',
   switchTipStart: '将为您创建一个使用工作流编排的新应用。新应用将',
@@ -83,6 +94,43 @@ const translation = {
     agent: 'Agent',
     workflow: '工作流',
     completion: '文本生成',
+  },
+  tracing: {
+    title: '追踪应用性能',
+    description: '配置第三方 LLMOps 提供商并跟踪应用程序性能。',
+    config: '配置',
+    view: '查看',
+    collapse: '折叠',
+    expand: '展开',
+    tracing: '追踪',
+    disabled: '已禁用',
+    disabledTip: '请先配置提供商',
+    enabled: '已启用',
+    tracingDescription: '捕获应用程序执行的完整上下文，包括 LLM 调用、上下文、提示、HTTP 请求等，发送到第三方跟踪平台。',
+    configProviderTitle: {
+      configured: '已配置',
+      notConfigured: '配置提供商以启用追踪',
+      moreProvider: '更多提供商',
+    },
+    langsmith: {
+      title: 'LangSmith',
+      description: '一个全方位的开发者平台，适用于 LLM 驱动应用程序生命周期的每个步骤。',
+    },
+    langfuse: {
+      title: 'Langfuse',
+      description: '跟踪、评估、提示管理和指标，以调试和改进您的 LLM 应用程序。',
+    },
+    inUse: '使用中',
+    configProvider: {
+      title: '配置 ',
+      placeholder: '输入你的{{key}}',
+      project: '项目',
+      publicKey: '公钥',
+      secretKey: '密钥',
+      viewDocsLink: '查看 {{key}} 的文档',
+      removeConfirmTitle: '删除 {{key}} 配置?',
+      removeConfirmContent: '当前配置正在使用中，删除它将关闭追踪功能。',
+    },
   },
 }
 

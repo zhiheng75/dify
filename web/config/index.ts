@@ -15,7 +15,7 @@ else if (
   globalThis.document?.body?.getAttribute('data-api-prefix')
   && globalThis.document?.body?.getAttribute('data-pubic-api-prefix')
 ) {
-  // Not bulild can not get env from process.env.NEXT_PUBLIC_ in browser https://nextjs.org/docs/basic-features/environment-variables#exposing-environment-variables-to-the-browser
+  // Not build can not get env from process.env.NEXT_PUBLIC_ in browser https://nextjs.org/docs/basic-features/environment-variables#exposing-environment-variables-to-the-browser
   apiPrefix = globalThis.document.body.getAttribute('data-api-prefix') as string
   publicApiPrefix = globalThis.document.body.getAttribute('data-pubic-api-prefix') as string
 }
@@ -32,6 +32,8 @@ export const PUBLIC_API_PREFIX: string = publicApiPrefix
 
 const EDITION = process.env.NEXT_PUBLIC_EDITION || globalThis.document?.body?.getAttribute('data-public-edition') || 'SELF_HOSTED'
 export const IS_CE_EDITION = EDITION === 'SELF_HOSTED'
+
+export const SUPPORT_MAIL_LOGIN = !!(process.env.NEXT_PUBLIC_SUPPORT_MAIL_LOGIN || globalThis.document?.body?.getAttribute('data-public-support-mail-login'))
 
 export const TONE_LIST = [
   {
@@ -100,17 +102,17 @@ export const DEFAULT_PARAGRAPH_VALUE_MAX_LEN = 1000
 
 export const zhRegex = /^[\u4E00-\u9FA5]$/m
 export const emojiRegex = /^[\uD800-\uDBFF][\uDC00-\uDFFF]$/m
-export const emailRegex = /^[\w\.-]+@([\w-]+\.)+[\w-]{2,}$/m
-const MAX_ZN_VAR_NAME_LENGHT = 8
-const MAX_EN_VAR_VALUE_LENGHT = 30
+export const emailRegex = /^[\w.!#$%&'*+\-/=?^{|}~]+@([\w-]+\.)+[\w-]{2,}$/m
+const MAX_ZN_VAR_NAME_LENGTH = 8
+const MAX_EN_VAR_VALUE_LENGTH = 30
 export const getMaxVarNameLength = (value: string) => {
   if (zhRegex.test(value))
-    return MAX_ZN_VAR_NAME_LENGHT
+    return MAX_ZN_VAR_NAME_LENGTH
 
-  return MAX_EN_VAR_VALUE_LENGHT
+  return MAX_EN_VAR_VALUE_LENGTH
 }
 
-export const MAX_VAR_KEY_LENGHT = 30
+export const MAX_VAR_KEY_LENGTH = 30
 
 export const MAX_PROMPT_MESSAGE_LENGTH = 10
 
@@ -136,8 +138,8 @@ export const appDefaultIconBackground = '#D5F5F6'
 export const NEED_REFRESH_APP_LIST_KEY = 'needRefreshAppList'
 
 export const DATASET_DEFAULT = {
-  top_k: 2,
-  score_threshold: 0.5,
+  top_k: 4,
+  score_threshold: 0.8,
 }
 
 export const APP_PAGE_LIMIT = 10
@@ -243,3 +245,14 @@ Thought: {{agent_scratchpad}}
 }
 
 export const VAR_REGEX = /\{\{(#[a-zA-Z0-9_-]{1,50}(\.[a-zA-Z_][a-zA-Z0-9_]{0,29}){1,10}#)\}\}/gi
+
+export let textGenerationTimeoutMs = 60000
+
+if (process.env.NEXT_PUBLIC_TEXT_GENERATION_TIMEOUT_MS && process.env.NEXT_PUBLIC_TEXT_GENERATION_TIMEOUT_MS !== '')
+  textGenerationTimeoutMs = parseInt(process.env.NEXT_PUBLIC_TEXT_GENERATION_TIMEOUT_MS)
+else if (globalThis.document?.body?.getAttribute('data-public-text-generation-timeout-ms') && globalThis.document.body.getAttribute('data-public-text-generation-timeout-ms') !== '')
+  textGenerationTimeoutMs = parseInt(globalThis.document.body.getAttribute('data-public-text-generation-timeout-ms') as string)
+
+export const TEXT_GENERATION_TIMEOUT_MS = textGenerationTimeoutMs
+
+export const DISABLE_UPLOAD_IMAGE_AS_ICON = process.env.NEXT_PUBLIC_DISABLE_UPLOAD_IMAGE_AS_ICON === 'true'

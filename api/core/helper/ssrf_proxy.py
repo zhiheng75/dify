@@ -2,50 +2,77 @@
 Proxy requests to avoid SSRF
 """
 
+import logging
 import os
+import time
 
-from httpx import get as _get
-from httpx import head as _head
-from httpx import options as _options
-from httpx import patch as _patch
-from httpx import post as _post
-from httpx import put as _put
-from requests import delete as _delete
+import httpx
 
-SSRF_PROXY_HTTP_URL = os.getenv('SSRF_PROXY_HTTP_URL', '')
-SSRF_PROXY_HTTPS_URL = os.getenv('SSRF_PROXY_HTTPS_URL', '')
+SSRF_PROXY_ALL_URL = os.getenv("SSRF_PROXY_ALL_URL", "")
+SSRF_PROXY_HTTP_URL = os.getenv("SSRF_PROXY_HTTP_URL", "")
+SSRF_PROXY_HTTPS_URL = os.getenv("SSRF_PROXY_HTTPS_URL", "")
+SSRF_DEFAULT_MAX_RETRIES = int(os.getenv("SSRF_DEFAULT_MAX_RETRIES", "3"))
 
-requests_proxies = {
-    'http': SSRF_PROXY_HTTP_URL,
-    'https': SSRF_PROXY_HTTPS_URL
-} if SSRF_PROXY_HTTP_URL and SSRF_PROXY_HTTPS_URL else None
+proxies = (
+    {"http://": SSRF_PROXY_HTTP_URL, "https://": SSRF_PROXY_HTTPS_URL}
+    if SSRF_PROXY_HTTP_URL and SSRF_PROXY_HTTPS_URL
+    else None
+)
 
-httpx_proxies = {
-    'http://': SSRF_PROXY_HTTP_URL,
-    'https://': SSRF_PROXY_HTTPS_URL
-} if SSRF_PROXY_HTTP_URL and SSRF_PROXY_HTTPS_URL else None
+BACKOFF_FACTOR = 0.5
+STATUS_FORCELIST = [429, 500, 502, 503, 504]
 
-def get(url, *args, **kwargs):
-    return _get(url=url, *args, proxies=httpx_proxies, **kwargs)
 
-def post(url, *args, **kwargs):
-    return _post(url=url, *args, proxies=httpx_proxies, **kwargs)
+def make_request(method, url, max_retries=SSRF_DEFAULT_MAX_RETRIES, **kwargs):
+    if "allow_redirects" in kwargs:
+        allow_redirects = kwargs.pop("allow_redirects")
+        if "follow_redirects" not in kwargs:
+            kwargs["follow_redirects"] = allow_redirects
 
-def put(url, *args, **kwargs):
-    return _put(url=url, *args, proxies=httpx_proxies, **kwargs)
+    retries = 0
+    while retries <= max_retries:
+        try:
+            if SSRF_PROXY_ALL_URL:
+                response = httpx.request(method=method, url=url, proxy=SSRF_PROXY_ALL_URL, **kwargs)
+            elif proxies:
+                response = httpx.request(method=method, url=url, proxies=proxies, **kwargs)
+            else:
+                response = httpx.request(method=method, url=url, **kwargs)
 
-def patch(url, *args, **kwargs):
-    return _patch(url=url, *args, proxies=httpx_proxies, **kwargs)
+            if response.status_code not in STATUS_FORCELIST:
+                return response
+            else:
+                logging.warning(f"Received status code {response.status_code} for URL {url} which is in the force list")
 
-def delete(url, *args, **kwargs):
-    if 'follow_redirects' in kwargs:
-        if kwargs['follow_redirects']:
-            kwargs['allow_redirects'] = kwargs['follow_redirects']
-        kwargs.pop('follow_redirects')
-    return _delete(url=url, *args, proxies=requests_proxies, **kwargs)
+        except httpx.RequestError as e:
+            logging.warning(f"Request to URL {url} failed on attempt {retries + 1}: {e}")
 
-def head(url, *args, **kwargs):
-    return _head(url=url, *args, proxies=httpx_proxies, **kwargs)
+        retries += 1
+        if retries <= max_retries:
+            time.sleep(BACKOFF_FACTOR * (2 ** (retries - 1)))
 
-def options(url, *args, **kwargs):
-    return _options(url=url, *args, proxies=httpx_proxies, **kwargs)
+    raise Exception(f"Reached maximum retries ({max_retries}) for URL {url}")
+
+
+def get(url, max_retries=SSRF_DEFAULT_MAX_RETRIES, **kwargs):
+    return make_request("GET", url, max_retries=max_retries, **kwargs)
+
+
+def post(url, max_retries=SSRF_DEFAULT_MAX_RETRIES, **kwargs):
+    return make_request("POST", url, max_retries=max_retries, **kwargs)
+
+
+def put(url, max_retries=SSRF_DEFAULT_MAX_RETRIES, **kwargs):
+    return make_request("PUT", url, max_retries=max_retries, **kwargs)
+
+
+def patch(url, max_retries=SSRF_DEFAULT_MAX_RETRIES, **kwargs):
+    return make_request("PATCH", url, max_retries=max_retries, **kwargs)
+
+
+def delete(url, max_retries=SSRF_DEFAULT_MAX_RETRIES, **kwargs):
+    return make_request("DELETE", url, max_retries=max_retries, **kwargs)
+
+
+def head(url, max_retries=SSRF_DEFAULT_MAX_RETRIES, **kwargs):
+    return make_request("HEAD", url, max_retries=max_retries, **kwargs)

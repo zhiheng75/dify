@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -9,25 +9,31 @@ class ChatModelMessage(BaseModel):
     """
     Chat Message.
     """
+
     text: str
     role: PromptMessageRole
+    edition_type: Optional[Literal["basic", "jinja2"]] = None
 
 
 class CompletionModelPromptTemplate(BaseModel):
     """
     Completion Model Prompt Template.
     """
+
     text: str
+    edition_type: Optional[Literal["basic", "jinja2"]] = None
 
 
 class MemoryConfig(BaseModel):
     """
     Memory Config.
     """
+
     class RolePrefix(BaseModel):
         """
         Role Prefix.
         """
+
         user: str
         assistant: str
 
@@ -35,6 +41,7 @@ class MemoryConfig(BaseModel):
         """
         Window Config.
         """
+
         enabled: bool
         size: Optional[int] = None
 

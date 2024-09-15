@@ -7,7 +7,10 @@ import {
   useWorkflowStore,
 } from '../store'
 import { BlockEnum } from '../types'
-import { useNodesReadOnly } from './use-workflow'
+import { useWorkflowUpdate } from '../hooks'
+import {
+  useNodesReadOnly,
+} from './use-workflow'
 import { syncWorkflowDraft } from '@/service/workflow'
 import { useFeaturesStore } from '@/app/components/base/features/hooks'
 import { API_PREFIX } from '@/config'
@@ -17,19 +20,25 @@ export const useNodesSyncDraft = () => {
   const workflowStore = useWorkflowStore()
   const featuresStore = useFeaturesStore()
   const { getNodesReadOnly } = useNodesReadOnly()
+  const { handleRefreshWorkflowDraft } = useWorkflowUpdate()
   const debouncedSyncWorkflowDraft = useStore(s => s.debouncedSyncWorkflowDraft)
   const params = useParams()
 
-  const getPostParams = useCallback((appIdParams?: string) => {
+  const getPostParams = useCallback(() => {
     const {
       getNodes,
       edges,
       transform,
     } = store.getState()
     const [x, y, zoom] = transform
-    const appId = workflowStore.getState().appId
+    const {
+      appId,
+      conversationVariables,
+      environmentVariables,
+      syncWorkflowDraftHash,
+    } = workflowStore.getState()
 
-    if (appId || appIdParams) {
+    if (appId) {
       const nodes = getNodes()
       const hasStartNode = nodes.find(node => node.data.type === BlockEnum.Start)
 
@@ -54,7 +63,7 @@ export const useNodesSyncDraft = () => {
         })
       })
       return {
-        url: `/apps/${appId || appIdParams}/workflows/draft`,
+        url: `/apps/${appId}/workflows/draft`,
         params: {
           graph: {
             nodes: producedNodes,
@@ -75,12 +84,17 @@ export const useNodesSyncDraft = () => {
             sensitive_word_avoidance: features.moderation,
             file_upload: features.file,
           },
+          environment_variables: environmentVariables,
+          conversation_variables: conversationVariables,
+          hash: syncWorkflowDraftHash,
         },
       }
     }
   }, [store, featuresStore, workflowStore])
 
   const syncWorkflowDraftWhenPageClose = useCallback(() => {
+    if (getNodesReadOnly())
+      return
     const postParams = getPostParams()
 
     if (postParams) {
@@ -89,23 +103,40 @@ export const useNodesSyncDraft = () => {
         JSON.stringify(postParams.params),
       )
     }
-  }, [getPostParams, params.appId])
+  }, [getPostParams, params.appId, getNodesReadOnly])
 
-  const doSyncWorkflowDraft = useCallback(async (appId?: string) => {
-    const postParams = getPostParams(appId)
+  const doSyncWorkflowDraft = useCallback(async (notRefreshWhenSyncError?: boolean) => {
+    if (getNodesReadOnly())
+      return
+    const postParams = getPostParams()
 
     if (postParams) {
-      const res = await syncWorkflowDraft(postParams)
-      workflowStore.getState().setDraftUpdatedAt(res.updated_at)
+      const {
+        setSyncWorkflowDraftHash,
+        setDraftUpdatedAt,
+      } = workflowStore.getState()
+      try {
+        const res = await syncWorkflowDraft(postParams)
+        setSyncWorkflowDraftHash(res.hash)
+        setDraftUpdatedAt(res.updated_at)
+      }
+      catch (error: any) {
+        if (error && error.json && !error.bodyUsed) {
+          error.json().then((err: any) => {
+            if (err.code === 'draft_workflow_not_sync' && !notRefreshWhenSyncError)
+              handleRefreshWorkflowDraft()
+          })
+        }
+      }
     }
-  }, [workflowStore, getPostParams])
+  }, [workflowStore, getPostParams, getNodesReadOnly, handleRefreshWorkflowDraft])
 
-  const handleSyncWorkflowDraft = useCallback((sync?: boolean, appId?: string) => {
+  const handleSyncWorkflowDraft = useCallback((sync?: boolean, notRefreshWhenSyncError?: boolean) => {
     if (getNodesReadOnly())
       return
 
     if (sync)
-      doSyncWorkflowDraft(appId)
+      doSyncWorkflowDraft(notRefreshWhenSyncError)
     else
       debouncedSyncWorkflowDraft(doSyncWorkflowDraft)
   }, [debouncedSyncWorkflowDraft, doSyncWorkflowDraft, getNodesReadOnly])

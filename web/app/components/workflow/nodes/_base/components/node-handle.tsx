@@ -9,16 +9,22 @@ import {
   Handle,
   Position,
 } from 'reactflow'
+import { useTranslation } from 'react-i18next'
 import { BlockEnum } from '../../../types'
 import type { Node } from '../../../types'
 import BlockSelector from '../../../block-selector'
 import type { ToolDefaultValue } from '../../../block-selector/types'
 import {
-  useNodesExtraData,
+  useAvailableBlocks,
+  useIsChatMode,
   useNodesInteractions,
   useNodesReadOnly,
+  useWorkflow,
 } from '../../../hooks'
-import { useStore } from '../../../store'
+import {
+  useStore,
+} from '../../../store'
+import Tooltip from '@/app/components/base/tooltip'
 
 type NodeHandleProps = {
   handleId: string
@@ -35,11 +41,10 @@ export const NodeTargetHandle = memo(({
 }: NodeHandleProps) => {
   const [open, setOpen] = useState(false)
   const { handleNodeAdd } = useNodesInteractions()
-  const nodesExtraData = useNodesExtraData()
   const { getNodesReadOnly } = useNodesReadOnly()
   const connected = data._connectedTargetHandleIds?.includes(handleId)
-  const availablePrevNodes = nodesExtraData[data.type].availablePrevNodes
-  const isConnectable = !!availablePrevNodes.length
+  const { availablePrevBlocks } = useAvailableBlocks(data.type, data.isInIteration)
+  const isConnectable = !!availablePrevBlocks.length
 
   const handleOpenChange = useCallback((v: boolean) => {
     setOpen(v)
@@ -80,7 +85,7 @@ export const NodeTargetHandle = memo(({
         onClick={handleHandleClick}
       >
         {
-          !connected && isConnectable && !data._isInvalidConnection && !getNodesReadOnly() && (
+          !connected && isConnectable && !getNodesReadOnly() && (
             <BlockSelector
               open={open}
               onOpenChange={handleOpenChange}
@@ -94,7 +99,7 @@ export const NodeTargetHandle = memo(({
                 ${data.selected && '!flex'}
                 ${open && '!flex'}
               `}
-              availableBlocksTypes={availablePrevNodes}
+              availableBlocksTypes={availablePrevBlocks}
             />
           )
         }
@@ -111,22 +116,25 @@ export const NodeSourceHandle = memo(({
   handleClassName,
   nodeSelectorClassName,
 }: NodeHandleProps) => {
+  const { t } = useTranslation()
   const notInitialWorkflow = useStore(s => s.notInitialWorkflow)
   const [open, setOpen] = useState(false)
   const { handleNodeAdd } = useNodesInteractions()
-  const nodesExtraData = useNodesExtraData()
   const { getNodesReadOnly } = useNodesReadOnly()
-  const availableNextNodes = nodesExtraData[data.type].availableNextNodes
-  const isConnectable = !!availableNextNodes.length
+  const { availableNextBlocks } = useAvailableBlocks(data.type, data.isInIteration)
+  const isConnectable = !!availableNextBlocks.length
+  const isChatMode = useIsChatMode()
+  const { checkParallelLimit } = useWorkflow()
+
   const connected = data._connectedSourceHandleIds?.includes(handleId)
   const handleOpenChange = useCallback((v: boolean) => {
     setOpen(v)
   }, [])
   const handleHandleClick = useCallback((e: MouseEvent) => {
     e.stopPropagation()
-    if (!connected)
+    if (checkParallelLimit(id, handleId))
       setOpen(v => !v)
-  }, [connected])
+  }, [checkParallelLimit, id, handleId])
   const handleSelect = useCallback((type: BlockEnum, toolDefaultValue?: ToolDefaultValue) => {
     handleNodeAdd(
       {
@@ -141,12 +149,25 @@ export const NodeSourceHandle = memo(({
   }, [handleNodeAdd, id, handleId])
 
   useEffect(() => {
-    if (notInitialWorkflow && data.type === BlockEnum.Start)
+    if (notInitialWorkflow && data.type === BlockEnum.Start && !isChatMode)
       setOpen(true)
-  }, [notInitialWorkflow, data.type])
+  }, [notInitialWorkflow, data.type, isChatMode])
 
   return (
-    <>
+    <Tooltip
+      popupContent={(
+        <div className='system-xs-regular text-text-tertiary'>
+          <div>
+            <span className='system-xs-medium text-text-secondary'>{t('workflow.common.parallelTip.click.title')}</span>
+            {t('workflow.common.parallelTip.click.desc')}
+          </div>
+          <div>
+            <span className='system-xs-medium text-text-secondary'>{t('workflow.common.parallelTip.drag.title')}</span>
+            {t('workflow.common.parallelTip.drag.desc')}
+          </div>
+        </div>
+      )}
+    >
       <Handle
         id={handleId}
         type='source'
@@ -162,7 +183,7 @@ export const NodeSourceHandle = memo(({
         onClick={handleHandleClick}
       >
         {
-          !connected && isConnectable && !data._isInvalidConnection && !getNodesReadOnly() && (
+          isConnectable && !getNodesReadOnly() && (
             <BlockSelector
               open={open}
               onOpenChange={handleOpenChange}
@@ -175,12 +196,12 @@ export const NodeSourceHandle = memo(({
                 ${data.selected && '!flex'}
                 ${open && '!flex'}
               `}
-              availableBlocksTypes={availableNextNodes}
+              availableBlocksTypes={availableNextBlocks}
             />
           )
         }
       </Handle>
-    </>
+    </Tooltip>
   )
 })
 NodeSourceHandle.displayName = 'NodeSourceHandle'

@@ -8,6 +8,7 @@ const translation = {
   deleteDatasetConfirmTitle: 'Excluir este Conhecimento?',
   deleteDatasetConfirmContent:
     'A exclusão do Conhecimento é irreversível. Os usuários não poderão mais acessar seu Conhecimento e todas as configurações e registros de prompt serão excluídos permanentemente.',
+  datasetUsedByApp: 'O conhecimento está sendo usado por alguns aplicativos. Os aplicativos não poderão mais usar esse Conhecimento, e todas as configurações de prompt e logs serão excluídos permanentemente.',
   datasetDeleted: 'Conhecimento excluído',
   datasetDeleteFailed: 'Falha ao excluir o Conhecimento',
   didYouKnow: 'Você sabia?',
@@ -43,6 +44,34 @@ const translation = {
   },
   docsFailedNotice: 'documentos falharam ao serem indexados',
   retry: 'Tentar novamente',
+  indexingTechnique: {
+    high_quality: 'AQ',
+    economy: 'ECO',
+  },
+  indexingMethod: {
+    semantic_search: 'VETOR',
+    full_text_search: 'TEXTO COMPLETO',
+    hybrid_search: 'HÍBRIDO',
+    invertedIndex: 'INVERTIDO',
+  },
+  mixtureHighQualityAndEconomicTip: 'O modelo de reclassificação é necessário para a mistura de bases de conhecimento de alta qualidade e econômicas.',
+  inconsistentEmbeddingModelTip: 'O modelo de reclassificação é necessário se os modelos de incorporação das bases de conhecimento selecionadas forem inconsistentes.',
+  retrievalSettings: 'Configurações de Recuperação',
+  rerankSettings: 'Configurações de Reclassificação',
+  weightedScore: {
+    title: 'Pontuação Ponderada',
+    description: 'Ao ajustar os pesos atribuídos, esta estratégia de reclassificação determina se deve priorizar a correspondência semântica ou por palavras-chave.',
+    semanticFirst: 'Semântica primeiro',
+    keywordFirst: 'Palavra-chave primeiro',
+    customized: 'Personalizado',
+    semantic: 'Semântico',
+    keyword: 'Palavra-chave',
+  },
+  nTo1RetrievalLegacy: 'A recuperação N-para-1 será oficialmente descontinuada a partir de setembro. Recomenda-se usar a recuperação de múltiplos caminhos mais recente para obter melhores resultados.',
+  nTo1RetrievalLegacyLink: 'Saiba mais',
+  nTo1RetrievalLegacyLinkText: 'A recuperação N-para-1 será oficialmente descontinuada em setembro.',
+  intro6: 'como um plug-in de índice ChatGPT autônomo para publicar',
+  defaultRetrievalTip: 'A recuperação de vários caminhos é usada por padrão. O conhecimento é recuperado de várias bases de dados de conhecimento e, em seguida, reclassificado.',
 }
 
 export default translation

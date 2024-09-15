@@ -13,7 +13,7 @@ import {
 import ModelIcon from '../model-icon'
 import ModelName from '../model-name'
 import {
-  ConfigurateMethodEnum,
+  ConfigurationMethodEnum,
   MODEL_STATUS_TEXT,
   ModelStatusEnum,
 } from '../declarations'
@@ -49,7 +49,7 @@ const PopupItem: FC<PopupItemProps> = ({
     setShowModelModal({
       payload: {
         currentProvider,
-        currentConfigurateMethod: ConfigurateMethodEnum.predefinedModel,
+        currentConfigurationMethod: ConfigurationMethodEnum.predefinedModel,
       },
       onSaveCallback: () => {
         updateModelProviders()
@@ -70,9 +70,8 @@ const PopupItem: FC<PopupItemProps> = ({
       {
         model.models.map(modelItem => (
           <Tooltip
-            selector={`${modelItem.model}-${modelItem.status}`}
             key={modelItem.model}
-            content={modelItem.status !== ModelStatusEnum.active ? MODEL_STATUS_TEXT[modelItem.status][language] : undefined}
+            popupContent={modelItem.status !== ModelStatusEnum.active ? MODEL_STATUS_TEXT[modelItem.status][language] : undefined}
             position='right'
           >
             <div

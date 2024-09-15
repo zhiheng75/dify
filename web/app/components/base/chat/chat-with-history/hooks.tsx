@@ -37,17 +37,36 @@ import type {
 import { addFileInfos, sortAgentSorts } from '@/app/components/tools/utils'
 import { useToastContext } from '@/app/components/base/toast'
 import { changeLanguage } from '@/i18n/i18next-config'
+import { useAppFavicon } from '@/hooks/use-app-favicon'
 
 export const useChatWithHistory = (installedAppInfo?: InstalledApp) => {
   const isInstalledApp = useMemo(() => !!installedAppInfo, [installedAppInfo])
   const { data: appInfo, isLoading: appInfoLoading, error: appInfoError } = useSWR(installedAppInfo ? null : 'appInfo', fetchAppInfo)
+
+  useAppFavicon({
+    enable: !installedAppInfo,
+    icon_type: appInfo?.site.icon_type,
+    icon: appInfo?.site.icon,
+    icon_background: appInfo?.site.icon_background,
+    icon_url: appInfo?.site.icon_url,
+  })
 
   const appData = useMemo(() => {
     if (isInstalledApp) {
       const { id, app } = installedAppInfo!
       return {
         app_id: id,
-        site: { title: app.name, icon: app.icon, icon_background: app.icon_background, prompt_public: false, copyright: '' },
+        site: {
+          title: app.name,
+          icon_type: app.icon_type,
+          icon: app.icon,
+          icon_background: app.icon_background,
+          icon_url: app.icon_url,
+          prompt_public: false,
+          copyright: '',
+          show_workflow_steps: true,
+          use_icon_as_answer_icon: app.use_icon_as_answer_icon,
+        },
         plan: 'basic',
       } as AppData
     }
@@ -129,11 +148,17 @@ export const useChatWithHistory = (installedAppInfo?: InstalledApp) => {
     setNewConversationInputs(newInputs)
   }, [])
   const inputsForms = useMemo(() => {
-    return (appParams?.user_input_form || []).filter((item: any) => item.paragraph || item.select || item['text-input']).map((item: any) => {
+    return (appParams?.user_input_form || []).filter((item: any) => item.paragraph || item.select || item['text-input'] || item.number).map((item: any) => {
       if (item.paragraph) {
         return {
           ...item.paragraph,
           type: 'paragraph',
+        }
+      }
+      if (item.number) {
+        return {
+          ...item.number,
+          type: 'number',
         }
       }
       if (item.select) {
@@ -142,6 +167,7 @@ export const useChatWithHistory = (installedAppInfo?: InstalledApp) => {
           type: 'select',
         }
       }
+
       return {
         ...item['text-input'],
         type: 'text-input',
@@ -191,12 +217,12 @@ export const useChatWithHistory = (installedAppInfo?: InstalledApp) => {
   }, [newConversation])
 
   const currentConversationItem = useMemo(() => {
-    let coversationItem = conversationList.find(item => item.id === currentConversationId)
+    let conversationItem = conversationList.find(item => item.id === currentConversationId)
 
-    if (!coversationItem && pinnedConversationList.length)
-      coversationItem = pinnedConversationList.find(item => item.id === currentConversationId)
+    if (!conversationItem && pinnedConversationList.length)
+      conversationItem = pinnedConversationList.find(item => item.id === currentConversationId)
 
-    return coversationItem
+    return conversationItem
   }, [conversationList, currentConversationId, pinnedConversationList])
 
   const { notify } = useToastContext()
@@ -226,7 +252,7 @@ export const useChatWithHistory = (installedAppInfo?: InstalledApp) => {
       setShowNewConversationItemInList(true)
     }
   }, [setShowConfigPanelBeforeChat, setShowNewConversationItemInList, checkInputsRequired])
-  const currentChatInstanceRef = useRef<{ handleStop: () => void }>({ handleStop: () => {} })
+  const currentChatInstanceRef = useRef<{ handleStop: () => void }>({ handleStop: () => { } })
   const handleChangeConversation = useCallback((conversationId: string) => {
     currentChatInstanceRef.current.handleStop()
     setNewConversationId('')

@@ -4,8 +4,9 @@ import React, { useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from 'next/navigation'
-import { debounce, groupBy, omit } from 'lodash-es'
+import { groupBy, omit } from 'lodash-es'
 import { PlusIcon } from '@heroicons/react/24/solid'
+import { useDebounce } from 'ahooks'
 import List from './list'
 import s from './style.module.css'
 import Loading from '@/app/components/base/loading'
@@ -83,11 +84,15 @@ const Documents: FC<IDocumentsProps> = ({ datasetId }) => {
   const [notionPageSelectorModalVisible, setNotionPageSelectorModalVisible] = useState(false)
   const [timerCanRun, setTimerCanRun] = useState(true)
   const isDataSourceNotion = dataset?.data_source_type === DataSourceType.NOTION
+  const isDataSourceWeb = dataset?.data_source_type === DataSourceType.WEB
+  const isDataSourceFile = dataset?.data_source_type === DataSourceType.FILE
   const embeddingAvailable = !!dataset?.embedding_available
 
+  const debouncedSearchValue = useDebounce(searchValue, { wait: 500 })
+
   const query = useMemo(() => {
-    return { page: currPage + 1, limit, keyword: searchValue, fetch: isDataSourceNotion ? true : '' }
-  }, [searchValue, currPage, isDataSourceNotion])
+    return { page: currPage + 1, limit, keyword: debouncedSearchValue, fetch: isDataSourceNotion ? true : '' }
+  }, [currPage, debouncedSearchValue, isDataSourceNotion])
 
   const { data: documentsRes, error, mutate } = useSWR(
     {
@@ -104,15 +109,15 @@ const Documents: FC<IDocumentsProps> = ({ datasetId }) => {
     let percent = 0
     const documentsData = documentsRes?.data?.map((documentItem) => {
       const { indexing_status, completed_segments, total_segments } = documentItem
-      const isEmbeddinged = indexing_status === 'completed' || indexing_status === 'paused' || indexing_status === 'error'
+      const isEmbedded = indexing_status === 'completed' || indexing_status === 'paused' || indexing_status === 'error'
 
-      if (isEmbeddinged)
+      if (isEmbedded)
         completedNum++
 
       const completedCount = completed_segments || 0
       const totalCount = total_segments || 0
       if (totalCount === 0 && completedCount === 0) {
-        percent = isEmbeddinged ? 100 : 0
+        percent = isEmbedded ? 100 : 0
       }
       else {
         const per = Math.round(completedCount * 100 / totalCount)
@@ -199,19 +204,20 @@ const Documents: FC<IDocumentsProps> = ({ datasetId }) => {
       <div className='flex flex-col px-6 py-4 flex-1'>
         <div className='flex items-center justify-between flex-wrap'>
           <Input
-            showPrefix
+            showLeftIcon
             wrapperClassName='!w-[200px]'
             className='!h-8 !text-[13px]'
-            onChange={debounce(setSearchValue, 500)}
+            onChange={e => setSearchValue(e.target.value)}
             value={searchValue}
           />
           <div className='flex gap-2 justify-center items-center !h-8'>
             <RetryButton datasetId={datasetId} />
             {embeddingAvailable && (
-              <Button type='primary' onClick={routeToDocCreate} className='!h-8 !text-[13px] !shrink-0'>
+              <Button variant='primary' onClick={routeToDocCreate} className='shrink-0'>
                 <PlusIcon className='h-4 w-4 mr-2 stroke-current' />
                 {isDataSourceNotion && t('datasetDocuments.list.addPages')}
-                {!isDataSourceNotion && t('datasetDocuments.list.addFile')}
+                {isDataSourceWeb && t('datasetDocuments.list.addUrl')}
+                {isDataSourceFile && t('datasetDocuments.list.addFile')}
               </Button>
             )}
           </div>

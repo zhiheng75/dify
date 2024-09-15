@@ -34,6 +34,7 @@ const translation = {
       accessibleAddress: 'URL publique',
       preview: 'Aperçu',
       regenerate: 'Regénérer',
+      regenerateNotice: 'Voulez-vous régénérer l\'URL publique ?',
       preUseReminder: 'Veuillez activer WebApp avant de continuer.',
       settings: {
         entry: 'Paramètres',
@@ -43,6 +44,17 @@ const translation = {
         webDescTip: 'Ce texte sera affiché côté client, fournissant des directives de base sur la façon d\'utiliser l\'application',
         webDescPlaceholder: 'Entrez la description de l\'application Web',
         language: 'Langue',
+        workflow: {
+          title: 'Étapes du workflow',
+          show: 'Afficher',
+          hide: 'Masquer',
+          showDesc: 'Afficher ou masquer les détails du flux de travail dans WebApp',
+          subTitle: 'Détails du flux de travail',
+        },
+        chatColorTheme: 'Thème de couleur du chatbot',
+        chatColorThemeDesc: 'Définir le thème de couleur du chatbot',
+        chatColorThemeInverted: 'Inversé',
+        invalidHexMessage: 'Valeur hexadécimale invalide',
         more: {
           entry: 'Afficher plus de paramètres',
           copyright: 'Droits d\'auteur',
@@ -50,6 +62,15 @@ const translation = {
           privacyPolicy: 'Politique de confidentialité',
           privacyPolicyPlaceholder: 'Entrez le lien de la politique de confidentialité',
           privacyPolicyTip: 'Aide les visiteurs à comprendre les données collectées par l\'application, voir la <privacyPolicyLink>Politique de confidentialité</privacyPolicyLink> de Dify.',
+          customDisclaimer: 'Clause de non-responsabilité personnalisée',
+          customDisclaimerPlaceholder: 'Entrez le texte de la clause de non-responsabilité personnalisée',
+          customDisclaimerTip: 'Le texte de la clause de non-responsabilité personnalisée sera affiché côté client, fournissant des informations supplémentaires sur l\'application',
+        },
+        sso: {
+          label: 'Authentification SSO',
+          title: 'WebApp SSO',
+          tooltip: 'Contactez l’administrateur pour activer l’authentification unique WebApp',
+          description: 'Tous les utilisateurs doivent se connecter avec l’authentification unique avant d’utiliser WebApp',
         },
       },
       embedded: {
@@ -106,7 +127,11 @@ const translation = {
     tokenPS: 'Token/s',
     totalMessages: {
       title: 'Total des messages',
-      explanation: 'Nombre d\'interactions quotidiennes avec l\'IA ; l\'ingénierie/le débogage des prompts sont exclus.',
+      explanation: 'Nombre d\'interactions quotidiennes avec l\'IA.',
+    },
+    totalConversations: {
+      title: 'Conversations totales',
+      explanation: 'Nombre de conversations quotidiennes avec l\'IA ; ingénierie/débogage des prompts exclus.',
     },
     activeUsers: {
       title: 'Utilisateurs actifs',

@@ -20,19 +20,17 @@ class ZhipuAI(HttpClient):
     api_key: str
 
     def __init__(
-            self,
-            *,
-            api_key: str | None = None,
-            base_url: str | httpx.URL | None = None,
-            timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
-            max_retries: int = ZHIPUAI_DEFAULT_MAX_RETRIES,
-            http_client: httpx.Client | None = None,
-            custom_headers: Mapping[str, str] | None = None
+        self,
+        *,
+        api_key: str | None = None,
+        base_url: str | httpx.URL | None = None,
+        timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
+        max_retries: int = ZHIPUAI_DEFAULT_MAX_RETRIES,
+        http_client: httpx.Client | None = None,
+        custom_headers: Mapping[str, str] | None = None,
     ) -> None:
-        # if api_key is None:
-        #     api_key = os.environ.get("ZHIPUAI_API_KEY")
         if api_key is None:
-            raise ZhipuAIError("未提供api_key，请通过参数或环境变量提供")
+            raise ZhipuAIError("No api_key provided, please provide it through parameters or environment variables")
         self.api_key = api_key
 
         if base_url is None:
@@ -40,6 +38,7 @@ class ZhipuAI(HttpClient):
         if base_url is None:
             base_url = "https://open.bigmodel.cn/api/paas/v4"
         from .__version__ import __version__
+
         super().__init__(
             version=__version__,
             base_url=base_url,
@@ -60,9 +59,7 @@ class ZhipuAI(HttpClient):
         return {"Authorization": f"{_jwt_token.generate_token(api_key)}"}
 
     def __del__(self) -> None:
-        if (not hasattr(self, "_has_custom_http_client")
-                or not hasattr(self, "close")
-                or not hasattr(self, "_client")):
+        if not hasattr(self, "_has_custom_http_client") or not hasattr(self, "close") or not hasattr(self, "_client"):
             # if the '__init__' method raised an error, self would not have client attr
             return
 

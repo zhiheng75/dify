@@ -2,14 +2,13 @@
 import type { FC } from 'react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import cn from 'classnames'
 import { useContext } from 'use-context-selector'
 import { Plan } from '../type'
 import { ALL_PLANS, NUM_INFINITE, contactSalesUrl, contractSales, unAvailable } from '../config'
 import Toast from '../../base/toast'
-import TooltipPlus from '../../base/tooltip-plus'
+import Tooltip from '../../base/tooltip'
 import { PlanRange } from './select-plan-range'
-import { HelpCircle } from '@/app/components/base/icons/src/vender/line/general'
+import cn from '@/utils/classnames'
 import { useAppContext } from '@/context/app-context'
 import { fetchSubscriptionUrls } from '@/service/billing'
 import { LanguagesSupported } from '@/i18n/language'
@@ -28,13 +27,11 @@ const KeyValue = ({ label, value, tooltip }: { label: string; value: string | nu
       <div className='flex items-center text-gray-500 space-x-1'>
         <div>{label}</div>
         {tooltip && (
-          <TooltipPlus
+          <Tooltip
             popupContent={
               <div className='w-[200px]'>{tooltip}</div>
             }
-          >
-            <HelpCircle className='w-3 h-3 text-gray-400' />
-          </TooltipPlus>
+          />
         )}
       </div>
       <div className='mt-0.5 text-gray-900'>{value}</div>
@@ -119,7 +116,6 @@ const PlanItem: FC<Props> = ({
             <div className='flex items-center'>
               <div className='mr-0.5'>&nbsp;{t('billing.plansCommon.supportItems.workflow')}</div>
             </div>
-            <div>{comingSoon}</div>
           </div>
         </div>)
       case Plan.professional:
@@ -133,16 +129,23 @@ const PlanItem: FC<Props> = ({
               <div>+ {t('billing.plansCommon.supportItems.bulkUpload')}</div>
             </div>
             <div className='mt-3.5 flex items-center space-x-1'>
+              <span>+ </span>
+              <div>{t('billing.plansCommon.supportItems.llmLoadingBalancing')}</div>
+              <Tooltip
+                popupContent={
+                  <div className='w-[200px]'>{t('billing.plansCommon.supportItems.llmLoadingBalancingTooltip')}</div>
+                }
+              />
+            </div>
+            <div className='mt-3.5 flex items-center space-x-1'>
               <div className='flex items-center'>
                 +
                 <div className='mr-0.5'>&nbsp;{t('billing.plansCommon.supportItems.ragAPIRequest')}</div>
-                <TooltipPlus
+                <Tooltip
                   popupContent={
                     <div className='w-[200px]'>{t('billing.plansCommon.ragAPIRequestTooltip')}</div>
                   }
-                >
-                  <HelpCircle className='w-3 h-3 text-gray-400' />
-                </TooltipPlus>
+                />
               </div>
               <div>{comingSoon}</div>
             </div>

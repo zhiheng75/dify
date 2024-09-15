@@ -14,7 +14,7 @@ class TwilioProvider(BuiltinToolProviderController):
             account_sid = credentials["account_sid"]
             auth_token = credentials["auth_token"]
             from_number = credentials["from_number"]
-            
+
             # Initialize twilio client
             client = Client(account_sid, auth_token)
 

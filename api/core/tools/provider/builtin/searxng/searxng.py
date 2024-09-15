@@ -9,17 +9,12 @@ class SearXNGProvider(BuiltinToolProviderController):
     def _validate_credentials(self, credentials: dict[str, Any]) -> None:
         try:
             SearXNGSearchTool().fork_tool_runtime(
-                meta={
+                runtime={
                     "credentials": credentials,
                 }
             ).invoke(
-                user_id='',
-                tool_parameters={
-                    "query": "SearXNG",
-                    "limit": 1,
-                    "search_type": "page",
-                    "result_type": "link"
-                },
+                user_id="",
+                tool_parameters={"query": "SearXNG", "limit": 1, "search_type": "general"},
             )
         except Exception as e:
             raise ToolProviderCredentialValidationError(str(e))

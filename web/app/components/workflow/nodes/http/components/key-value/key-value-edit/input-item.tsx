@@ -1,9 +1,9 @@
 'use client'
 import type { FC } from 'react'
 import React, { useCallback, useState } from 'react'
-import cn from 'classnames'
 import { useTranslation } from 'react-i18next'
 import useAvailableVarList from '../../../../_base/hooks/use-available-var-list'
+import cn from '@/utils/classnames'
 import RemoveButton from '@/app/components/workflow/nodes/_base/components/remove-button'
 import Input from '@/app/components/workflow/nodes/_base/components/input-support-select-var'
 import type { Var } from '@/app/components/workflow/types'
@@ -18,6 +18,7 @@ type Props = {
   onRemove?: () => void
   placeholder?: string
   readOnly?: boolean
+  insertVarTipToLeft?: boolean
 }
 
 const InputItem: FC<Props> = ({
@@ -30,16 +31,17 @@ const InputItem: FC<Props> = ({
   onRemove,
   placeholder,
   readOnly,
+  insertVarTipToLeft,
 }) => {
   const { t } = useTranslation()
 
   const hasValue = !!value
 
   const [isFocus, setIsFocus] = useState(false)
-  const { availableVars, availableNodes } = useAvailableVarList(nodeId, {
+  const { availableVars, availableNodesWithParent } = useAvailableVarList(nodeId, {
     onlyLeafNodeVar: false,
     filterVar: (varPayload: Var) => {
-      return [VarType.string, VarType.number].includes(varPayload.type)
+      return [VarType.string, VarType.number, VarType.secret].includes(varPayload.type)
     },
   })
 
@@ -49,7 +51,7 @@ const InputItem: FC<Props> = ({
   }, [onRemove])
 
   return (
-    <div className={cn(className, 'hover:bg-gray-50 hover:cursor-text', 'relative flex h-full items-center')}>
+    <div className={cn(className, 'hover:bg-gray-50 hover:cursor-text', 'relative flex h-full')}>
       {(!readOnly)
         ? (
           <Input
@@ -59,10 +61,12 @@ const InputItem: FC<Props> = ({
             onChange={onChange}
             readOnly={readOnly}
             nodesOutputVars={availableVars}
-            availableNodes={availableNodes}
+            availableNodes={availableNodesWithParent}
             onFocusChange={setIsFocus}
             placeholder={t('workflow.nodes.http.insertVarPlaceholder')!}
             placeholderClassName='!leading-[21px]'
+            promptMinHeightClassName='h-full'
+            insertVarTipToLeft={insertVarTipToLeft}
           />
         )
         : <div
@@ -77,10 +81,12 @@ const InputItem: FC<Props> = ({
               onChange={onChange}
               readOnly={readOnly}
               nodesOutputVars={availableVars}
-              availableNodes={availableNodes}
+              availableNodes={availableNodesWithParent}
               onFocusChange={setIsFocus}
               placeholder={t('workflow.nodes.http.insertVarPlaceholder')!}
               placeholderClassName='!leading-[21px]'
+              promptMinHeightClassName='h-full'
+              insertVarTipToLeft={insertVarTipToLeft}
             />
           )}
 

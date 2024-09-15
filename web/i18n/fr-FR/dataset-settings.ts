@@ -14,7 +14,7 @@ const translation = {
     permissionsAllMember: 'Tous les membres de l\'équipe',
     indexMethod: 'Méthode d\'Indexation',
     indexMethodHighQuality: 'Haute Qualité',
-    indexMethodHighQualityTip: 'Appelez l\'interface d\'embedding d\'OpenAI pour le traitement afin de fournir une précision plus élevée lorsque les utilisateurs font une requête.',
+    indexMethodHighQualityTip: 'Appeler le modèle d\'Embedding pour le traitement afin de fournir une plus grande précision lors des requêtes des utilisateurs.',
     indexMethodEconomy: 'Économique',
     indexMethodEconomyTip: 'Utilisez des moteurs vectoriels hors ligne, des index de mots-clés, etc. pour réduire la précision sans dépenser de jetons',
     embeddingModel: 'Modèle d\'Embedding',
@@ -27,6 +27,8 @@ const translation = {
       longDescription: 'À propos de la méthode de récupération, vous pouvez la modifier à tout moment dans les paramètres de Connaissance.',
     },
     save: 'Enregistrer',
+    me: '(Vous)',
+    permissionsInvitedMembers: 'Membres partiels de l’équipe',
   },
 }
 

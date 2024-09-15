@@ -7,11 +7,11 @@ class YahooFinanceProvider(BuiltinToolProviderController):
     def _validate_credentials(self, credentials: dict) -> None:
         try:
             YoutubeVideosAnalyticsTool().fork_tool_runtime(
-                meta={
+                runtime={
                     "credentials": credentials,
                 }
             ).invoke(
-                user_id='',
+                user_id="",
                 tool_parameters={
                     "channel": "TOKYO GIRLS COLLECTION",
                     "start_date": "2020-01-01",

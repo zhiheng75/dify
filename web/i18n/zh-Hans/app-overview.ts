@@ -34,6 +34,7 @@ const translation = {
       accessibleAddress: '公开访问 URL',
       preview: '预览',
       regenerate: '重新生成',
+      regenerateNotice: '您是否要重新生成公开访问 URL？',
       preUseReminder: '使用前请先打开开关',
       settings: {
         entry: '设置',
@@ -43,6 +44,23 @@ const translation = {
         webDescTip: '以下文字将展示在客户端中，对应用进行说明和使用上的基本引导',
         webDescPlaceholder: '请输入 WebApp 的描述',
         language: '语言',
+        workflow: {
+          title: '工作流',
+          subTitle: '工作流详情',
+          show: '显示',
+          hide: '隐藏',
+          showDesc: '在 WebApp 中展示或者隐藏工作流详情',
+        },
+        chatColorTheme: '聊天颜色主题',
+        chatColorThemeDesc: '设置聊天机器人的颜色主题',
+        chatColorThemeInverted: '反转',
+        invalidHexMessage: '无效的十六进制值',
+        sso: {
+          label: '单点登录认证',
+          title: 'WebApp SSO 认证',
+          description: '启用后，所有用户都需要先进行 SSO 认证才能访问',
+          tooltip: '联系管理员以开启 WebApp SSO 认证',
+        },
         more: {
           entry: '展示更多设置',
           copyright: '版权',
@@ -50,6 +68,9 @@ const translation = {
           privacyPolicy: '隐私政策',
           privacyPolicyPlaceholder: '请输入隐私政策链接',
           privacyPolicyTip: '帮助访问者了解该应用收集的数据，可参考 Dify 的<privacyPolicyLink>隐私政策</privacyPolicyLink>。',
+          customDisclaimer: '自定义免责声明',
+          customDisclaimerPlaceholder: '请输入免责声明',
+          customDisclaimerTip: '在应用中展示免责声明，可用于告知用户 AI 的局限性。',
         },
       },
       embedded: {
@@ -106,7 +127,11 @@ const translation = {
     tokenPS: 'Token/秒',
     totalMessages: {
       title: '全部消息数',
-      explanation: '反映 AI 每天的互动总次数，每回答用户一个问题算一条 Message。提示词编排和调试的消息不计入。',
+      explanation: '反映 AI 每天的互动总次数，每回答用户一个问题算一条 Message。',
+    },
+    totalConversations: {
+      title: '全部会话数',
+      explanation: '反映 AI 每天的会话总次数，提示词编排和调试的消息不计入。',
     },
     activeUsers: {
       title: '活跃用户数',

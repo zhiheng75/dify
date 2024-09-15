@@ -3,10 +3,13 @@ import type { FC } from 'react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useContext } from 'use-context-selector'
 import { useTranslation } from 'react-i18next'
-import cn from 'classnames'
+import { useBoolean } from 'ahooks'
+import { BlockEnum } from '../types'
 import OutputPanel from './output-panel'
 import ResultPanel from './result-panel'
 import TracingPanel from './tracing-panel'
+import IterationResultPanel from './iteration-result-panel'
+import cn from '@/utils/classnames'
 import { ToastContext } from '@/app/components/base/toast'
 import Loading from '@/app/components/base/loading'
 import { fetchRunDetail, fetchTracingList } from '@/service/log'
@@ -19,9 +22,10 @@ export type RunProps = {
   activeTab?: 'RESULT' | 'DETAIL' | 'TRACING'
   runID: string
   getResultCallback?: (result: WorkflowRunDetailResponse) => void
+  onShowIterationDetail: (detail: NodeTracing[][]) => void
 }
 
-const RunPanel: FC<RunProps> = ({ hideResult, activeTab = 'RESULT', runID, getResultCallback }) => {
+const RunPanel: FC<RunProps> = ({ hideResult, activeTab = 'RESULT', runID, getResultCallback, onShowIterationDetail }) => {
   const { t } = useTranslation()
   const { notify } = useContext(ToastContext)
   const [currentTab, setCurrentTab] = useState<string>(activeTab)
@@ -56,12 +60,46 @@ const RunPanel: FC<RunProps> = ({ hideResult, activeTab = 'RESULT', runID, getRe
     }
   }, [notify, getResultCallback])
 
+  const formatNodeList = useCallback((list: NodeTracing[]) => {
+    const allItems = list.reverse()
+    const result: NodeTracing[] = []
+    allItems.forEach((item) => {
+      const { node_type, execution_metadata } = item
+      if (node_type !== BlockEnum.Iteration) {
+        const isInIteration = !!execution_metadata?.iteration_id
+
+        if (isInIteration) {
+          const iterationNode = result.find(node => node.node_id === execution_metadata?.iteration_id)
+          const iterationDetails = iterationNode?.details
+          const currentIterationIndex = execution_metadata?.iteration_index ?? 0
+
+          if (Array.isArray(iterationDetails)) {
+            if (iterationDetails.length === 0 || !iterationDetails[currentIterationIndex])
+              iterationDetails[currentIterationIndex] = [item]
+            else
+              iterationDetails[currentIterationIndex].push(item)
+          }
+          return
+        }
+        // not in iteration
+        result.push(item)
+
+        return
+      }
+      result.push({
+        ...item,
+        details: [],
+      })
+    })
+    return result
+  }, [])
+
   const getTracingList = useCallback(async (appID: string, runID: string) => {
     try {
       const { data: nodeList } = await fetchTracingList({
         url: `/apps/${appID}/workflow-runs/${runID}/node-executions`,
       })
-      setList(nodeList.reverse())
+      setList(formatNodeList(nodeList))
     }
     catch (err) {
       notify({
@@ -91,17 +129,40 @@ const RunPanel: FC<RunProps> = ({ hideResult, activeTab = 'RESULT', runID, getRe
       getData(appDetail.id, runID)
   }, [appDetail, runID])
 
-  const [height, setHieght] = useState(0)
+  const [height, setHeight] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
 
   const adjustResultHeight = () => {
     if (ref.current)
-      setHieght(ref.current?.clientHeight - 16 - 16 - 2 - 1)
+      setHeight(ref.current?.clientHeight - 16 - 16 - 2 - 1)
   }
 
   useEffect(() => {
     adjustResultHeight()
   }, [loading])
+
+  const [iterationRunResult, setIterationRunResult] = useState<NodeTracing[][]>([])
+  const [isShowIterationDetail, {
+    setTrue: doShowIterationDetail,
+    setFalse: doHideIterationDetail,
+  }] = useBoolean(false)
+
+  const handleShowIterationDetail = useCallback((detail: NodeTracing[][]) => {
+    setIterationRunResult(detail)
+    doShowIterationDetail()
+  }, [doShowIterationDetail])
+
+  if (isShowIterationDetail) {
+    return (
+      <div className='grow relative flex flex-col'>
+        <IterationResultPanel
+          list={iterationRunResult}
+          onHide={doHideIterationDetail}
+          onBack={doHideIterationDetail}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className='grow relative flex flex-col'>
@@ -131,7 +192,7 @@ const RunPanel: FC<RunProps> = ({ hideResult, activeTab = 'RESULT', runID, getRe
           onClick={() => switchTab('TRACING')}
         >{t('runLog.tracing')}</div>
       </div>
-      {/* panel detal */}
+      {/* panel detail */}
       <div ref={ref} className={cn('grow bg-white h-0 overflow-y-auto rounded-b-2xl', currentTab !== 'DETAIL' && '!bg-gray-50')}>
         {loading && (
           <div className='flex h-full items-center justify-center bg-white'>
@@ -161,6 +222,7 @@ const RunPanel: FC<RunProps> = ({ hideResult, activeTab = 'RESULT', runID, getRe
         {!loading && currentTab === 'TRACING' && (
           <TracingPanel
             list={list}
+            onShowIterationDetail={handleShowIterationDetail}
           />
         )}
       </div>

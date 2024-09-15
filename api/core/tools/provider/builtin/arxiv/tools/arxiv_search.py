@@ -8,6 +8,8 @@ from core.tools.entities.tool_entities import ToolInvokeMessage
 from core.tools.tool.builtin_tool import BuiltinTool
 
 logger = logging.getLogger(__name__)
+
+
 class ArxivAPIWrapper(BaseModel):
     """Wrapper around ArxivAPI.
 
@@ -44,14 +46,10 @@ class ArxivAPIWrapper(BaseModel):
             arxiv.run("tree of thought llm)
     """
 
-    arxiv_search = arxiv.Search  #: :meta private:
-    arxiv_exceptions = (
-        arxiv.ArxivError,
-        arxiv.UnexpectedEmptyPageError,
-        arxiv.HTTPError,
-    )  # :meta private:
+    arxiv_search: type[arxiv.Search] = arxiv.Search  #: :meta private:
+    arxiv_http_error: tuple[type[Exception]] = (arxiv.ArxivError, arxiv.UnexpectedEmptyPageError, arxiv.HTTPError)
     top_k_results: int = 3
-    ARXIV_MAX_QUERY_LENGTH = 300
+    ARXIV_MAX_QUERY_LENGTH: int = 300
     load_max_docs: int = 100
     load_all_available_meta: bool = False
     doc_content_chars_max: Optional[int] = 4000
@@ -68,12 +66,12 @@ class ArxivAPIWrapper(BaseModel):
 
         Args:
             query: a plaintext search query
-        """  # noqa: E501
+        """
         try:
             results = self.arxiv_search(  # type: ignore
                 query[: self.ARXIV_MAX_QUERY_LENGTH], max_results=self.top_k_results
             ).results()
-        except self.arxiv_exceptions as ex:
+        except arxiv_http_error as ex:
             return f"Arxiv exception: {ex}"
         docs = [
             f"Published: {result.updated.date()}\n"
@@ -90,11 +88,13 @@ class ArxivAPIWrapper(BaseModel):
 
 class ArxivSearchInput(BaseModel):
     query: str = Field(..., description="Search query.")
-    
+
+
 class ArxivSearchTool(BuiltinTool):
     """
     A tool for searching articles on Arxiv.
     """
+
     def _invoke(self, user_id: str, tool_parameters: dict[str, Any]) -> ToolInvokeMessage | list[ToolInvokeMessage]:
         """
         Invokes the Arxiv search tool with the given user ID and tool parameters.
@@ -104,15 +104,16 @@ class ArxivSearchTool(BuiltinTool):
             tool_parameters (dict[str, Any]): The parameters for the tool, including the 'query' parameter.
 
         Returns:
-            ToolInvokeMessage | list[ToolInvokeMessage]: The result of the tool invocation, which can be a single message or a list of messages.
+            ToolInvokeMessage | list[ToolInvokeMessage]: The result of the tool invocation,
+             which can be a single message or a list of messages.
         """
-        query = tool_parameters.get('query', '')
+        query = tool_parameters.get("query", "")
 
         if not query:
-            return self.create_text_message('Please input query')
-        
+            return self.create_text_message("Please input query")
+
         arxiv = ArxivAPIWrapper()
-        
+
         response = arxiv.run(query)
-        
+
         return self.create_text_message(self.summary(user_id=user_id, content=response))

@@ -5,6 +5,10 @@ import {
   useCallback,
   useState,
 } from 'react'
+import {
+  RiZoomInLine,
+  RiZoomOutLine,
+} from '@remixicon/react'
 import { useTranslation } from 'react-i18next'
 import {
   useReactFlow,
@@ -15,12 +19,27 @@ import {
   useWorkflowReadOnly,
 } from '../hooks'
 import {
+  getKeyboardKeyNameBySystem,
+} from '../utils'
+import ShortcutsName from '../shortcuts-name'
+import TipPopup from './tip-popup'
+import cn from '@/utils/classnames'
+import {
   PortalToFollowElem,
   PortalToFollowElemContent,
   PortalToFollowElemTrigger,
 } from '@/app/components/base/portal-to-follow-elem'
-import { SearchLg } from '@/app/components/base/icons/src/vender/line/general'
-import { ChevronDown } from '@/app/components/base/icons/src/vender/line/arrows'
+
+enum ZoomType {
+  zoomIn = 'zoomIn',
+  zoomOut = 'zoomOut',
+  zoomToFit = 'zoomToFit',
+  zoomTo25 = 'zoomTo25',
+  zoomTo50 = 'zoomTo50',
+  zoomTo75 = 'zoomTo75',
+  zoomTo100 = 'zoomTo100',
+  zoomTo200 = 'zoomTo200',
+}
 
 const ZoomInOut: FC = () => {
   const { t } = useTranslation()
@@ -41,27 +60,29 @@ const ZoomInOut: FC = () => {
   const ZOOM_IN_OUT_OPTIONS = [
     [
       {
-        key: 'in',
-        text: t('workflow.operator.zoomIn'),
+        key: ZoomType.zoomTo200,
+        text: '200%',
       },
       {
-        key: 'out',
-        text: t('workflow.operator.zoomOut'),
+        key: ZoomType.zoomTo100,
+        text: '100%',
+      },
+      {
+        key: ZoomType.zoomTo75,
+        text: '75%',
+      },
+      {
+        key: ZoomType.zoomTo50,
+        text: '50%',
+      },
+      {
+        key: ZoomType.zoomTo25,
+        text: '25%',
       },
     ],
     [
       {
-        key: 'to50',
-        text: t('workflow.operator.zoomTo50'),
-      },
-      {
-        key: 'to100',
-        text: t('workflow.operator.zoomTo100'),
-      },
-    ],
-    [
-      {
-        key: 'fit',
+        key: ZoomType.zoomToFit,
         text: t('workflow.operator.zoomToFit'),
       },
     ],
@@ -71,20 +92,23 @@ const ZoomInOut: FC = () => {
     if (workflowReadOnly)
       return
 
-    if (type === 'in')
-      zoomIn()
-
-    if (type === 'out')
-      zoomOut()
-
-    if (type === 'fit')
+    if (type === ZoomType.zoomToFit)
       fitView()
 
-    if (type === 'to50')
+    if (type === ZoomType.zoomTo25)
+      zoomTo(0.25)
+
+    if (type === ZoomType.zoomTo50)
       zoomTo(0.5)
 
-    if (type === 'to100')
+    if (type === ZoomType.zoomTo75)
+      zoomTo(0.75)
+
+    if (type === ZoomType.zoomTo100)
       zoomTo(1)
+
+    if (type === ZoomType.zoomTo200)
+      zoomTo(2)
 
     handleSyncWorkflowDraft()
   }
@@ -108,17 +132,47 @@ const ZoomInOut: FC = () => {
     >
       <PortalToFollowElemTrigger asChild onClick={handleTrigger}>
         <div className={`
-          flex items-center px-2 h-8 cursor-pointer text-[13px] hover:bg-gray-50 rounded-lg
-          ${open && 'bg-gray-50'}
+          p-0.5 h-9 cursor-pointer text-[13px] text-gray-500 font-medium rounded-lg bg-white shadow-lg border-[0.5px] border-gray-100
           ${workflowReadOnly && '!cursor-not-allowed opacity-50'}
         `}>
-          <SearchLg className='mr-1 w-4 h-4' />
-          <div className='w-[34px]'>{parseFloat(`${zoom * 100}`).toFixed(0)}%</div>
-          <ChevronDown className='ml-1 w-4 h-4' />
+          <div className={cn(
+            'flex items-center justify-between w-[98px] h-8 hover:bg-gray-50 rounded-lg',
+            open && 'bg-gray-50',
+          )}>
+            <TipPopup
+              title={t('workflow.operator.zoomOut')}
+              shortcuts={['ctrl', '-']}
+            >
+              <div
+                className='flex items-center justify-center w-8 h-8 rounded-lg cursor-pointer hover:bg-black/5'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  zoomOut()
+                }}
+              >
+                <RiZoomOutLine className='w-4 h-4' />
+              </div>
+            </TipPopup>
+            <div className='w-[34px]'>{parseFloat(`${zoom * 100}`).toFixed(0)}%</div>
+            <TipPopup
+              title={t('workflow.operator.zoomIn')}
+              shortcuts={['ctrl', '+']}
+            >
+              <div
+                className='flex items-center justify-center w-8 h-8 rounded-lg cursor-pointer hover:bg-black/5'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  zoomIn()
+                }}
+              >
+                <RiZoomInLine className='w-4 h-4' />
+              </div>
+            </TipPopup>
+          </div>
         </div>
       </PortalToFollowElemTrigger>
       <PortalToFollowElemContent className='z-10'>
-        <div className='w-[168px] rounded-lg border-[0.5px] border-gray-200 bg-white shadow-lg'>
+        <div className='w-[145px] rounded-lg border-[0.5px] border-gray-200 bg-white shadow-lg'>
           {
             ZOOM_IN_OUT_OPTIONS.map((options, i) => (
               <Fragment key={i}>
@@ -132,10 +186,25 @@ const ZoomInOut: FC = () => {
                     options.map(option => (
                       <div
                         key={option.key}
-                        className='flex items-center px-3 h-8 rounded-lg hover:bg-gray-50 cursor-pointer text-sm text-gray-700'
+                        className='flex items-center justify-between px-3 h-8 rounded-lg hover:bg-gray-50 cursor-pointer text-sm text-gray-700'
                         onClick={() => handleZoom(option.key)}
                       >
                         {option.text}
+                        {
+                          option.key === ZoomType.zoomToFit && (
+                            <ShortcutsName keys={[`${getKeyboardKeyNameBySystem('ctrl')}`, '1']} />
+                          )
+                        }
+                        {
+                          option.key === ZoomType.zoomTo50 && (
+                            <ShortcutsName keys={['shift', '5']} />
+                          )
+                        }
+                        {
+                          option.key === ZoomType.zoomTo100 && (
+                            <ShortcutsName keys={['shift', '1']} />
+                          )
+                        }
                       </div>
                     ))
                   }

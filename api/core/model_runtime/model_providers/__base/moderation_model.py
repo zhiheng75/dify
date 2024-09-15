@@ -2,6 +2,8 @@ import time
 from abc import abstractmethod
 from typing import Optional
 
+from pydantic import ConfigDict
+
 from core.model_runtime.entities.model_entities import ModelType
 from core.model_runtime.model_providers.__base.ai_model import AIModel
 
@@ -10,11 +12,13 @@ class ModerationModel(AIModel):
     """
     Model class for moderation model.
     """
+
     model_type: ModelType = ModelType.MODERATION
 
-    def invoke(self, model: str, credentials: dict,
-               text: str, user: Optional[str] = None) \
-            -> bool:
+    # pydantic configs
+    model_config = ConfigDict(protected_namespaces=())
+
+    def invoke(self, model: str, credentials: dict, text: str, user: Optional[str] = None) -> bool:
         """
         Invoke moderation model
 
@@ -32,9 +36,7 @@ class ModerationModel(AIModel):
             raise self._transform_invoke_error(e)
 
     @abstractmethod
-    def _invoke(self, model: str, credentials: dict,
-                text: str, user: Optional[str] = None) \
-            -> bool:
+    def _invoke(self, model: str, credentials: dict, text: str, user: Optional[str] = None) -> bool:
         """
         Invoke large language model
 
@@ -45,4 +47,3 @@ class ModerationModel(AIModel):
         :return: false if text is safe, true otherwise
         """
         raise NotImplementedError
-

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
-import cn from 'classnames'
 import s from './base.module.css'
 import WorkspaceSelector from './workspace-selector'
 import SearchInput from './search-input'
 import PageSelector from './page-selector'
+import cn from '@/utils/classnames'
 import { preImportNotionPages } from '@/service/datasets'
 import { NotionConnector } from '@/app/components/datasets/create/step-one'
 import type { DataSourceNotionPageMap, DataSourceNotionWorkspace, NotionPage } from '@/models/common'
@@ -39,12 +39,15 @@ const NotionPageSelector = ({
   const firstWorkspaceId = notionWorkspaces[0]?.workspace_id
   const currentWorkspace = notionWorkspaces.find(workspace => workspace.workspace_id === currentWorkspaceId)
 
-  const getPagesMapAndSelectedPagesId: [DataSourceNotionPageMap, Set<string>] = useMemo(() => {
+  const getPagesMapAndSelectedPagesId: [DataSourceNotionPageMap, Set<string>, Set<string>] = useMemo(() => {
     const selectedPagesId = new Set<string>()
+    const boundPagesId = new Set<string>()
     const pagesMap = notionWorkspaces.reduce((prev: DataSourceNotionPageMap, next: DataSourceNotionWorkspace) => {
       next.pages.forEach((page) => {
-        if (page.is_bound)
+        if (page.is_bound) {
           selectedPagesId.add(page.page_id)
+          boundPagesId.add(page.page_id)
+        }
         prev[page.page_id] = {
           ...page,
           workspace_id: next.workspace_id,
@@ -53,7 +56,7 @@ const NotionPageSelector = ({
 
       return prev
     }, {})
-    return [pagesMap, selectedPagesId]
+    return [pagesMap, selectedPagesId, boundPagesId]
   }, [notionWorkspaces])
   const defaultSelectedPagesId = [...Array.from(getPagesMapAndSelectedPagesId[1]), ...(value || [])]
   const [selectedPagesId, setSelectedPagesId] = useState<Set<string>>(new Set(defaultSelectedPagesId))
@@ -69,7 +72,7 @@ const NotionPageSelector = ({
   const handleSelectWorkspace = useCallback((workspaceId: string) => {
     setCurrentWorkspaceId(workspaceId)
   }, [])
-  const handleSelecPages = (newSelectedPagesId: Set<string>) => {
+  const handleSelectPages = (newSelectedPagesId: Set<string>) => {
     const selectedPages = Array.from(newSelectedPagesId).map(pageId => getPagesMapAndSelectedPagesId[0][pageId])
 
     setSelectedPagesId(new Set(Array.from(newSelectedPagesId)))
@@ -110,10 +113,11 @@ const NotionPageSelector = ({
               <div className='rounded-b-xl overflow-hidden'>
                 <PageSelector
                   value={selectedPagesId}
+                  disabledValue={getPagesMapAndSelectedPagesId[2]}
                   searchValue={searchValue}
                   list={currentWorkspace?.pages || []}
                   pagesMap={getPagesMapAndSelectedPagesId[0]}
-                  onSelect={handleSelecPages}
+                  onSelect={handleSelectPages}
                   canPreview={canPreview}
                   previewPageId={previewPageId}
                   onPreview={handlePreviewPage}

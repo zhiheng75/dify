@@ -2,14 +2,15 @@ import { memo, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FixedSizeList as List, areEqual } from 'react-window'
 import type { ListChildComponentProps } from 'react-window'
-import cn from 'classnames'
 import Checkbox from '../../checkbox'
 import NotionIcon from '../../notion-icon'
 import s from './index.module.css'
+import cn from '@/utils/classnames'
 import type { DataSourceNotionPage, DataSourceNotionPageMap } from '@/models/common'
 
 type PageSelectorProps = {
   value: Set<string>
+  disabledValue: Set<string>
   searchValue: string
   pagesMap: DataSourceNotionPageMap
   list: DataSourceNotionPage[]
@@ -21,13 +22,13 @@ type PageSelectorProps = {
 type NotionPageTreeItem = {
   children: Set<string>
   descendants: Set<string>
-  deepth: number
+  depth: number
   ancestors: string[]
 } & DataSourceNotionPage
 type NotionPageTreeMap = Record<string, NotionPageTreeItem>
 type NotionPageItem = {
   expand: boolean
-  deepth: number
+  depth: number
 } & DataSourceNotionPage
 
 const recursivePushInParentDescendants = (
@@ -50,7 +51,7 @@ const recursivePushInParentDescendants = (
         ...pagesMap[parentId],
         children,
         descendants,
-        deepth: 0,
+        depth: 0,
         ancestors: [],
       }
     }
@@ -59,7 +60,7 @@ const recursivePushInParentDescendants = (
       listTreeMap[parentId].descendants.add(pageId)
       listTreeMap[parentId].descendants.add(leafItem.page_id)
     }
-    leafItem.deepth++
+    leafItem.depth++
     leafItem.ancestors.unshift(listTreeMap[parentId].page_name)
 
     if (listTreeMap[parentId].parent_id !== 'root')
@@ -71,6 +72,7 @@ const ItemComponent = ({ index, style, data }: ListChildComponentProps<{
   dataList: NotionPageItem[]
   handleToggle: (index: number) => void
   checkedIds: Set<string>
+  disabledCheckedIds: Set<string>
   handleCheck: (index: number) => void
   canPreview?: boolean
   handlePreview: (index: number) => void
@@ -80,19 +82,20 @@ const ItemComponent = ({ index, style, data }: ListChildComponentProps<{
   pagesMap: DataSourceNotionPageMap
 }>) => {
   const { t } = useTranslation()
-  const { dataList, handleToggle, checkedIds, handleCheck, canPreview, handlePreview, listMapWithChildrenAndDescendants, searchValue, previewPageId, pagesMap } = data
+  const { dataList, handleToggle, checkedIds, disabledCheckedIds, handleCheck, canPreview, handlePreview, listMapWithChildrenAndDescendants, searchValue, previewPageId, pagesMap } = data
   const current = dataList[index]
   const currentWithChildrenAndDescendants = listMapWithChildrenAndDescendants[current.page_id]
   const hasChild = currentWithChildrenAndDescendants.descendants.size > 0
   const ancestors = currentWithChildrenAndDescendants.ancestors
   const breadCrumbs = ancestors.length ? [...ancestors, current.page_name] : [current.page_name]
+  const disabled = disabledCheckedIds.has(current.page_id)
 
   const renderArrow = () => {
     if (hasChild) {
       return (
         <div
           className={cn(s.arrow, current.expand && s['arrow-expand'], 'shrink-0 mr-1 w-5 h-5 hover:bg-gray-200 rounded-md')}
-          style={{ marginLeft: current.deepth * 8 }}
+          style={{ marginLeft: current.depth * 8 }}
           onClick={() => handleToggle(index)}
         />
       )
@@ -103,7 +106,7 @@ const ItemComponent = ({ index, style, data }: ListChildComponentProps<{
       )
     }
     return (
-      <div className='shrink-0 mr-1 w-5 h-5' style={{ marginLeft: current.deepth * 8 }} />
+      <div className='shrink-0 mr-1 w-5 h-5' style={{ marginLeft: current.depth * 8 }} />
     )
   }
 
@@ -113,9 +116,17 @@ const ItemComponent = ({ index, style, data }: ListChildComponentProps<{
       style={{ ...style, top: style.top as number + 8, left: 8, right: 8, width: 'calc(100% - 16px)' }}
     >
       <Checkbox
-        className='shrink-0 mr-2 group-hover:border-primary-600 group-hover:border-[2px]'
+        className={cn(
+          'shrink-0 mr-2 group-hover:border-primary-600 group-hover:border-[2px]',
+          disabled && 'group-hover:border-transparent',
+        )}
         checked={checkedIds.has(current.page_id)}
-        onCheck={() => handleCheck(index)}
+        disabled={disabled}
+        onCheck={() => {
+          if (disabled)
+            return
+          handleCheck(index)
+        }}
       />
       {!searchValue && renderArrow()}
       <NotionIcon
@@ -155,6 +166,7 @@ const Item = memo(ItemComponent, areEqual)
 
 const PageSelector = ({
   value,
+  disabledValue,
   searchValue,
   pagesMap,
   list,
@@ -173,7 +185,7 @@ const PageSelector = ({
       return {
         ...item,
         expand: false,
-        deepth: 0,
+        depth: 0,
       }
     }))
   }
@@ -183,7 +195,7 @@ const PageSelector = ({
     return {
       ...item,
       expand: false,
-      deepth: 0,
+      depth: 0,
     }
   })
   const currentDataList = searchValue ? searchDataList : dataList
@@ -193,7 +205,7 @@ const PageSelector = ({
     return list.reduce((prev: NotionPageTreeMap, next: DataSourceNotionPage) => {
       const pageId = next.page_id
       if (!prev[pageId])
-        prev[pageId] = { ...next, children: new Set(), descendants: new Set(), deepth: 0, ancestors: [] }
+        prev[pageId] = { ...next, children: new Set(), descendants: new Set(), depth: 0, ancestors: [] }
 
       recursivePushInParentDescendants(pagesMap, prev, prev[pageId], prev[pageId])
       return prev
@@ -221,7 +233,7 @@ const PageSelector = ({
         ...childrenIds.map(item => ({
           ...pagesMap[item],
           expand: false,
-          deepth: listMapWithChildrenAndDescendants[item].deepth,
+          depth: listMapWithChildrenAndDescendants[item].depth,
         })),
         ...dataList.slice(index + 1)]
     }
@@ -284,6 +296,7 @@ const PageSelector = ({
         dataList: currentDataList,
         handleToggle,
         checkedIds: value,
+        disabledCheckedIds: disabledValue,
         handleCheck,
         canPreview,
         handlePreview,

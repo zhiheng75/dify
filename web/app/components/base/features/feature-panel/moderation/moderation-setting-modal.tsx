@@ -67,7 +67,7 @@ const ModerationSettingModal: FC<ModerationSettingModalProps> = ({
   const systemOpenaiProviderQuota = systemOpenaiProviderEnabled ? openaiProvider?.system_configuration.quota_configurations.find(item => item.quota_type === openaiProvider.system_configuration.current_quota_type) : undefined
   const systemOpenaiProviderCanUse = systemOpenaiProviderQuota?.is_valid
   const customOpenaiProvidersCanUse = openaiProvider?.custom_configuration.status === CustomConfigurationStatusEnum.active
-  const openaiProviderConfiged = customOpenaiProvidersCanUse || systemOpenaiProviderCanUse
+  const isOpenAIProviderConfigured = customOpenaiProvidersCanUse || systemOpenaiProviderCanUse
   const providers: Provider[] = [
     {
       key: 'openai_moderation',
@@ -193,7 +193,7 @@ const ModerationSettingModal: FC<ModerationSettingModalProps> = ({
   }
 
   const handleSave = () => {
-    if (localeData.type === 'openai_moderation' && !openaiProviderConfiged)
+    if (localeData.type === 'openai_moderation' && !isOpenAIProviderConfigured)
       return
 
     if (!localeData.config?.inputs_config?.enabled && !localeData.config?.outputs_config?.enabled) {
@@ -257,12 +257,12 @@ const ModerationSettingModal: FC<ModerationSettingModalProps> = ({
                 className={`
                   flex items-center px-3 py-2 rounded-lg text-sm text-gray-900 cursor-pointer
                   ${localeData.type === provider.key ? 'bg-white border-[1.5px] border-primary-400 shadow-sm' : 'border border-gray-100 bg-gray-25'}
-                  ${localeData.type === 'openai_moderation' && provider.key === 'openai_moderation' && !openaiProviderConfiged && 'opacity-50'}
+                  ${localeData.type === 'openai_moderation' && provider.key === 'openai_moderation' && !isOpenAIProviderConfigured && 'opacity-50'}
                 `}
                 onClick={() => handleDataTypeChange(provider.key)}
               >
                 <div className={`
-                  mr-2 w-4 h-4 rounded-full border 
+                  mr-2 w-4 h-4 rounded-full border
                   ${localeData.type === provider.key ? 'border-[5px] border-primary-600' : 'border border-gray-300'}`} />
                 {provider.name}
               </div>
@@ -270,7 +270,7 @@ const ModerationSettingModal: FC<ModerationSettingModalProps> = ({
           }
         </div>
         {
-          !isLoading && !openaiProviderConfiged && localeData.type === 'openai_moderation' && (
+          !isLoading && !isOpenAIProviderConfigured && localeData.type === 'openai_moderation' && (
             <div className='flex items-center mt-2 px-3 py-2 bg-[#FFFAEB] rounded-lg border border-[#FEF0C7]'>
               <InfoCircle className='mr-1 w-4 h-4 text-[#F79009]' />
               <div className='flex items-center text-xs font-medium text-gray-700'>
@@ -357,15 +357,14 @@ const ModerationSettingModal: FC<ModerationSettingModalProps> = ({
       <div className='flex items-center justify-end'>
         <Button
           onClick={onCancel}
-          className='mr-2 text-sm font-medium'
+          className='mr-2'
         >
           {t('common.operation.cancel')}
         </Button>
         <Button
-          type='primary'
-          className='text-sm font-medium'
+          variant='primary'
           onClick={handleSave}
-          disabled={localeData.type === 'openai_moderation' && !openaiProviderConfiged}
+          disabled={localeData.type === 'openai_moderation' && !isOpenAIProviderConfigured}
         >
           {t('common.operation.save')}
         </Button>

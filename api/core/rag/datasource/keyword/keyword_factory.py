@@ -1,7 +1,6 @@
 from typing import Any
 
-from flask import current_app
-
+from configs import dify_config
 from core.rag.datasource.keyword.jieba.jieba import Jieba
 from core.rag.datasource.keyword.keyword_base import BaseKeyword
 from core.rag.models.document import Document
@@ -14,16 +13,14 @@ class Keyword:
         self._keyword_processor = self._init_keyword()
 
     def _init_keyword(self) -> BaseKeyword:
-        config = current_app.config
-        keyword_type = config.get('KEYWORD_STORE')
+        config = dify_config
+        keyword_type = config.KEYWORD_STORE
 
         if not keyword_type:
             raise ValueError("Keyword store must be specified.")
 
         if keyword_type == "jieba":
-            return Jieba(
-                dataset=self._dataset
-            )
+            return Jieba(dataset=self._dataset)
         else:
             raise ValueError(f"Keyword store {keyword_type} is not supported.")
 
@@ -39,16 +36,10 @@ class Keyword:
     def delete_by_ids(self, ids: list[str]) -> None:
         self._keyword_processor.delete_by_ids(ids)
 
-    def delete_by_document_id(self, document_id: str) -> None:
-        self._keyword_processor.delete_by_document_id(document_id)
-
     def delete(self) -> None:
         self._keyword_processor.delete()
 
-    def search(
-            self, query: str,
-            **kwargs: Any
-    ) -> list[Document]:
+    def search(self, query: str, **kwargs: Any) -> list[Document]:
         return self._keyword_processor.search(query, **kwargs)
 
     def __getattr__(self, name):
