@@ -71,7 +71,7 @@ MOCK = os.getenv("MOCK_SWITCH", "false").lower() == "true"
 
 
 @pytest.fixture
-def setup_fishaudio_mock(request, monkeypatch):  # noqa: PT004
+def setup_fishaudio_mock(request, monkeypatch):
     methods = request.param if hasattr(request, "param") else []
     if MOCK:
         unpatch = mock_fishaudio(monkeypatch, methods=methods)

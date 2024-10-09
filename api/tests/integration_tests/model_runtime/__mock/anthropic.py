@@ -5,7 +5,7 @@ from typing import Any, Literal, Union
 import anthropic
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from anthropic import Anthropic, Stream
+from anthropic import Stream
 from anthropic.resources import Messages
 from anthropic.types import (
     ContentBlock,
@@ -88,7 +88,7 @@ class MockAnthropicClass:
 
 
 @pytest.fixture
-def setup_anthropic_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
+def setup_anthropic_mock(request, monkeypatch: MonkeyPatch):
     if MOCK:
         monkeypatch.setattr(Messages, "create", MockAnthropicClass.mocked_anthropic)
 

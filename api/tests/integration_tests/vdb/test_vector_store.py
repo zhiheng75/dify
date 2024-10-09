@@ -1,4 +1,3 @@
-import random
 import uuid
 from unittest.mock import MagicMock
 
@@ -27,7 +26,7 @@ def get_example_document(doc_id: str) -> Document:
 
 
 @pytest.fixture
-def setup_mock_redis() -> None:  # noqa: PT004
+def setup_mock_redis() -> None:
     # get
     ext_redis.redis_client.get = MagicMock(return_value=None)
 

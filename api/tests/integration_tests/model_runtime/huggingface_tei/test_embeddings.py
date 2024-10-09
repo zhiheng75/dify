@@ -14,7 +14,7 @@ MOCK = os.getenv("MOCK_SWITCH", "false").lower() == "true"
 
 
 @pytest.fixture
-def setup_tei_mock(request, monkeypatch: pytest.MonkeyPatch):  # noqa: PT004
+def setup_tei_mock(request, monkeypatch: pytest.MonkeyPatch):
     if MOCK:
         monkeypatch.setattr(TeiHelper, "get_tei_extra_parameter", MockTEIClass.get_tei_extra_parameter)
         monkeypatch.setattr(TeiHelper, "invoke_tokenize", MockTEIClass.invoke_tokenize)

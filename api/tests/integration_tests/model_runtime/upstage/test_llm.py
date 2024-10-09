@@ -10,13 +10,11 @@ from core.model_runtime.entities.message_entities import (
     SystemPromptMessage,
     UserPromptMessage,
 )
-from core.model_runtime.entities.model_entities import AIModelEntity, ModelType
+from core.model_runtime.entities.model_entities import AIModelEntity
 from core.model_runtime.errors.validate import CredentialsValidateFailedError
-from core.model_runtime.model_providers.__base.large_language_model import LargeLanguageModel
 from core.model_runtime.model_providers.upstage.llm.llm import UpstageLargeLanguageModel
 
 """FOR MOCK FIXTURES, DO NOT REMOVE"""
-from tests.integration_tests.model_runtime.__mock.openai import setup_openai_mock
 
 
 def test_predefined_models():

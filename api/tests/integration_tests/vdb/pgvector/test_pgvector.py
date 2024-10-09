@@ -1,9 +1,6 @@
 from core.rag.datasource.vdb.pgvector.pgvector import PGVector, PGVectorConfig
-from core.rag.models.document import Document
 from tests.integration_tests.vdb.test_vector_store import (
     AbstractVectorTest,
-    get_example_text,
-    setup_mock_redis,
 )
 
 
@@ -18,6 +15,8 @@ class PGVectorTest(AbstractVectorTest):
                 user="postgres",
                 password="difyai123456",
                 database="dify",
+                min_connection=1,
+                max_connection=5,
             ),
         )
 

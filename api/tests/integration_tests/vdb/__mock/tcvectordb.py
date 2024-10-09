@@ -48,7 +48,7 @@ class MockTcvectordbClass:
         description: str,
         index: Index,
         embedding: Embedding = None,
-        timeout: float = None,
+        timeout: Optional[float] = None,
     ) -> Collection:
         return Collection(
             self,
@@ -97,9 +97,9 @@ class MockTcvectordbClass:
 
     def collection_delete(
         self,
-        document_ids: list[str] = None,
+        document_ids: Optional[list[str]] = None,
         filter: Filter = None,
-        timeout: float = None,
+        timeout: Optional[float] = None,
     ):
         return {"code": 0, "msg": "operation success"}
 
@@ -108,7 +108,7 @@ MOCK = os.getenv("MOCK_SWITCH", "false").lower() == "true"
 
 
 @pytest.fixture
-def setup_tcvectordb_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
+def setup_tcvectordb_mock(request, monkeypatch: MonkeyPatch):
     if MOCK:
         monkeypatch.setattr(VectorDBClient, "__init__", MockTcvectordbClass.mock_vector_db_client)
         monkeypatch.setattr(VectorDBClient, "list_databases", MockTcvectordbClass.list_databases)

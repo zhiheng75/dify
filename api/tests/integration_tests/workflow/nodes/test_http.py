@@ -13,7 +13,6 @@ from core.workflow.graph_engine.entities.graph_init_params import GraphInitParam
 from core.workflow.graph_engine.entities.graph_runtime_state import GraphRuntimeState
 from core.workflow.nodes.http_request.http_request_node import HttpRequestNode
 from models.workflow import WorkflowType
-from tests.integration_tests.workflow.nodes.__mock.http import setup_http_mock
 
 
 def init_http_node(config: dict):

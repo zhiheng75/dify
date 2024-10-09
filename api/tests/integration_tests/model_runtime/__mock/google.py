@@ -105,7 +105,7 @@ class MockGoogleClass:
 
 
 @pytest.fixture
-def setup_google_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
+def setup_google_mock(request, monkeypatch: MonkeyPatch):
     monkeypatch.setattr(BaseGenerateContentResponse, "text", MockGoogleClass.generative_response_text)
     monkeypatch.setattr(BaseGenerateContentResponse, "candidates", MockGoogleClass.generative_response_candidates)
     monkeypatch.setattr(GenerativeModel, "generate_content", MockGoogleClass.generate_content)

@@ -10,7 +10,7 @@ MOCK = os.getenv("MOCK_SWITCH", "false").lower() == "true"
 
 
 @pytest.fixture
-def setup_huggingface_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
+def setup_huggingface_mock(request, monkeypatch: MonkeyPatch):
     if MOCK:
         monkeypatch.setattr(InferenceClient, "text_generation", MockHuggingfaceChatClass.text_generation)
 

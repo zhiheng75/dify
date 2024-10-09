@@ -13,7 +13,7 @@ def get_example_text() -> str:
 
 
 @pytest.fixture(scope="module")
-def setup_mock_redis():  # noqa: PT004
+def setup_mock_redis():
     ext_redis.redis_client.get = MagicMock(return_value=None)
     ext_redis.redis_client.set = MagicMock(return_value=None)
 

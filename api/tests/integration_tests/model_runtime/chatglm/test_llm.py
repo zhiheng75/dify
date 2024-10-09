@@ -8,13 +8,11 @@ from core.model_runtime.entities.message_entities import (
     AssistantPromptMessage,
     PromptMessageTool,
     SystemPromptMessage,
-    TextPromptMessageContent,
     UserPromptMessage,
 )
 from core.model_runtime.entities.model_entities import AIModelEntity
 from core.model_runtime.errors.validate import CredentialsValidateFailedError
 from core.model_runtime.model_providers.chatglm.llm.llm import ChatGLMLargeLanguageModel
-from tests.integration_tests.model_runtime.__mock.openai import setup_openai_mock
 
 
 def test_predefined_models():

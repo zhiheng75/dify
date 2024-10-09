@@ -1,5 +1,5 @@
 import os
-from typing import Literal, Optional
+from typing import Literal
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
@@ -24,7 +24,7 @@ class MockedCodeExecutor:
 
 
 @pytest.fixture
-def setup_code_executor_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
+def setup_code_executor_mock(request, monkeypatch: MonkeyPatch):
     if not MOCK:
         yield
         return

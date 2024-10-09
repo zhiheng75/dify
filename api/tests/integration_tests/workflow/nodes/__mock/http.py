@@ -22,8 +22,8 @@ class MockedHttp:
             return response
 
         # get data, files
-        data = kwargs.get("data", None)
-        files = kwargs.get("files", None)
+        data = kwargs.get("data")
+        files = kwargs.get("files")
         if data is not None:
             resp = dumps(data).encode("utf-8")
         elif files is not None:
@@ -38,7 +38,7 @@ class MockedHttp:
 
 
 @pytest.fixture
-def setup_http_mock(request, monkeypatch: MonkeyPatch):  # noqa: PT004
+def setup_http_mock(request, monkeypatch: MonkeyPatch):
     if not MOCK:
         yield
         return
