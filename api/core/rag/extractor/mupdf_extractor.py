@@ -52,7 +52,7 @@ class MuPdfExtractor(BaseExtractor):
             for page in doc:
                 lines = page.get_text().split("\n")
                 # Remove watermarks
-                lines = [line for line in lines if line_counter[line] <= watermark_line_threshold]
+                lines = [line for line in lines if line_counter[line] <= watermark_line_threshold and line.strip()]
                 if not lines:
                     # If the page become empty after the watermark removal,
                     # try it again with image parsing
