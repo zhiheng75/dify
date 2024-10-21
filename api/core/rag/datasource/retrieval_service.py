@@ -9,7 +9,7 @@ from core.rag.data_post_processor.data_post_processor import DataPostProcessor
 from core.rag.datasource.keyword.keyword_factory import Keyword
 from core.rag.datasource.vdb.vector_factory import Vector
 from core.rag.models.document import Document
-from core.rag.rerank.constants.rerank_mode import RerankMode
+from core.rag.rerank.rerank_type import RerankMode
 from core.rag.retrieval.retrieval_methods import RetrievalMethod
 from extensions.ext_database import db
 from libs import helper
@@ -99,7 +99,7 @@ class RetrievalService:
             threads.append(full_text_index_thread)
             full_text_index_thread.start()
 
-        if retrival_method == RetrievalMethod.ES_TEXT_SEARCH.value:
+        if retrieval_method == RetrievalMethod.ES_TEXT_SEARCH.value:
             es_text_search_thread = threading.Thread(
                 target=RetrievalService.es_text_search,
                 kwargs={
