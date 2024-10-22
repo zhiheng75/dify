@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# npm install
 npm run build
 
 ps -ef | grep "npm run start" |grep -v grep |awk '{print $2}' |xargs kill

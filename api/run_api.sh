@@ -2,7 +2,7 @@
 
 # source ../venv/bin/activate
 poetry shell
-# poetry install
+poetry install
 flask db migrate
 flask db upgrade
 
