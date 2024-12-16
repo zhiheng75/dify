@@ -5,8 +5,6 @@ from pathlib import Path
 from typing import Optional, Union
 from urllib.parse import unquote
 
-from unstructured.file_utils.filetype import EXT_TO_FILETYPE, FileType, detect_filetype
-
 from configs import dify_config
 from core.helper import ssrf_proxy
 from core.rag.extractor.csv_extractor import CSVExtractor
@@ -105,50 +103,37 @@ class ExtractProcessor:
                 unstructured_api_url = dify_config.UNSTRUCTURED_API_URL
                 unstructured_api_key = dify_config.UNSTRUCTURED_API_KEY
                 if etl_type == "Unstructured":
-                    file_type = FileType.UNK
-                    try:
-                        import magic  # noqa: F401
-
-                        file_type = detect_filetype(file_path)
-                    except ImportError:
-                        logger.warning("Failed to import magic, falling back to file extension")
-                        file_type = EXT_TO_FILETYPE.get(file_extension, FileType.UNK)
-                    if file_type == FileType.UNK:
-                        # Fixed a few missing type in unstructured.
-                        if file_extension == ".markdown":
-                            file_type = FileType.MD
-
-                    if file_type in {FileType.XLSX, FileType.XLS}:
+                    if file_extension in {".xlsx", ".xls"}:
                         extractor = ExcelExtractor(file_path)
-                    elif file_type == FileType.PDF:
+                    elif file_extension == ".pdf":
                         extractor = MuPdfExtractor(file_path)
-                    elif file_type == FileType.MD:
+                    elif file_extension in {".md", ".markdown", ".mdx"}:
                         extractor = (
                             UnstructuredMarkdownExtractor(file_path, unstructured_api_url, unstructured_api_key)
                             if is_automatic
                             else MarkdownExtractor(file_path, autodetect_encoding=True)
                         )
-                    elif file_type == FileType.HTML:
+                    elif file_extension in {".htm", ".html"}:
                         extractor = HtmlExtractor(file_path)
-                    elif file_type in {FileType.DOC, FileType.DOCX}:
+                    elif file_extension in {".docx", ".doc"}:
                         extractor = UnstructuredWordExtractor(file_path, unstructured_api_url)
-                    elif file_type == FileType.CSV:
+                    elif file_extension == ".csv":
                         extractor = CSVExtractor(file_path, autodetect_encoding=True)
-                    elif file_type == FileType.MSG:
+                    elif file_extension == ".msg":
                         extractor = UnstructuredMsgExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                    elif file_type == FileType.EML:
+                    elif file_extension == ".eml":
                         extractor = UnstructuredEmailExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                    elif file_type == FileType.PPT:
+                    elif file_extension == ".ppt":
                         extractor = UnstructuredPPTExtractor(file_path, unstructured_api_url, unstructured_api_key)
                         # You must first specify the API key
                         # because unstructured_api_key is necessary to parse .ppt documents
-                    elif file_type == FileType.PPTX:
+                    elif file_extension == ".pptx":
                         extractor = UnstructuredPPTXExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                    elif file_type == FileType.XML:
+                    elif file_extension == ".xml":
                         extractor = UnstructuredXmlExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                    elif file_type == FileType.EPUB:
+                    elif file_extension == ".epub":
                         extractor = UnstructuredEpubExtractor(file_path, unstructured_api_url, unstructured_api_key)
-                    elif file_type in {FileType.JPG, FileType.PNG}:
+                    elif file_extension in {".jpeg", ".jpg", ".png"}:
                         extractor = UnstructuredImageExtractor(file_path, unstructured_api_url)
                     else:
                         # txt
