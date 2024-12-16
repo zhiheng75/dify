@@ -95,13 +95,16 @@ class VariablePool(BaseModel):
         if len(selector) < 2:
             raise ValueError("Invalid selector")
 
+        if isinstance(value, Variable):
+            variable = value
         if isinstance(value, Segment):
-            v = value
+            variable = variable_factory.segment_to_variable(segment=value, selector=selector)
         else:
-            v = variable_factory.build_segment(value)
+            segment = variable_factory.build_segment(value)
+            variable = variable_factory.segment_to_variable(segment=segment, selector=selector)
 
         hash_key = hash(tuple(selector[1:]))
-        self.variable_dictionary[selector[0]][hash_key] = v
+        self.variable_dictionary[selector[0]][hash_key] = variable
 
     def get(self, selector: Sequence[str], /) -> Segment | None:
         """
@@ -124,11 +127,15 @@ class VariablePool(BaseModel):
 
         if value is None:
             selector, attr = selector[:-1], selector[-1]
+            # Python support `attr in FileAttribute` after 3.12
+            if attr not in {item.value for item in FileAttribute}:
+                return None
             value = self.get(selector)
-            if isinstance(value, FileSegment):
-                attr = FileAttribute(attr)
-                attr_value = file_manager.get_attr(file=value.value, attr=attr)
-                return variable_factory.build_segment(attr_value)
+            if not isinstance(value, FileSegment):
+                return None
+            attr = FileAttribute(attr)
+            attr_value = file_manager.get_attr(file=value.value, attr=attr)
+            return variable_factory.build_segment(attr_value)
 
         return value
 

@@ -1,6 +1,6 @@
 import logging
 from argparse import ArgumentTypeError
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from elasticsearch_dsl import Q
 from flask import request
@@ -25,8 +25,11 @@ from controllers.console.datasets.error import (
     InvalidActionError,
     InvalidMetadataError,
 )
-from controllers.console.setup import setup_required
-from controllers.console.wraps import account_initialization_required, cloud_edition_billing_resource_check
+from controllers.console.wraps import (
+    account_initialization_required,
+    cloud_edition_billing_resource_check,
+    setup_required,
+)
 from core.errors.error import (
     LLMBadRequestError,
     ModelCurrentlyNotSupportError,
@@ -105,6 +108,7 @@ class GetProcessRuleApi(Resource):
         # get default rules
         mode = DocumentService.DEFAULT_RULES["mode"]
         rules = DocumentService.DEFAULT_RULES["rules"]
+        limits = DocumentService.DEFAULT_RULES["limits"]
         if document_id:
             # get the latest process rule
             document = Document.query.get_or_404(document_id)
@@ -131,7 +135,7 @@ class GetProcessRuleApi(Resource):
                 mode = dataset_process_rule.mode
                 rules = dataset_process_rule.rules_dict
 
-        return {"mode": mode, "rules": rules}
+        return {"mode": mode, "rules": rules, "limits": limits}
 
 
 class DatasetDocumentListApi(Resource):
@@ -316,8 +320,11 @@ class DatasetInitApi(Resource):
                 raise ValueError("embedding model and embedding model provider are required for high quality indexing.")
             try:
                 model_manager = ModelManager()
-                model_manager.get_default_model_instance(
-                    tenant_id=current_user.current_tenant_id, model_type=ModelType.TEXT_EMBEDDING
+                model_manager.get_model_instance(
+                    tenant_id=current_user.current_tenant_id,
+                    provider=args["embedding_model_provider"],
+                    model_type=ModelType.TEXT_EMBEDDING,
+                    model=args["embedding_model"],
                 )
             except InvokeAuthorizationError:
                 raise ProviderNotInitializeError(
@@ -661,7 +668,7 @@ class DocumentProcessingApi(DocumentResource):
                 raise InvalidActionError("Document not in indexing state.")
 
             document.paused_by = current_user.id
-            document.paused_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            document.paused_at = datetime.now(UTC).replace(tzinfo=None)
             document.is_paused = True
             db.session.commit()
 
@@ -743,7 +750,7 @@ class DocumentMetadataApi(DocumentResource):
                     document.doc_metadata[key] = value
 
         document.doc_type = doc_type
-        document.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        document.updated_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
         return {"result": "success", "message": "Document metadata updated."}, 200
@@ -785,7 +792,7 @@ class DocumentStatusApi(DocumentResource):
             document.enabled = True
             document.disabled_at = None
             document.disabled_by = None
-            document.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            document.updated_at = datetime.now(UTC).replace(tzinfo=None)
             db.session.commit()
 
             # Set cache to prevent indexing the same document multiple times
@@ -802,9 +809,9 @@ class DocumentStatusApi(DocumentResource):
                 raise InvalidActionError("Document already disabled.")
 
             document.enabled = False
-            document.disabled_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            document.disabled_at = datetime.now(UTC).replace(tzinfo=None)
             document.disabled_by = current_user.id
-            document.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            document.updated_at = datetime.now(UTC).replace(tzinfo=None)
             db.session.commit()
 
             # Set cache to prevent indexing the same document multiple times
@@ -819,9 +826,9 @@ class DocumentStatusApi(DocumentResource):
                 raise InvalidActionError("Document already archived.")
 
             document.archived = True
-            document.archived_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            document.archived_at = datetime.now(UTC).replace(tzinfo=None)
             document.archived_by = current_user.id
-            document.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            document.updated_at = datetime.now(UTC).replace(tzinfo=None)
             db.session.commit()
 
             if document.enabled:
@@ -838,7 +845,7 @@ class DocumentStatusApi(DocumentResource):
             document.archived = False
             document.archived_at = None
             document.archived_by = None
-            document.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            document.updated_at = datetime.now(UTC).replace(tzinfo=None)
             db.session.commit()
 
             # Set cache to prevent indexing the same document multiple times
@@ -946,7 +953,7 @@ class DocumentRetryApi(DocumentResource):
                     raise DocumentAlreadyFinishedError()
                 retry_documents.append(document)
             except Exception as e:
-                logging.error(f"Document {document_id} retry failed: {str(e)}")
+                logging.exception(f"Failed to retry document, document id: {document_id}")
                 continue
         # retry document
         DocumentService.retry_document(dataset_id, retry_documents)
