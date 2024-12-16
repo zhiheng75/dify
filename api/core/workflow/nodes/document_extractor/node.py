@@ -8,6 +8,7 @@ import docx
 import pandas as pd
 import pypdfium2  # type: ignore
 import yaml  # type: ignore
+from bs4 import BeautifulSoup
 from unstructured.partition.api import partition_via_api
 from unstructured.partition.email import partition_email
 from unstructured.partition.epub import partition_epub
@@ -84,7 +85,9 @@ class DocumentExtractorNode(BaseNode[DocumentExtractorNodeData]):
 def _extract_text_by_mime_type(*, file_content: bytes, mime_type: str) -> str:
     """Extract text from a file based on its MIME type."""
     match mime_type:
-        case "text/plain" | "text/html" | "text/htm" | "text/markdown" | "text/xml":
+        case "text/html" | "text/htm":
+            return _extract_text_from_html(file_content)
+        case "text/plain" | "text/markdown" | "text/xml":
             return _extract_text_from_plain_text(file_content)
         case "application/pdf":
             return _extract_text_from_pdf(file_content)
@@ -110,6 +113,16 @@ def _extract_text_by_mime_type(*, file_content: bytes, mime_type: str) -> str:
             return _extract_text_from_yaml(file_content)
         case _:
             raise UnsupportedFileTypeError(f"Unsupported MIME type: {mime_type}")
+
+
+def _extract_text_from_html(file_content: bytes) -> str:
+    try:
+        soup = BeautifulSoup(file_content.decode("utf-8"), "html.parser")
+        text = soup.get_text()
+        text = text.strip() if text else ""
+        return text
+    except UnicodeDecodeError as e:
+        raise TextExtractionError("Failed to decode HTML file") from e
 
 
 def _extract_text_by_file_extension(*, file_content: bytes, file_extension: str) -> str:

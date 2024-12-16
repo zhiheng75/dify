@@ -3,7 +3,7 @@
 # source ../venv/bin/activate
 poetry shell
 poetry install
-flask db migrate
+#flask db migrate
 flask db upgrade
 
 mkdir -p logs

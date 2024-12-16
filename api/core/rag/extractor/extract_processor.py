@@ -130,10 +130,8 @@ class ExtractProcessor:
                         )
                     elif file_type == FileType.HTML:
                         extractor = HtmlExtractor(file_path)
-                    elif file_type == FileType.DOC:
+                    elif file_type in {FileType.DOC, FileType.DOCX}:
                         extractor = UnstructuredWordExtractor(file_path, unstructured_api_url)
-                    elif file_type == FileType.DOCX:
-                        extractor = WordExtractor(file_path, upload_file.tenant_id, upload_file.created_by)
                     elif file_type == FileType.CSV:
                         extractor = CSVExtractor(file_path, autodetect_encoding=True)
                     elif file_type == FileType.MSG:
