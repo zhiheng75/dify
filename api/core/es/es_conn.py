@@ -59,7 +59,7 @@ class ESConnection:
                     es_logger.info("Connect to es.")
                     break
             except Exception as e:
-                es_logger.error("Fail to connect to es: " + str(e))
+                es_logger.exception("Fail to connect to es: " + str(e))
                 time.sleep(1)
 
     def version(self):
@@ -227,7 +227,7 @@ class ESConnection:
                     raise Exception("Es Timeout.")
                 return res
             except Exception as e:
-                es_logger.error("ES search exception: " + str(e) + "【Q】：" + str(q))
+                es_logger.exception("ES search exception: " + str(e) + "【Q】：" + str(q))
                 if str(e).find("Timeout") > 0:
                     continue
                 raise e
@@ -242,7 +242,7 @@ class ESConnection:
                 )
                 return res
             except ConnectionTimeout as e:
-                es_logger.error("Timeout【Q】：" + sql)
+                es_logger.exception("Timeout【Q】：" + sql)
                 continue
             except Exception as e:
                 raise e
@@ -257,7 +257,7 @@ class ESConnection:
                     raise Exception("Es Timeout.")
                 return res
             except Exception as e:
-                es_logger.error("ES get exception: " + str(e) + "【Q】：" + doc_id)
+                es_logger.exception("ES get exception: " + str(e) + "【Q】：" + doc_id)
                 if str(e).find("Timeout") > 0:
                     continue
                 raise e
@@ -278,7 +278,7 @@ class ESConnection:
                 r = ubq.execute()
                 return True
             except Exception as e:
-                es_logger.error("ES updateByQuery exception: " + str(e) + "【Q】：" + str(q.to_dict()))
+                es_logger.exception("ES updateByQuery exception: " + str(e) + "【Q】：" + str(q.to_dict()))
                 if str(e).find("Timeout") > 0 or str(e).find("Conflict") > 0:
                     continue
                 self.conn()
@@ -296,7 +296,7 @@ class ESConnection:
                 r = ubq.execute()
                 return True
             except Exception as e:
-                es_logger.error("ES updateByQuery exception: " + str(e) + "【Q】：" + str(q.to_dict()))
+                es_logger.exception("ES updateByQuery exception: " + str(e) + "【Q】：" + str(q.to_dict()))
                 if str(e).find("Timeout") > 0 or str(e).find("Conflict") > 0:
                     continue
                 self.conn()
@@ -311,7 +311,7 @@ class ESConnection:
                 )
                 return True
             except Exception as e:
-                es_logger.error("ES updateByQuery deleteByQuery: " + str(e) + "【Q】：" + str(query.to_dict()))
+                es_logger.exception("ES updateByQuery deleteByQuery: " + str(e) + "【Q】：" + str(query.to_dict()))
                 if str(e).find("NotFoundError") > 0:
                     return True
                 if str(e).find("Timeout") > 0 or str(e).find("Conflict") > 0:
@@ -341,7 +341,7 @@ class ESConnection:
                     )  # , doc_type="_doc")
                 return True
             except Exception as e:
-                es_logger.error(
+                es_logger.exception(
                     "ES update exception: "
                     + str(e)
                     + " id："
@@ -361,7 +361,7 @@ class ESConnection:
             try:
                 return s.exists()
             except Exception as e:
-                es_logger.error("ES updateByQuery indexExist: " + str(e))
+                es_logger.exception("ES updateByQuery indexExist: " + str(e))
                 if str(e).find("Timeout") > 0 or str(e).find("Conflict") > 0:
                     continue
 
@@ -372,7 +372,7 @@ class ESConnection:
             try:
                 return self.es.exists(index=(idxnm or self.idxnm), id=docid)
             except Exception as e:
-                es_logger.error("ES Doc Exist: " + str(e))
+                es_logger.exception("ES Doc Exist: " + str(e))
                 if str(e).find("Timeout") > 0 or str(e).find("Conflict") > 0:
                     continue
         return False
@@ -393,13 +393,13 @@ class ESConnection:
                 index=idxnm, settings=mapping["settings"], mappings=mapping["mappings"]
             )
         except Exception as e:
-            es_logger.error(f"ES create index error {idxnm} ----{str(e)}")
+            es_logger.exception(f"ES create index error {idxnm} ----{str(e)}")
 
     def deleteIdx(self, idxnm):
         try:
             return self.es.indices.delete(index=idxnm, allow_no_indices=True)
         except Exception as e:
-            es_logger.error(f"ES delete index error {idxnm} ---- {str(e)}")
+            es_logger.exception(f"ES delete index error {idxnm} ---- {str(e)}")
 
     def getTotal(self, res):
         if isinstance(res["hits"]["total"], type({})):
@@ -428,7 +428,7 @@ class ESConnection:
                 page = self.es.search(index=self.idxnm, scroll=scroll_time, size=pagesize, body=q, _source=None)
                 break
             except Exception as e:
-                es_logger.error("ES scrolling fail. " + str(e))
+                es_logger.exception("ES scrolling fail. " + str(e))
                 time.sleep(3)
 
         sid = page["_scroll_id"]
@@ -442,7 +442,7 @@ class ESConnection:
                     page = self.es.scroll(scroll_id=sid, scroll=scroll_time)
                     break
                 except Exception as e:
-                    es_logger.error("ES scrolling fail. " + str(e))
+                    es_logger.exception("ES scrolling fail. " + str(e))
                     time.sleep(3)
 
             # Update the scroll ID
