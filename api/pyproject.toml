@@ -191,7 +191,7 @@ optional = true
 dotenv-linter = "~0.5.0"
 ruff = "~0.8.1"
 
-[[tool.poetry.source]]
-name = "Tsinghua"
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
-priority = "primary"
+#[[tool.poetry.source]]
+#name = "Tsinghua"
+#url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+#priority = "primary"
