@@ -1,5 +1,6 @@
 import logging
 import time
+from typing import Any
 
 from core.rag.datasource.retrieval_service import RetrievalService
 from core.rag.models.document import Document
@@ -24,7 +25,7 @@ class HitTestingService:
         dataset: Dataset,
         query: str,
         account: Account,
-        retrieval_model: dict,
+        retrieval_model: Any,  # FIXME drop this any
         external_retrieval_model: dict,
         limit: int = 10,
     ) -> dict:
@@ -69,9 +70,9 @@ class HitTestingService:
         db.session.commit()
 
         if retrieval_model["search_method"] == RetrievalMethod.ES_TEXT_SEARCH.value:
-            return cls.compact_retrieve_response(dataset, query, all_documents, True)
+            return cls.compact_es_retrieve_response(dataset, query, all_documents)
 
-        return cls.compact_retrieve_response(dataset, query, all_documents)
+        return cls.compact_retrieve_response(query, all_documents)  # type: ignore
 
     @classmethod
     def external_retrieve(
@@ -105,68 +106,53 @@ class HitTestingService:
         db.session.add(dataset_query)
         db.session.commit()
 
-        return cls.compact_external_retrieve_response(dataset, query, all_documents)
+        return dict(cls.compact_external_retrieve_response(dataset, query, all_documents))
 
     @classmethod
-    def compact_retrieve_response(cls, dataset: Dataset, query: str, documents: list[Document], es=False):
-        i = 0
+    def compact_retrieve_response(cls, query: str, documents: list[Document]):
+        records = RetrievalService.format_retrieval_documents(documents)
+
+        return {
+            "query": {
+                "content": query,
+            },
+            "records": [record.model_dump() for record in records],
+        }
+
+    @classmethod
+    def compact_es_retrieve_response(cls, dataset: Dataset, query: str, documents: list[Document]):
         records = []
 
         for document in documents:
             index_node_id = document.metadata["doc_id"]
 
-            if es:
-                segment = (
-                    db.session.query(DocumentSegment)
-                    .filter(
-                        DocumentSegment.dataset_id == dataset.id,
-                        DocumentSegment.enabled == True,
-                        DocumentSegment.status == "completed",
-                        DocumentSegment.index_node_id == index_node_id,
-                    )
-                    .first()
-                )
+        segment = (
+            db.session.query(DocumentSegment)
+            .filter(
+                DocumentSegment.dataset_id == dataset.id,
+                DocumentSegment.enabled == True,
+                DocumentSegment.status == "completed",
+                DocumentSegment.index_node_id == index_node_id,
+            )
+            .first()
+        )
 
-                if not segment:
-                    # fake data for ui
-                    segment = DocumentSegment()
-                    segment.content = document.page_content
-                    segment.id = index_node_id
-                    segment.keywords = []
-                    segment.index_node_id = index_node_id
-                    segment.index_node_hash = document.metadata["doc_hash"]
-                    segment.word_count = len(document.page_content)
+        if not segment:
+            # fake data for ui
+            segment = DocumentSegment()
+            segment.content = document.page_content
+            segment.id = index_node_id
+            segment.keywords = []
+            segment.index_node_id = index_node_id
+            segment.index_node_hash = document.metadata["doc_hash"]
+            segment.word_count = len(document.page_content)
 
-                record = {
-                    "segment": segment,
-                    "score": document.metadata.get("score", None),
-                }
-                records.append(record)
+        record = {
+            "segment": segment,
+            "score": document.metadata.get("score", None),
+        }
+        records.append(record)
 
-            else:
-                segment = (
-                    db.session.query(DocumentSegment)
-                    .filter(
-                        DocumentSegment.dataset_id == dataset.id,
-                        DocumentSegment.enabled == True,
-                        DocumentSegment.status == "completed",
-                        DocumentSegment.index_node_id == index_node_id,
-                    )
-                    .first()
-                )
-
-                if not segment:
-                    i += 1
-                    continue
-
-                record = {
-                    "segment": segment,
-                    "score": document.metadata.get("score", None),
-                }
-
-                records.append(record)
-
-                i += 1
         return {
             "query": {
                 "content": query,
@@ -175,7 +161,7 @@ class HitTestingService:
         }
 
     @classmethod
-    def compact_external_retrieve_response(cls, dataset: Dataset, query: str, documents: list):
+    def compact_external_retrieve_response(cls, dataset: Dataset, query: str, documents: list) -> dict[Any, Any]:
         records = []
         if dataset.provider == "external":
             for document in documents:
@@ -187,11 +173,10 @@ class HitTestingService:
                 }
                 records.append(record)
             return {
-                "query": {
-                    "content": query,
-                },
+                "query": {"content": query},
                 "records": records,
             }
+        return {"query": {"content": query}, "records": []}
 
     @classmethod
     def hit_testing_args_check(cls, args):
