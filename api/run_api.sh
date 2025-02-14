@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # source ../venv/bin/activate
-poetry shell
+# poetry shell is deprecated in poetry 2.0+
+eval $(poetry env activate)
 poetry install
 #flask db migrate
 flask db upgrade
@@ -13,5 +14,3 @@ nohup celery -A app.celery worker -P gevent -c 1 -Q dataset,generation,mail,ops_
 ps -ef |grep port=5001 | grep -v grep |awk '{print $2}' | xargs kill
 # nohup flask run --host 0.0.0.0 --port=5001 --debug 2>&1 >> logs/api.log &
 flask run --host 0.0.0.0 --port=5001 --debug
-
-
