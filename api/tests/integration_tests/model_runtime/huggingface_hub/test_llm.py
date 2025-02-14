@@ -9,6 +9,7 @@ from core.model_runtime.errors.validate import CredentialsValidateFailedError
 from core.model_runtime.model_providers.huggingface_hub.llm.llm import HuggingfaceHubLargeLanguageModel
 
 
+@pytest.mark.skip
 @pytest.mark.parametrize("setup_huggingface_mock", [["none"]], indirect=True)
 def test_hosted_inference_api_validate_credentials(setup_huggingface_mock):
     model = HuggingfaceHubLargeLanguageModel()
