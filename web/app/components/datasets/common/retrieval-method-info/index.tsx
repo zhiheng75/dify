@@ -7,6 +7,7 @@ import { retrievalIcon } from '../../create/icons'
 import type { RetrievalConfig } from '@/types/app'
 import { RETRIEVE_METHOD } from '@/types/app'
 import RadioCard from '@/app/components/base/radio-card'
+import { FileSearch02 } from '@/app/components/base/icons/src/vender/solid/files'
 
 type Props = {
   value: RetrievalConfig
